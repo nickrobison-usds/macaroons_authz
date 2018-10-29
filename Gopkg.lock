@@ -361,6 +361,14 @@
   version = "v3.1.1"
 
 [[projects]]
+  digest = "1:97df918963298c287643883209a2c3f642e6593379f97ab400c2a2e219ab647d"
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  pruneopts = "UT"
+  revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:c79fb010be38a59d657c48c6ba1d003a8aa651fa56b579d959d74573b7dff8e1"
   name = "github.com/gorilla/context"
   packages = ["."]
@@ -479,6 +487,17 @@
   pruneopts = "UT"
   revision = "e6789dc391e3308d92d2f9131990b7426e5e3066"
   version = "v1.0.2"
+
+[[projects]]
+  digest = "1:ee395312918426d8802fb982f2649b1441f8b5927e9f151604b57a475797f7e9"
+  name = "github.com/markbates/goth"
+  packages = [
+    ".",
+    "gothic",
+  ]
+  pruneopts = "UT"
+  revision = "bc6d8ddf751a745f37ca5567dbbfc4157bbf5da9"
+  version = "v1.47.2"
 
 [[projects]]
   digest = "1:fecb0ae22407090e8cceb1b108d1f44576420f8450213c0f18416745d80504eb"
@@ -751,15 +770,27 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:17847c677cb69303e0b8606b690f400c53485620a98d288aee1a215235118fcb"
+  digest = "1:db7528233e2f178f8770284f05c60708b31e73d9b8d287676ce52a3389681fe4"
   name = "golang.org/x/net"
   packages = [
     "context",
+    "context/ctxhttp",
     "html",
     "html/atom",
   ]
   pruneopts = "UT"
   revision = "c44066c5c816ec500d459a2a324a753f78531ae0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:1bce229fad01cbad9bd00e70ca32afff25ac2cea3dd710d50f88c967c1c3df65"
+  name = "golang.org/x/oauth2"
+  packages = [
+    ".",
+    "internal",
+  ]
+  pruneopts = "UT"
+  revision = "9dcd33a902f40452422c2367fefcb95b54f9f8f8"
 
 [[projects]]
   branch = "master"
@@ -781,9 +812,18 @@
   revision = "d69651ed3497faee15a5363a89578e9991f6d5e2"
 
 [[projects]]
-  digest = "1:c25289f43ac4a68d88b02245742347c94f1e108c534dda442188015ff80669b3"
+  digest = "1:4b8f3d164fcba1aed1e5ec63edb518b7d436b001f01e06c7f9c2335498b4c5a3"
   name = "google.golang.org/appengine"
-  packages = ["cloudsql"]
+  packages = [
+    "cloudsql",
+    "internal",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch",
+  ]
   pruneopts = "UT"
   revision = "ae0ab99deb4dc413a2b4bd6c8bdd0eb67f1e4d06"
   version = "v1.2.0"
@@ -810,8 +850,16 @@
     "github.com/gobuffalo/mw-paramlogger",
     "github.com/gobuffalo/packr",
     "github.com/gobuffalo/pop",
+    "github.com/gobuffalo/pop/nulls",
     "github.com/gobuffalo/suite",
+    "github.com/gobuffalo/uuid",
+    "github.com/gobuffalo/validate",
+    "github.com/gobuffalo/validate/validators",
+    "github.com/markbates/going/defaults",
+    "github.com/markbates/goth",
+    "github.com/markbates/goth/gothic",
     "github.com/markbates/grift/grift",
+    "github.com/pkg/errors",
     "github.com/unrolled/secure",
   ]
   solver-name = "gps-cdcl"
