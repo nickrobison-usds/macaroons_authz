@@ -76,3 +76,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/gobuffalo/buffalo-goth"
+  version = "1.0.2"
