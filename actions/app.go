@@ -65,9 +65,9 @@ func App() *buffalo.App {
 		// Auth handlers
 		auth := app.Group("/auth")
 		auth.POST("/login", ManualLogin)
+		auth.GET("/logout", AuthDestroy)
 		auth.GET("/{provider}", AuthLogin)
 		auth.GET("/{provider}/callback", AuthCallback)
-		auth.GET("/logout", AuthDestroy)
 
 		app.ServeFiles("/", assetsBox) // serve files from the public directory
 	}

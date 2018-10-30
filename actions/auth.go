@@ -24,6 +24,7 @@ import (
 var usernames map[string]string
 
 func init() {
+	// Get rid of this
 	usernames = map[string]string{
 		"nick@nick.com":  "password",
 		"other@test.com": "test",
@@ -149,12 +150,9 @@ func ManualLogin(c buffalo.Context) error {
 	email := r.FormValue("email")
 
 	password, ok := usernames[email]
-	if !ok {
-		return errors.WithStack(errors.New("Incorrect user"))
-	}
-
-	if r.FormValue("password") != password {
-		return errors.WithStack(errors.New("Bad password"))
+	if !ok || password != r.FormValue("password") {
+		c.Flash().Add("danger", "Incorrect username or password")
+		c.Redirect(302, "/")
 	}
 
 	fmt.Println("Logged")

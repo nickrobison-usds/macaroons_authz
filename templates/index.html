@@ -18,6 +18,9 @@
                 <a class="p-2 text-light" href="#">Users</a>
             </nav>
             <button type="button" class="btn btn-outline-light mr-md-3 text-light" data-toggle="modal" data-target="#loginModal">Login</button>
+            <%= if (user_id) { %>
+            <a class="btn btn-outline-light mr-md-3 text-light" href="/auth/logout">Log out</a>
+            <% } %>
         </div>
     </div>
 </div>
