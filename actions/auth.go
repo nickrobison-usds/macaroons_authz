@@ -151,8 +151,7 @@ func ManualLogin(c buffalo.Context) error {
 
 	password, ok := usernames[email]
 	if !ok || password != r.FormValue("password") {
-		c.Flash().Add("danger", "Incorrect username or password")
-		c.Redirect(302, "/")
+		c.Flash().Add("auth", "Incorrect username or password")
 	}
 
 	fmt.Println("Logged")
