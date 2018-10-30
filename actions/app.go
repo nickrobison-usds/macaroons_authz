@@ -64,6 +64,7 @@ func App() *buffalo.App {
 
 		// Auth handlers
 		auth := app.Group("/auth")
+		auth.POST("/login", ManualLogin)
 		auth.GET("/{provider}", AuthLogin)
 		auth.GET("/{provider}/callback", AuthCallback)
 		auth.GET("/logout", AuthDestroy)

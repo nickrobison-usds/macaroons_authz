@@ -21,7 +21,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+var usernames map[string]string
+
 func init() {
+	usernames = map[string]string{
+		"nick@nick.com":  "password",
+		"other@test.com": "test",
+	}
 	gothic.Store = App().SessionStore
 
 	providerURL, err := envy.MustGet("PROVIDER_URL")
@@ -134,6 +140,28 @@ func loginGovURL(session goth.Session, state string, loaNum string) (string, err
 
 	authURL.RawQuery = params.Encode()
 	return authURL.String(), nil
+}
+
+func ManualLogin(c buffalo.Context) error {
+	r := c.Request()
+	fmt.Println(r.Form)
+
+	email := r.FormValue("email")
+
+	password, ok := usernames[email]
+	if !ok {
+		return errors.WithStack(errors.New("Incorrect user"))
+	}
+
+	if r.FormValue("password") != password {
+		return errors.WithStack(errors.New("Bad password"))
+	}
+
+	fmt.Println("Logged")
+	c.Session().Set("user_id", email)
+
+	return c.Redirect(302, "/")
+
 }
 
 func SetCurrentUser(next buffalo.Handler) buffalo.Handler {
