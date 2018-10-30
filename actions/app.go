@@ -62,6 +62,12 @@ func App() *buffalo.App {
 
 		app.GET("/routes", RouteHandler)
 
+		// Auth handlers
+		auth := app.Group("/auth")
+		auth.GET("/{provider}", AuthLogin)
+		auth.GET("/{provider}/callback", AuthCallback)
+		auth.GET("/logout", AuthDestroy)
+
 		app.ServeFiles("/", assetsBox) // serve files from the public directory
 	}
 

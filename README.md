@@ -33,3 +33,29 @@ We recommend you heading over to [http://gobuffalo.io](http://gobuffalo.io) and 
 Good luck!
 
 [Powered by Buffalo](http://gobuffalo.io)
+
+## Dependencies
+
+### Gothic (for dev only)
+
+We need gothic for user authentication, which comes with some nice plugings for buffalo.
+
+If you need to make any changes, you can add the plugin.
+
+```bash
+go get -u github.com/gobuffalo/buffalo-goth
+```
+
+### Login.gov
+
+This project requires a working, local installation of the Login.gov service.
+
+You can clone the repo and build the docker images, like so:
+
+```bash
+git clone https://github.com/18F/identity-idp.git
+cd identity-idp
+bin/setup --docker
+```
+
+From there, you can issue the standard `docker-compose [up|down]` commands to get things running.
