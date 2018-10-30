@@ -70,6 +70,16 @@ func App() *buffalo.App {
 		auth.GET("/{provider}", AuthLogin)
 		auth.GET("/{provider}/callback", AuthCallback)
 
+		api := app.Group("/api")
+		api.Use(Authorize)
+
+		api.GET("/acos/index", AcosIndex)
+
+		api.GET("/users/index", UsersIndex)
+		api.GET("/users/show/{id}", UsersShow)
+		api.POST("/users/create", UsersCreate)
+		api.DELETE("/users/delete/{id}", UsersDelete)
+
 		app.ServeFiles("/", assetsBox) // serve files from the public directory
 	}
 
