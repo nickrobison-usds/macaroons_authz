@@ -1,7 +1,23 @@
 <h1>Registered Users:</h1>
 
-<ul>
-<%= for (user) in users  { %>
-<li> <%= user.Name %></li>
-<% } %>
-</ul>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Provider</th>
+            <th scope="col">Assign</th>
+            <th scope="col">Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+        <%= for (user) in users { %>
+        <tr>
+            <td><%= user.Name %></td>
+            <td><%= user.Email %></td>
+            <td><%= user.Provider %></td>
+            <td><i class="fa fa-user-plus fa-lg"></i></td>
+            <td><a href="delete/<%=user.ID%>"><i class="fa fa-minus-circle fa-lg"></i></a></td>
+        </tr>
+    </tbody>
+</table>
