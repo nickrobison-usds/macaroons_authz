@@ -16,6 +16,7 @@ import (
 	"github.com/markbates/going/defaults"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
+	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/openidConnect"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
@@ -43,7 +44,10 @@ func init() {
 		panic(err)
 	}
 
-	goth.UseProviders(oidp)
+	// Github provider
+	gidb := github.New(envy.Get("GITHUB_KEY", ""), envy.Get("GITHUB_SECRET", ""), "http://localhost:8080/auth/github/callback")
+
+	goth.UseProviders(oidp, gidb)
 }
 
 // Custom login handler, because gothic.BeginAuthHandler doesn't work correctly.
@@ -57,20 +61,27 @@ func AuthLogin(c buffalo.Context) error {
 		return errors.WithStack(err)
 	}
 
-	// Start the login
-	state := generateNonce()
+	// Special handling of Login.Gov, because it has some funkiness to it.
+	if prov == "login-gov" {
+		// Start the login
+		state := generateNonce()
 
-	sesh, err := provider.BeginAuth(state)
-	if err != nil {
-		errors.WithStack(err)
+		sesh, err := provider.BeginAuth(state)
+		if err != nil {
+			errors.WithStack(err)
+		}
+
+		authURL, err := loginGovURL(sesh, state, "1")
+		if err != nil {
+			errors.WithStack(err)
+		}
+
+		return c.Redirect(http.StatusTemporaryRedirect, authURL)
 	}
 
-	authURL, err := loginGovURL(sesh, state, "1")
-	if err != nil {
-		errors.WithStack(err)
-	}
+	gothic.BeginAuthHandler(c.Response(), c.Request())
+	return nil
 
-	return c.Redirect(http.StatusTemporaryRedirect, authURL)
 }
 
 func AuthCallback(c buffalo.Context) error {

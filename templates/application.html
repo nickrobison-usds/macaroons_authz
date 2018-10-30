@@ -26,8 +26,13 @@
     <div class="row">
         <div class="col-md-12">
             <div class=" subtitle d-flex flex-column flex-md-row align-items-center px-md-4">
-                <h5 class="my-0 mr-md-auto mr-md-3 font-weight-normal">Lists of things</h5>
-                <%= if (user_id) { %>
+
+                <span class="my-0 ml-auto"></span>
+
+                <%= if (current_user) { %>
+                <h5 class="my-0 mr-md-auto mr-md-3 font-weight-normal">Hello,
+                    <%=current_user.Name %>
+                </h5>
                 <nav class="my-2 my-md-0 mr-md-3">
                     <a class="p-2 text-light" href="#">ACOs</a>
                     <a class="p-2 text-light" href="#">Vendors</a>

@@ -489,11 +489,12 @@
   version = "v1.0.2"
 
 [[projects]]
-  digest = "1:437c634dd70a9d0d16e404e7ae681faa850562a8ac45cdf08abc56d6fcdd3bbd"
+  digest = "1:393cd2895793ab2bf3481a6c7ecc4d725b52d29fd97b63b3f1aeeccdc1e9a272"
   name = "github.com/markbates/goth"
   packages = [
     ".",
     "gothic",
+    "providers/github",
     "providers/openidConnect",
   ]
   pruneopts = "UT"
@@ -859,6 +860,7 @@
     "github.com/markbates/going/defaults",
     "github.com/markbates/goth",
     "github.com/markbates/goth/gothic",
+    "github.com/markbates/goth/providers/github",
     "github.com/markbates/goth/providers/openidConnect",
     "github.com/markbates/grift/grift",
     "github.com/pkg/errors",

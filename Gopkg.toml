@@ -76,3 +76,7 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/markbates/goth"
+  version = "1.47.2"
