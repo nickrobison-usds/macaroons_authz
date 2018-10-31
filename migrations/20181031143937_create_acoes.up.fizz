@@ -1,0 +1,4 @@
+create_table("acos") {
+	t.Column("id", "uuid", {"primary": true})
+  t.Column("name", "string", {})
+}

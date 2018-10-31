@@ -1,1 +1,19 @@
-<h1>Api/aco#Index</h1>
+<div class="row">
+    <div class="col-sm-3">
+        <h1>ACO Index</h1>
+    </div>
+    <div class="mr-md-3">
+        <a href="create" class="btn btn-outline-dark text-dark">Create ACO</a>
+    </div>
+</div>
+
+<div class="row">
+    <ul>
+        <li>First</li>
+        <%= for (aco) in acos { %>
+        <li>
+            <%= aco.Name %>
+        </li>
+        <% } %>
+    </ul>
+</div>

@@ -28,7 +28,7 @@ func UsersShow(c buffalo.Context) error {
 
 // UsersCreate default implementation.
 func UsersCreate(c buffalo.Context) error {
-	return c.Render(200, r.HTML("api.users/create.html"))
+	return c.Render(200, r.HTML("api/users/create.html"))
 }
 
 // UsersDelete default implementation.
