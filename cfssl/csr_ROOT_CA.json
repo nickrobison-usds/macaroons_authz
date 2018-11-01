@@ -1,0 +1,16 @@
+{
+    "CN": "CMS-AUTHZ-ROOT-CA",
+    "key": {
+        "algo": "ecdsa",
+        "size": 256
+    },
+    "names": [
+        {
+        "C": "US",
+        "L": "Washington",
+        "O": "USDS-CMS",
+        "OU": "BCDA Group",
+        "ST": "District of Columbia"
+        }
+    ]
+}

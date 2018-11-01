@@ -7,6 +7,7 @@ import (
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/uuid"
+	"github.com/nickrobison/cms_authz/lib/auth/ca"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
 )
@@ -45,6 +46,12 @@ func AcosCreateACO(c buffalo.Context) error {
 	c.Bind(&aco)
 
 	fmt.Printf("\n\n\nACO: %v\n\n\n", aco)
+
+	// Try to create a new CA
+	err := ca.CreateCA(aco.Name, "aco")
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
 	tx := c.Value("tx").(*pop.Connection)
 

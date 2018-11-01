@@ -1,0 +1,33 @@
+{
+    "signing": {
+        "profiles": {
+            "CA": {
+                "auth_key": "key1",
+                "expiry": "876h",
+                "usages": [
+                    "cert sign",
+                    "crl sign"
+                ]
+            }
+        },
+        "default": {
+            "auth_key": "key1",
+            "expiry": "8760h",
+            "usages": [
+                "cert sign",
+                "crl sign"
+            ],
+            "ca_constraint": {
+                "is_ca": true,
+                "max_path_len": 0,
+                "max_path_len_zero": true
+            }
+        }
+    },
+    "auth_keys": {
+        "key1": {
+            "key": "aaaaaaaaaaaaaaaa",
+            "type": "standard"
+        }
+    }
+}
