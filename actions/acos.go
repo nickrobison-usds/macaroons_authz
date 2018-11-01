@@ -38,6 +38,29 @@ func AcosCreate(c buffalo.Context) error {
 	return c.Render(http.StatusOK, r.HTML("api/acos/create.html"))
 }
 
+func AcosDelete(c buffalo.Context) error {
+
+	acoID := c.Param("id")
+	uuidString, err := uuid.FromString(acoID)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	user := models.Aco{
+		ID: uuidString,
+	}
+	tx := c.Value("tx").(*pop.Connection)
+	err = tx.Destroy(&user)
+	if err != nil {
+		c.Flash().Add("danger", fmt.Sprintf("Cannot delete ACO: %s", acoID))
+		return errors.WithStack(err)
+	}
+
+	c.Flash().Add("success", "Deleted")
+	return c.Redirect(302, "/api/acos/index")
+
+}
+
 func AcosCreateACO(c buffalo.Context) error {
 	fmt.Println(c.Request())
 

@@ -8,12 +8,26 @@
 </div>
 
 <div class="row">
-    <ul>
-        <li>First</li>
-        <%= for (aco) in acos { %>
-        <li>
-            <%= aco.Name %>
-        </li>
-        <% } %>
-    </ul>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <%= for (aco) in acos { %>
+            <tr>
+                <td>
+                    <%= aco.Name %>
+                </td>
+                <td>
+                    <a href="delete/<%=aco.ID%>">
+                        <i class="fa fa-minus-circle fa-lg"></i></a>
+                </td>
+            </tr>
+            <% } %>
+        </tbody>
+    </table>
+
 </div>
