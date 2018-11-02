@@ -12,3 +12,6 @@ cms_authz
 .vscode/
 .grifter/
 .env
+.DS_Store
+*.pem
+*.csr
