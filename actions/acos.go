@@ -71,7 +71,7 @@ func AcosCreateACO(c buffalo.Context) error {
 	fmt.Printf("\n\n\nACO: %v\n\n\n", aco)
 
 	// Try to create a new CA
-	err := ca.CreateCA(aco.Name, "aco")
+	_, err := ca.CreateCA(aco.Name, "aco")
 	if err != nil {
 		return errors.WithStack(err)
 	}

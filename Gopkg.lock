@@ -609,6 +609,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:53bc4cd4914cd7cd52139990d5170d6dc99067ae31c56530621b18b35fc30318"
+  name = "github.com/mitchellh/mapstructure"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
+  version = "v1.1.2"
+
+[[projects]]
   digest = "1:9f6f7ba2d9477766a32520ac15339c00d5c1baebb84091d43c9f0d68c04b78bb"
   name = "github.com/monoculum/formam"
   packages = ["."]
@@ -863,6 +871,7 @@
     "github.com/markbates/goth/providers/github",
     "github.com/markbates/goth/providers/openidConnect",
     "github.com/markbates/grift/grift",
+    "github.com/mitchellh/mapstructure",
     "github.com/pkg/errors",
     "github.com/unrolled/secure",
   ]

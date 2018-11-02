@@ -15,7 +15,10 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 
+	"errors"
+
 	"github.com/gobuffalo/envy"
+	"github.com/mitchellh/mapstructure"
 )
 
 // The Type of the CA, either Vendor, ACO, or CMS
@@ -75,6 +78,13 @@ type responseMessage struct {
 	Message string `json:"message"`
 }
 
+// CFSSLCertificateResponse is the result from CFSSL generating a new certifcate/private_key
+type CFSSLCertificateResponse struct {
+	PrivateKey  string `json:"private_key"`
+	Certificate string `json:"certificate"`
+	CSR         string `json:"certificate_request"`
+}
+
 // cfsslResponse from CFSSL remote server
 type cfsslResponse struct {
 	Success  bool                   `json:"success"`
@@ -91,7 +101,10 @@ type outputFile struct {
 	Perms    os.FileMode
 }
 
-var cfsslURL string
+var (
+	cfsslURL string
+	client   *http.Client
+)
 
 func init() {
 	url, err := envy.MustGet("CFSSL_URL")
@@ -100,10 +113,11 @@ func init() {
 	}
 
 	cfsslURL = url
+	client = &http.Client{}
 }
 
 // CreateCA - create a new CertificateAuthority for the given entity
-func CreateCA(name string, caType Type) error {
+func CreateCA(name string, caType Type) (CFSSLCertificateResponse, error) {
 	// First, tell CFSSL to init a new CA.
 	caName := fmt.Sprintf("%s_%s_ca", caType, name)
 
@@ -123,41 +137,13 @@ func CreateCA(name string, caType Type) error {
 		}},
 	}
 
-	data, err := encodeCFSSLRequest(caRequest, "")
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("\n\nCert data: %s\n", data)
-
-	// Send it over to CFSSL, key first, then Cert
-	client := http.Client{}
-
-	// Get the Cert
-
-	certReq, err := http.NewRequest("POST", cfsslURL+"/api/v1/cfssl/newcert", bytes.NewBuffer(data))
-	if err != nil {
-		return err
-	}
-
 	fmt.Println("Doing the cert things")
 	fmt.Println(caRequest)
 
-	certResp, err := client.Do(certReq)
+	var jsonCertResp CFSSLCertificateResponse
+	err := handleCFSSLOp(http.MethodPost, "newcert", caRequest, &jsonCertResp)
 	if err != nil {
-		return err
-	}
-	defer certResp.Body.Close()
-
-	certRespBody, err := ioutil.ReadAll(certResp.Body)
-	if err != nil {
-		return err
-	}
-
-	var jsonCertResp cfsslResponse
-	err = json.Unmarshal(certRespBody, &jsonCertResp)
-	if err != nil {
-		return err
+		return jsonCertResp, err
 	}
 
 	fmt.Println(jsonCertResp)
@@ -167,32 +153,31 @@ func CreateCA(name string, caType Type) error {
 
 	outs = append(outs, outputFile{
 		FileName: caName + "-key.pem",
-		Contents: jsonCertResp.Result["private_key"].(string),
+		Contents: jsonCertResp.PrivateKey,
 		IsBinary: false,
 		Perms:    0664,
 	})
 
 	outs = append(outs, outputFile{
 		FileName: caName + ".pem",
-		Contents: jsonCertResp.Result["certificate"].(string),
+		Contents: jsonCertResp.Certificate,
 		IsBinary: false,
 		Perms:    0664,
 	})
 
 	outs = append(outs, outputFile{
 		FileName: caName + ".csr",
-		Contents: jsonCertResp.Result["certificate_request"].(string),
+		Contents: jsonCertResp.CSR,
 		Perms:    0664,
 	})
 
 	for _, e := range outs {
 		err := ioutil.WriteFile(e.FileName, []byte(e.Contents), e.Perms)
 		if err != nil {
-			return err
+			return jsonCertResp, err
 		}
 	}
-
-	return nil
+	return jsonCertResp, nil
 }
 
 // Sign a CFSSL request using the provided token
@@ -229,4 +214,60 @@ func encodeCFSSLRequest(request interface{}, key string) ([]byte, error) {
 	//}
 
 	return json.Marshal(cfsslRequest)
+}
+
+func decodeCFSSLResponse(resp []byte, v interface{}) error {
+	return json.Unmarshal(resp, v)
+}
+
+func handleCFSSLOp(method, resource string, data interface{}, output interface{}) error {
+	encodedRequest, err := encodeCFSSLRequest(data, "")
+	if err != nil {
+		return err
+	}
+
+	uri := cfsslURL + "/api/v1/cfssl/" + resource
+
+	// Execute HTTP operation
+	req, err := http.NewRequest(method, uri, bytes.NewBuffer(encodedRequest))
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("\n\n%v\n", string(body))
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.New(string(body))
+	}
+
+	// Decode the response and check for any errors
+	var response cfsslResponse
+	err = decodeCFSSLResponse(body, &response)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Debug cfssl response: %v\n\n", response)
+
+	if len(response.Errors) > 0 {
+		err := response.Errors[0]
+		return errors.New(err.Message)
+	}
+
+	// Now, decode the actual response
+	err = mapstructure.Decode(response.Result, output)
+	if err != nil {
+		return err
+	}
+	return nil
 }
