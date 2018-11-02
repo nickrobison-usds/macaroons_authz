@@ -6,7 +6,8 @@
                 "expiry": "876h",
                 "usages": [
                     "cert sign",
-                    "crl sign"
+                    "crl sign",
+                    "signature"
                 ]
             }
         },
@@ -15,7 +16,10 @@
             "expiry": "8760h",
             "usages": [
                 "cert sign",
-                "crl sign"
+                "crl sign",
+                "signing",
+                "key encipherment",
+                "server auth"
             ],
             "ca_constraint": {
                 "is_ca": true,

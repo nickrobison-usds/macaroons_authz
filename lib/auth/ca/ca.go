@@ -25,12 +25,11 @@ type Type string
 
 // A Name contains the SubjectInfo fields.
 type Name struct {
-	C            string // Country
-	ST           string // State
-	L            string // Locality
-	O            string // OrganisationName
-	OU           string // OrganisationalUnitName
-	SerialNumber string
+	C  string // Country
+	ST string // State
+	L  string // Locality
+	O  string // OrganisationName
+	OU string // OrganisationalUnitName
 }
 
 // KeyRequest - Type and size of key to generate
@@ -65,8 +64,8 @@ type CsrRequest struct {
 	CertificateRequest string `json:"certificate_request"`
 }
 
-type AuthSignRequest struct {
-	Token   []byte `json:"token"`
+type CFSSLRequest struct {
+	Token   []byte `json:"token,omitempty"`
 	Request []byte `json:"request"`
 }
 
@@ -114,51 +113,26 @@ func CreateCA(name string, caType Type) error {
 			Algo: "ecdsa",
 			Size: 256,
 		},
-		Hosts:        []string{},
+		Hosts:        []string{"test.xample.com"},
 		SerialNumber: "",
 		Names: []Name{{
 			C:  "US",
-			L:  "Washington",
-			ST: "District of Columbia",
+			L:  "Seattle",
+			ST: "Washington",
 			O:  name,
 			OU: caName,
 		}},
 	}
 
+	data, err := encodeCFSSLRequest(caRequest, "")
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("\n\nCert data: %s\n", data)
+
 	// Send it over to CFSSL, key first, then Cert
-	data, err := json.Marshal(caRequest)
-	if err != nil {
-		return err
-	}
-
-	keyReq, err := http.NewRequest("POST", cfsslURL+"/api/v1/cfssl/newkey", bytes.NewBuffer(data))
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Doing the Key thing")
-
-	client := &http.Client{}
-	resp, err := client.Do(keyReq)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Just print it out right now
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-
-	var jsonKeyResp cfsslResponse
-
-	err = json.Unmarshal(body, &jsonKeyResp)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(jsonKeyResp)
+	client := http.Client{}
 
 	// Get the Cert
 
@@ -206,19 +180,14 @@ func CreateCA(name string, caType Type) error {
 
 	fmt.Println(debug)
 
-	signRequest := &AuthSignRequest{
+	signedRequest := &CFSSLRequest{
 		Request: signData,
 	}
 
-	keyHex, err := hex.DecodeString("aaaaaaaaaaaaaaaa")
-	if err != nil {
-		return err
-	}
+	token, err := signRequest("aaaaaaaaaaaaaaaa", signedRequest.Request)
+	signedRequest.Token = token
 
-	token, err := genToken(keyHex, signRequest.Request)
-	signRequest.Token = token
-
-	blob, err := json.Marshal(signRequest)
+	blob, err := json.Marshal(signedRequest)
 	if err != nil {
 		return err
 	}
@@ -258,14 +227,14 @@ func CreateCA(name string, caType Type) error {
 
 	outs = append(outs, outputFile{
 		FileName: caName + "-key.pem",
-		Contents: jsonKeyResp.Result["private_key"].(string),
+		Contents: jsonCertResp.Result["private_key"].(string),
 		IsBinary: false,
 		Perms:    0664,
 	})
 
 	outs = append(outs, outputFile{
 		FileName: caName + ".pem",
-		Contents: signRespData.Result["certificate"].(string),
+		Contents: jsonCertResp.Result["certificate"].(string),
 		IsBinary: false,
 		Perms:    0664,
 	})
@@ -286,8 +255,38 @@ func CreateCA(name string, caType Type) error {
 	return nil
 }
 
-func genToken(key, data []byte) ([]byte, error) {
-	h := hmac.New(sha256.New, key)
+// Sign a CFSSL request using the provided token
+func signRequest(key string, data []byte) ([]byte, error) {
+	keyHex, err := hex.DecodeString(key)
+	if err != nil {
+		return nil, err
+	}
+
+	h := hmac.New(sha256.New, keyHex)
 	h.Write(data)
 	return h.Sum(nil), nil
+}
+
+// Encodes an API request in the format expected by CFSSL
+func encodeCFSSLRequest(request interface{}, key string) ([]byte, error) {
+
+	data, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+
+	cfsslRequest := &CFSSLRequest{
+		Request: data,
+	}
+
+	// Encode it, if we need to
+	if key != "" {
+		token, err := signRequest(key, cfsslRequest.Request)
+		if err != nil {
+			return nil, err
+		}
+		cfsslRequest.Token = token
+	}
+
+	return json.Marshal(cfsslRequest)
 }
