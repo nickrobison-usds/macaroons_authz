@@ -15,7 +15,7 @@ import (
 // acoIndex default implementation.
 func AcosIndex(c buffalo.Context) error {
 
-	acos := []models.Aco{}
+	acos := []models.ACO{}
 
 	tx := c.Value("tx").(*pop.Connection)
 	if err := tx.All(&acos); err != nil {
@@ -27,7 +27,7 @@ func AcosIndex(c buffalo.Context) error {
 }
 
 func AcosCreate(c buffalo.Context) error {
-	aco := models.Aco{}
+	aco := models.ACO{}
 	uid, err := uuid.NewV4()
 	if err != nil {
 		return errors.WithStack(err)
@@ -46,7 +46,7 @@ func AcosDelete(c buffalo.Context) error {
 		return errors.WithStack(err)
 	}
 
-	user := models.Aco{
+	user := models.ACO{
 		ID: uuidString,
 	}
 	tx := c.Value("tx").(*pop.Connection)
@@ -64,20 +64,23 @@ func AcosDelete(c buffalo.Context) error {
 func AcosCreateACO(c buffalo.Context) error {
 	fmt.Println(c.Request())
 
-	aco := models.Aco{}
+	aco := models.ACO{}
 
 	c.Bind(&aco)
 
 	fmt.Printf("\n\n\nACO: %v\n\n\n", aco)
 
 	// Try to create a new CA
-	_, err := ca.CreateCA(aco.Name, "aco")
+	cert, err := ca.CreateCA(aco.Name, "aco")
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	tx := c.Value("tx").(*pop.Connection)
+	aco.Key = cert.Certificate
+	aco.Certificate = cert.Certificate
+	aco.SHA = cert.Sums.Certificate.SHA1
 
+	tx := c.Value("tx").(*pop.Connection)
 	if err := tx.Create(&aco); err != nil {
 		return errors.WithStack(err)
 	}

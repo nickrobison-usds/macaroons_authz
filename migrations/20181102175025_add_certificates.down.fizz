@@ -1,0 +1,3 @@
+drop_column("acos", "key")
+drop_column("acos", "certificate")
+drop_column("acos", "sha")
