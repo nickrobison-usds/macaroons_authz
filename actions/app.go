@@ -77,6 +77,7 @@ func App() *buffalo.App {
 		api.GET("/acos/create", RenderCreatePage)
 		api.POST("/acos/create", AcosCreateACO)
 		api.GET("/acos/delete/{id}", AcosDelete)
+		api.GET("/acos/show/{id}", AcoShow)
 
 		api.GET("/users/index", UsersIndex)
 		api.GET("/users/show/{id}", UsersShow)

@@ -19,7 +19,7 @@
             <%= for (aco) in acos { %>
             <tr>
                 <td>
-                    <%= aco.Name %>
+                    <a href="show/<%=aco.ID%>"> <%= aco.Name %></a>
                 </td>
                 <td>
                     <a href="delete/<%=aco.ID%>">

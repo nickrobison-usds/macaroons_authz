@@ -33,6 +33,20 @@ func RenderCreatePage(c buffalo.Context) error {
 	return c.Render(http.StatusOK, r.HTML("api/acos/create.html"))
 }
 
+func AcoShow(c buffalo.Context) error {
+	acoID := c.Param("id")
+
+	aco := models.ACO{}
+	tx := c.Value("tx").(*pop.Connection)
+	err := tx.Find(&aco, acoID)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	c.Set("aco", aco)
+	return c.Render(http.StatusOK, r.HTML("/api/acos/show.html"))
+}
+
 func AcosDelete(c buffalo.Context) error {
 
 	acoID := c.Param("id")
