@@ -1,5 +1,4 @@
-<%= form_for(aco, {action: "/api/acos/create/" + aco.ID, method: "POST"}) { %>
-<%= f.InputTag("", {name: "ID", value: aco.ID, hidden: true}) %>
+<%= form_for(aco, {action: "/api/acos/create", method: "POST"}) { %>
 <div class="row">
     <div class="col-md-6">
         <%= f.InputTag("Name") %>

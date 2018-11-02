@@ -26,13 +26,8 @@ func AcosIndex(c buffalo.Context) error {
 	return c.Render(200, r.HTML("api/acos/index.html"))
 }
 
-func AcosCreate(c buffalo.Context) error {
+func RenderCreatePage(c buffalo.Context) error {
 	aco := models.ACO{}
-	uid, err := uuid.NewV4()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	aco.ID = uid
 
 	c.Set("aco", aco)
 	return c.Render(http.StatusOK, r.HTML("api/acos/create.html"))
@@ -66,7 +61,17 @@ func AcosCreateACO(c buffalo.Context) error {
 
 	aco := models.ACO{}
 
-	c.Bind(&aco)
+	// Generate a new ID for the ACO
+	uid, err := uuid.NewV4()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	aco.ID = uid
+
+	err = c.Bind(&aco)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
 	fmt.Printf("\n\n\nACO: %v\n\n\n", aco)
 
