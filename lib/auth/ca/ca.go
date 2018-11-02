@@ -65,8 +65,8 @@ type CsrRequest struct {
 }
 
 type CFSSLRequest struct {
-	Token   []byte `json:"token,omitempty"`
-	Request []byte `json:"request"`
+	Token   []byte      `json:"token,omitempty"`
+	Request interface{} `json:"request"`
 }
 
 // responseMessage from CFSSL reporting errors or messages
@@ -113,7 +113,6 @@ func CreateCA(name string, caType Type) error {
 			Algo: "ecdsa",
 			Size: 256,
 		},
-		Hosts:        []string{"test.xample.com"},
 		SerialNumber: "",
 		Names: []Name{{
 			C:  "US",
@@ -163,65 +162,6 @@ func CreateCA(name string, caType Type) error {
 
 	fmt.Println(jsonCertResp)
 
-	// Now we have to sign the new intermediate
-	fmt.Println("Signing Now")
-
-	signData, err := json.Marshal(CsrRequest{
-		CertificateRequest: jsonCertResp.Result["certificate_request"].(string)})
-	if err != nil {
-		return err
-	}
-
-	var debug map[string]interface{}
-	err = json.Unmarshal(signData, &debug)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(debug)
-
-	signedRequest := &CFSSLRequest{
-		Request: signData,
-	}
-
-	token, err := signRequest("aaaaaaaaaaaaaaaa", signedRequest.Request)
-	signedRequest.Token = token
-
-	blob, err := json.Marshal(signedRequest)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Setting up req")
-
-	signReq, err := http.NewRequest("POST", cfsslURL+"/api/v1/cfssl/authsign", bytes.NewReader(blob))
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Sending the sign request")
-	signResp, err := client.Do(signReq)
-	if err != nil {
-		return err
-	}
-	defer signResp.Body.Close()
-
-	respBody, err := ioutil.ReadAll(signResp.Body)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(string(respBody))
-
-	var signRespData cfsslResponse
-
-	err = json.Unmarshal(respBody, &signRespData)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(signRespData)
-
 	// Now, pull out the data
 	outs := []outputFile{}
 
@@ -270,23 +210,23 @@ func signRequest(key string, data []byte) ([]byte, error) {
 // Encodes an API request in the format expected by CFSSL
 func encodeCFSSLRequest(request interface{}, key string) ([]byte, error) {
 
-	data, err := json.Marshal(request)
-	if err != nil {
-		return nil, err
-	}
+	//data, err := json.Marshal(request)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	cfsslRequest := &CFSSLRequest{
-		Request: data,
+		Request: request,
 	}
 
 	// Encode it, if we need to
-	if key != "" {
-		token, err := signRequest(key, cfsslRequest.Request)
-		if err != nil {
-			return nil, err
-		}
-		cfsslRequest.Token = token
-	}
+	//if key != "" {
+	//	token, err := signRequest(key, cfsslRequest.Request)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	cfsslRequest.Token = token
+	//}
 
 	return json.Marshal(cfsslRequest)
 }
