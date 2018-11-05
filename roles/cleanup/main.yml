@@ -4,3 +4,4 @@
 
 - name: Remove apt lists
   raw: rm -rf /var/lib/apt/lists/*
+

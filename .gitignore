@@ -15,4 +15,4 @@ cms_authz
 .DS_Store
 *.pem
 *.csr
-**/*.tfstate.*
+**/*.tfstate*

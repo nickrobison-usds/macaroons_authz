@@ -1,6 +1,7 @@
 resource "docker_container" "idp" {
   name = "web"
   image = "identity-idp_web:latest"
+  hostname = "idp_web"
   ports {
     internal = 3000
     external = 3000
@@ -23,20 +24,23 @@ resource "docker_container" "idp" {
 
 resource "docker_container" "postgres" {
   name = "db"
+  hostname = "db"
   image = "${docker_image.postgres.latest}"
   networks_advanced {
     name = "${docker_network.private.name}"
-    aliases = ["db"]
   }
-  publish_all_ports=true
+  volumes {
+    host_path = "/Users/usds/Development/identity-idp/db_data"
+    container_path = "/var/lib/postgresql/data"
+  }
 }
 
 resource "docker_container" "redis" {
   name = "redis"
+  hostname = "redis"
   image = "${docker_image.redis.latest}"
   networks_advanced {
     name = "${docker_network.private.name}"
-    aliases = ["redis"]
   }
 }
 
