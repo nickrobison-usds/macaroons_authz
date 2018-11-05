@@ -1,0 +1,6 @@
+---
+- name: Remove python
+  raw: apt-get purge -y python-minimal && apt-get remove -y
+
+- name: Remove apt lists
+  raw: rm -rf /var/lib/apt/lists/*

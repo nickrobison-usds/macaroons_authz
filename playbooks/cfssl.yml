@@ -1,0 +1,63 @@
+---
+- name: Setup Ansible
+  hosts: all
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: ../roles/ansible
+
+- name: Install CFSSL
+  hosts: all
+  environment:
+    GOPATH: /usr/local/gopath
+  vars:
+    version: "master"
+  tasks:
+    - name: install packages
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - git
+        - gcc
+
+    - name: create go directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0755
+      with_items:
+        - /usr/local/gopath
+        - /usr/local/goroot
+
+    - name: install go
+      unarchive:
+        remote_src: yes
+        src: https://dl.google.com/go/go1.11.2.linux-amd64.tar.gz
+        dest: /usr/local/goroot
+
+    - name: symlink go
+      file:
+        src: /usr/local/goroot/go/bin/go
+        dest: /usr/bin/go
+        state: link
+
+    - name: install cfssl
+      command: go get -u github.com/cloudflare/cfssl/cmd/cfssl
+
+    - name: remove packages
+      package:
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - gcc
+        - git
+
+- name: Cleanup
+  hosts: all
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: ../roles/cleanup
+
+  

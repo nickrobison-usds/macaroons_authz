@@ -1,0 +1,24 @@
+{
+    "builders": [{
+        "type": "docker",
+        "image": "debian:stretch-slim",
+        "commit": true,
+        "changes": [
+            "VOLUME /cfssl",
+            "WORKDIR /cfssl",
+            "EXPOSE 8080"
+        ]
+    }],
+
+    "provisioners": [{
+        "type": "ansible",
+        "user": "root",
+        "playbook_file": "playbooks/cfssl.yml"
+    }],
+
+    "post-processors": [{
+        "type": "docker-tag",
+        "repository": "nickrobison.com/cfssl",
+        "tag": "latest"
+    }]
+}
