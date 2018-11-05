@@ -5,10 +5,12 @@ resource "docker_container" "idp" {
     internal = 3000
     external = 3000
   }
-  env = ["REDIS_URL=redis://redis",
+  env = [
+    "REDIS_URL=redis://redis",
     "DATABASE_URL=postgres://postgres@db",
     "DOCKER_DB_HOST=db",
-    "DOCKER_DB_USER=postgres"]
+    "DOCKER_DB_USER=postgres",
+  ]
   networks_advanced {
     name = "${docker_network.private.name}"
   }
@@ -26,6 +28,7 @@ resource "docker_container" "postgres" {
     name = "${docker_network.private.name}"
     aliases = ["db"]
   }
+  publish_all_ports=true
 }
 
 resource "docker_container" "redis" {
