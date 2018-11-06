@@ -1,3 +1,0 @@
-add_column("acos", "key", "text", {})
-add_column("acos", "certificate", "text", {})
-add_column("acos", "sha", "string", {})

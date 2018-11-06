@@ -95,9 +95,9 @@ func AcosCreateACO(c buffalo.Context) error {
 		return errors.WithStack(err)
 	}
 
-	aco.Key = cert.Certificate
-	aco.Certificate = cert.Certificate
-	aco.SHA = cert.Sums.Certificate.SHA1
+	aco.Certificate.Key = cert.Certificate
+	aco.Certificate.Certificate = cert.Certificate
+	aco.Certificate.SHA = cert.Sums.Certificate.SHA1
 
 	tx := c.Value("tx").(*pop.Connection)
 	if err := tx.Create(&aco); err != nil {

@@ -10,15 +10,12 @@ import (
 )
 
 // Data model representing an ACO
-// Storing the Private Key and cert here is NOT A GOOD IDEA! It's only temporary.
 type ACO struct {
-	ID          uuid.UUID `json:"id" db:"id"`
-	Name        string    `json:"name" db:"name"`
-	Key         string    `json:"key"  db:"key"`
-	Certificate string    `json:"certificate" db:"certificate"`
-	SHA         string    `json:"sha" db:"sha"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
+	ID          uuid.UUID   `json:"id" db:"id"`
+	Name        string      `json:"name" db:"name"`
+	Certificate Certificate `json:"certificates" has_many:"certificates" fd_id:"aco_id"`
+	CreatedAt   time.Time   `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at" db:"updated_at"`
 }
 
 // Returns the appropriate TableName, which addresses the weird pluralization
