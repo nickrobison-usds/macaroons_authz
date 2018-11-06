@@ -16,3 +16,4 @@ cms_authz
 *.pem
 *.csr
 **/*.tfstate*
+**/.terraform
