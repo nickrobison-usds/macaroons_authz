@@ -45,6 +45,12 @@
     - name: install cfssl
       command: go get -u github.com/cloudflare/cfssl/cmd/cfssl
 
+    - name: symlink cfssl
+      file:
+        src: /usr/local/goroot/go/bin/cfssl
+        dest: /usr/bin/cfssl
+        state: link
+
     - name: remove packages
       package:
         name: "{{ item }}"
@@ -52,6 +58,29 @@
       with_items:
         - gcc
         - git
+
+- name: Copy required data
+  hosts: all
+  tasks:
+    - name: copy entrypoint
+      copy:
+        src: ../packer/docker-entrypoint.sh
+        dest: /usr/bin
+
+    - name: list cfssl config files
+      find:
+        paths: ../cfssl/
+        hidden: no
+      delegate_to: localhost
+      register: target_files
+
+    - name: copy cfssl config files
+      copy:
+        src: "{{ item.path }} "
+        dest: /cfssl/
+        with_items: "{{ target_files.files }}"
+
+
 
 - name: Cleanup
   hosts: all
