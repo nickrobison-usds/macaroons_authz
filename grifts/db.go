@@ -16,12 +16,7 @@ import (
 
 var log logger.FieldLogger
 
-var _ = grift.Namespace("db", func() {
-
-	grift.Desc("seed", "Seeds a database")
-	grift.Add("seed", seedDatabase)
-
-})
+var _ = grift.Namespace("db", setupActionsDatabase)
 
 func init() {
 	log = logger.NewLogger("DB:SEED")

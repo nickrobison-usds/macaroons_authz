@@ -7,6 +7,7 @@ import (
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
+	"github.com/nickrobison/cms_authz/lib/auth/ca"
 )
 
 // Data model representing an ACO
@@ -36,6 +37,25 @@ type ACOS []ACO
 func (a ACOS) String() string {
 	ja, _ := json.Marshal(a)
 	return string(ja)
+}
+
+func (a *ACO) BeforeCreate(tx *pop.Connection) error {
+	// Set the UUID
+	a.ID = mustGenerateUUID()
+
+	// Now do the cert thing
+	log.Debug("Creating CA")
+
+	cert, err := ca.CreateCA(a.Name, "aco")
+	if err != nil {
+		return err
+	}
+
+	a.Certificate.Key = cert.Certificate
+	a.Certificate.Certificate = cert.Certificate
+	a.Certificate.SHA = cert.Sums.Certificate.SHA1
+
+	return nil
 }
 
 // Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.

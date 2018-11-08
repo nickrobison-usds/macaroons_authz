@@ -7,7 +7,6 @@ import (
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/uuid"
-	"github.com/nickrobison/cms_authz/lib/auth/ca"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
 )
@@ -88,16 +87,6 @@ func AcosCreateACO(c buffalo.Context) error {
 	}
 
 	fmt.Printf("\n\n\nACO: %v\n\n\n", aco)
-
-	// Try to create a new CA
-	cert, err := ca.CreateCA(aco.Name, "aco")
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	aco.Certificate.Key = cert.Certificate
-	aco.Certificate.Certificate = cert.Certificate
-	aco.Certificate.SHA = cert.Sums.Certificate.SHA1
 
 	tx := c.Value("tx").(*pop.Connection)
 	if err := tx.Create(&aco); err != nil {
