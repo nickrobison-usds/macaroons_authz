@@ -1,7 +1,7 @@
 package actions
 
 import (
-	"encoding/hex"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 
@@ -104,5 +104,5 @@ func AcosCreateACO(c buffalo.Context) error {
 
 // Returns a byte array as a string
 func showBytes(s nulls.ByteSlice) string {
-	return hex.EncodeToString(s.ByteSlice)
+	return base64.URLEncoding.EncodeToString(s.ByteSlice)
 }

@@ -2,6 +2,7 @@ package models
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -90,21 +91,28 @@ func (a *ACO) BeforeCreate(tx *pop.Connection) error {
 	a.Certificate = acoCert
 
 	// Now, generate the macaroon
+
 	nonce := make([]byte, 12)
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		return err
 	}
-	m, err := macaroon.New([]byte(cert.PrivateKey), nonce, "http://localhost:8080", macaroon.LatestVersion)
+
+	nonceString := base64.StdEncoding.EncodeToString(nonce)
+
+	// We need to use V1 serialization, for some reason.
+	log.Debug(a.Certificate.Key)
+	m, err := macaroon.New([]byte("test key"), []byte(nonceString), "http://localhost:8080", macaroon.V1)
 	if err != nil {
 		return err
 	}
 
 	// Add the claim
+
 	caveats := map[string]string{
-		"aco_id": id.String(),
+		"aco id": id.String(),
 	}
 	for cav := range caveats {
-		err := m.AddFirstPartyCaveat([]byte(cav))
+		m.AddFirstPartyCaveat([]byte(cav))
 		if err != nil {
 			return err
 		}
@@ -115,8 +123,6 @@ func (a *ACO) BeforeCreate(tx *pop.Connection) error {
 		return err
 	}
 	a.Macaroon = nulls.NewByteSlice(mBinary)
-
-	log.Debug(a.Macaroon)
 
 	return nil
 }
