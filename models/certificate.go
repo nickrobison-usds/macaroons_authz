@@ -34,6 +34,12 @@ func (c Certificates) String() string {
 	return string(jc)
 }
 
+func (c *Certificate) BeforeCreate(tx *pop.Connection) error {
+	c.ID = mustGenerateUUID()
+
+	return nil
+}
+
 // Validate gets run every time you call a "pop.Validate*" (pop.ValidateAndSave, pop.ValidateAndCreate, pop.ValidateAndUpdate) method.
 // This method is not required and may be deleted.
 func (c *Certificate) Validate(tx *pop.Connection) (*validate.Errors, error) {

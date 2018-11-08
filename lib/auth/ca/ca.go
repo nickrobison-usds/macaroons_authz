@@ -82,7 +82,7 @@ type responseMessage struct {
 // CFSSLChecksum represents the MD5 and SHA1 checksums of a given resource
 type CFSSLChecksum struct {
 	MD5  string `json:"md5"`
-	SHA1 string `json:"sha-1"`
+	SHA1 string `json:"sha-1" mapstructure:"sha-1"`
 }
 
 // CFSSLChecksums is a collection of CFSSLCertificateSum, for a CA creation request
@@ -93,9 +93,9 @@ type CFSSLChecksums struct {
 
 // CFSSLCertificateResponse is the result from CFSSL generating a new certifcate/private_key
 type CFSSLCertificateResponse struct {
-	PrivateKey  string         `json:"private_key"`
+	PrivateKey  string         `json:"private_key" mapstructure:"private_key"`
 	Certificate string         `json:"certificate"`
-	CSR         string         `json:"certificate_request"`
+	CSR         string         `json:"certificate_request" mapstructure:"certificate_request"`
 	Sums        CFSSLChecksums `json:"sums"`
 }
 

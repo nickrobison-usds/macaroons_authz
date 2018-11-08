@@ -768,11 +768,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:001a4e7a40e50ff2ef32e2556bca50c4f77daa457db3ac6afc8bea9bb2122cfb"
+  digest = "1:2dbc77c22128a4a1d8f33f3e51383d5f65624bc90f5e1971a29f61afa2cf85f6"
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
     "blowfish",
+    "internal/subtle",
+    "nacl/secretbox",
+    "poly1305",
+    "salsa20/salsa",
     "ssh/terminal",
   ]
   pruneopts = "UT"
@@ -839,6 +843,14 @@
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:0622939c131fd6ca6fc9dfb25adda2f195062975045baba7ad94607e6f3c52b7"
+  name = "gopkg.in/macaroon.v2"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "bed2a428da6e56d950bed5b41fcbae3141e5b0d0"
+  version = "v2.0.0"
+
+[[projects]]
   digest = "1:342378ac4dcb378a5448dd723f0784ae519383532f5e70ade24132c4c8693202"
   name = "gopkg.in/yaml.v2"
   packages = ["."]
@@ -866,6 +878,7 @@
     "github.com/gobuffalo/uuid",
     "github.com/gobuffalo/validate",
     "github.com/gobuffalo/validate/validators",
+    "github.com/gofrs/uuid",
     "github.com/markbates/going/defaults",
     "github.com/markbates/goth",
     "github.com/markbates/goth/gothic",
@@ -875,6 +888,7 @@
     "github.com/mitchellh/mapstructure",
     "github.com/pkg/errors",
     "github.com/unrolled/secure",
+    "gopkg.in/macaroon.v2",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

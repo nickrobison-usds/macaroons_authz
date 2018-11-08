@@ -1,8 +1,8 @@
 create_table("certificates") {
 	t.Column("id", "uuid", {"primary": true})
   t.Column("aco_id", "uuid", {})
-  t.Column("key", "string", {})
-  t.Column("certificate", "string", {})
+  t.Column("key", "text", {})
+  t.Column("certificate", "text", {})
   t.Column("sha_sum", "string", {})
   t.ForeignKey("aco_id", {"acos": ["id"]}, {"on_delete": "cascade"})
 }

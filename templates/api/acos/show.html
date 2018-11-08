@@ -19,6 +19,20 @@
         <%=aco.Name%>
     </div>
 </div>
+<div class="row">
+    <div class="row">
+        <h5> Keys and Cookies</h5>
+    </div>
+    <div class="row">
+        <%=binary(aco.Macaroon)%>
+    </div>
+    <div class="row">
+        <%=aco.Certificate.Key %>
+    </div>
+    <div class="row">
+        <%=aco.Certificate.Certificate %>
+    </div>
+</div>
 <h5>Users</h5>
 <div class="row">
     Users here.

@@ -1,11 +1,13 @@
 package actions
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net/http"
 
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
@@ -37,12 +39,16 @@ func AcoShow(c buffalo.Context) error {
 
 	aco := models.ACO{}
 	tx := c.Value("tx").(*pop.Connection)
-	err := tx.Find(&aco, acoID)
+	err := tx.Eager().Find(&aco, acoID)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
 	c.Set("aco", aco)
+
+	// Add a binary helper
+	c.Set("binary", showBytes)
+
 	return c.Render(http.StatusOK, r.HTML("/api/acos/show.html"))
 }
 
@@ -94,4 +100,9 @@ func AcosCreateACO(c buffalo.Context) error {
 	}
 
 	return c.Redirect(302, "/api/acos/index")
+}
+
+func showBytes(s nulls.ByteSlice) string {
+	log.Debugf("In the renderer: %s\n", s.ByteSlice)
+	return hex.EncodeToString(s.ByteSlice)
 }

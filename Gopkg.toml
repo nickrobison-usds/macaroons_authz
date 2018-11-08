@@ -88,3 +88,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/gobuffalo/logger"
+
+[[constraint]]
+  name = "gopkg.in/macaroon.v2"
+  version = "2.0.0"
