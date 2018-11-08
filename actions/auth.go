@@ -11,6 +11,7 @@ import (
 
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/envy"
+	"github.com/gobuffalo/logger"
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/markbates/going/defaults"
@@ -22,9 +23,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-var usernames map[string]string
+var (
+	usernames map[string]string
+	log       logger.FieldLogger
+)
 
 func init() {
+
+	// Logging
+	log = logger.NewLogger("AUTH")
 	// Get rid of this
 	usernames = map[string]string{
 		"nick@nick.com":  "password",
@@ -45,7 +52,7 @@ func init() {
 	if err == nil {
 		providers = append(providers, oidp)
 	} else {
-		fmt.Println("Not enabling Login.gov")
+		log.Warn("Not enabling Loging.gov")
 	}
 
 	// Github provider
