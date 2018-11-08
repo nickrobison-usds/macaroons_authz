@@ -39,15 +39,20 @@ func init() {
 
 	discoveryURL := providerURL + "/.well-known/openid-configuration"
 
+	providers := []goth.Provider{}
+
 	oidp, err := openidConnect.New(envy.Get("CLIENT_ID", ""), os.Getenv("OPENIDCONNECT_SECRET"), fmt.Sprintf("%s%s", "http://localhost:8080", "/auth/login-gov/callback"), discoveryURL)
-	if err != nil {
-		panic(err)
+	if err == nil {
+		providers = append(providers, oidp)
+	} else {
+		fmt.Println("Not enabling Login.gov")
 	}
 
 	// Github provider
 	gidb := github.New(envy.Get("GITHUB_KEY", ""), envy.Get("GITHUB_SECRET", ""), "http://localhost:8080/auth/github/callback")
+	providers = append(providers, gidb)
 
-	goth.UseProviders(oidp, gidb)
+	goth.UseProviders(providers...)
 }
 
 // Custom login handler, because gothic.BeginAuthHandler doesn't work correctly.
