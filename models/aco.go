@@ -12,6 +12,7 @@ import (
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
 	"github.com/nickrobison/cms_authz/lib/auth/ca"
+	"github.com/pkg/errors"
 	macaroon "gopkg.in/macaroon.v2"
 )
 
@@ -64,11 +65,26 @@ func (a *ACO) BeforeCreate(tx *pop.Connection) error {
 
 	fmt.Println(cert)
 
+	parsed, err := ca.ParseCFSSLResponse(&cert)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	encCert, err := parsed.EncodeCertificate()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	priv, err := parsed.EncodePrivateKey()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
 	acoCert := Certificate{
 		ACOID:       id,
-		Key:         cert.PrivateKey,
-		Certificate: cert.Certificate,
-		SHA:         cert.Sums.Certificate.SHA1,
+		Key:         priv,
+		Certificate: encCert,
+		SHA:         parsed.SHA,
 	}
 
 	a.Certificate = acoCert
