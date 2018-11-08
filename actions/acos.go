@@ -47,7 +47,7 @@ func AcoShow(c buffalo.Context) error {
 	c.Set("aco", aco)
 
 	// Add a binary helper
-	c.Set("binary", showBytes)
+	c.Set("bytesToString", showBytes)
 
 	return c.Render(http.StatusOK, r.HTML("/api/acos/show.html"))
 }
@@ -102,7 +102,7 @@ func AcosCreateACO(c buffalo.Context) error {
 	return c.Redirect(302, "/api/acos/index")
 }
 
+// Returns a byte array as a string
 func showBytes(s nulls.ByteSlice) string {
-	log.Debugf("In the renderer: %s\n", s.ByteSlice)
 	return hex.EncodeToString(s.ByteSlice)
 }
