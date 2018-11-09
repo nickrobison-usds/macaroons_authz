@@ -13,6 +13,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+type idNamePair struct {
+	ID   string
+	Name string
+}
+
 // acoIndex default implementation.
 func AcosIndex(c buffalo.Context) error {
 
@@ -25,6 +30,24 @@ func AcosIndex(c buffalo.Context) error {
 
 	c.Set("acos", acos)
 	return c.Render(200, r.HTML("api/acos/index.html"))
+}
+
+func AcosHeadIndex(c buffalo.Context) error {
+	acos := []models.ACO{}
+
+	tx := c.Value("tx").(*pop.Connection)
+	if err := tx.Select("id, name").All(&acos); err != nil {
+		return errors.WithStack(err)
+	}
+
+	values := []idNamePair{}
+
+	for _, aco := range acos {
+		values = append(values, idNamePair{Name: aco.Name, ID: aco.StringID()})
+	}
+
+	return c.Render(200, r.JSON(&values))
+
 }
 
 func RenderCreatePage(c buffalo.Context) error {

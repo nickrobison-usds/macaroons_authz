@@ -32,6 +32,11 @@ func (a ACO) TableName() string {
 	return "acos"
 }
 
+// Returns the ACO ID field, as a string
+func (a ACO) StringID() string {
+	return a.ID.String()
+}
+
 // String is not required by pop and may be deleted
 func (a ACO) String() string {
 	ja, _ := json.Marshal(a)
@@ -106,13 +111,13 @@ func (a *ACO) BeforeCreate(tx *pop.Connection) error {
 		return err
 	}
 
-	// Add the claim
+	// Add the first party claims
 
 	caveats := map[string]string{
-		"aco id": id.String(),
+		"aco_id": id.String(),
 	}
 	for cav := range caveats {
-		m.AddFirstPartyCaveat([]byte(cav))
+		err = m.AddFirstPartyCaveat([]byte(cav))
 		if err != nil {
 			return err
 		}

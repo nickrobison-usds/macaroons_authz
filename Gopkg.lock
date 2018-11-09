@@ -90,12 +90,13 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:728ac603ced9bb410289c97821f823fcb9ed7a2b79dc9f617c2cd960e6c1ee8b"
+  digest = "1:c670c5cdbbcf7dfd74bea27376410e9b12b558820b52154fc17b17adca5e3c81"
   name = "github.com/gobuffalo/buffalo"
   packages = [
     ".",
     "binding",
     "render",
+    "runtime",
     "servers",
     "worker",
   ]
@@ -865,6 +866,7 @@
     "github.com/gobuffalo/buffalo",
     "github.com/gobuffalo/buffalo-pop/pop/popmw",
     "github.com/gobuffalo/buffalo/render",
+    "github.com/gobuffalo/buffalo/runtime",
     "github.com/gobuffalo/envy",
     "github.com/gobuffalo/logger",
     "github.com/gobuffalo/mw-csrf",
@@ -885,6 +887,7 @@
     "github.com/markbates/goth/providers/github",
     "github.com/markbates/goth/providers/openidConnect",
     "github.com/markbates/grift/grift",
+    "github.com/markbates/inflect",
     "github.com/mitchellh/mapstructure",
     "github.com/pkg/errors",
     "github.com/unrolled/secure",

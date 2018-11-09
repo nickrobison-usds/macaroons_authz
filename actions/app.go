@@ -74,6 +74,7 @@ func App() *buffalo.App {
 		api.Use(Authorize)
 
 		api.GET("/acos/index", AcosIndex)
+		api.GET("/acos/list", AcosHeadIndex)
 		api.GET("/acos/create", RenderCreatePage)
 		api.POST("/acos/create", AcosCreateACO)
 		api.GET("/acos/delete/{id}", AcosDelete)
@@ -83,6 +84,7 @@ func App() *buffalo.App {
 		api.GET("/users/show/{id}", UsersShow)
 		api.POST("/users/create", UsersCreate)
 		api.GET("/users/delete/{id}", UsersDelete)
+		api.POST("/users/assign", UsersAssign)
 
 		app.ServeFiles("/", assetsBox) // serve files from the public directory
 	}

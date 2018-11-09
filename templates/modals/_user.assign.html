@@ -1,0 +1,31 @@
+<div class="modal fade" id="userAssignModal" tabIndex="-1" role="dialog" aria-labledby="userAssignModalTitle" aria-hidden=true>
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userAssignModalTitle">Assign User to Entity</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-lable="Close"><span aria-hidden=true>&times;</span></button>
+            </div>
+            <div class="modal-body">
+
+                <%= form({action: "/api/users/assign", method: "POST"}) { %>
+                <div class="form-group">
+                    <input type="hidden" id="userID" name="userID">
+                    <label for="assignEntity">Entity type:</label>
+                    <%= f.SelectTag({id: "assignEntity", name: "assignEntity", "aria-describedby": "entityHelp", options: ["Vendor", "ACO"]}) %>
+                    <small id="entityHelp" class="form-text text-muted">Select entity type</small>
+                </div>
+                <div class="form-group">
+                    <label for="entityOptions">Entity list:</label>
+                    <%= f.SelectTag({id: "entityOptions", name: "entityOptions", aria-describedby: "entityOptionsHelp"}) %>
+                    <small id="entityOptionsHelps" class="form-text text-muted">Select entity to assign user to</small>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Assign</button>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
