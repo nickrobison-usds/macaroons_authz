@@ -92,3 +92,11 @@
 [[constraint]]
   name = "gopkg.in/macaroon.v2"
   version = "2.0.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/logrusorgru/aurora"
+
+[[constraint]]
+  branch = "v1"
+  name = "gopkg.in/macaroon-bakery.v1"

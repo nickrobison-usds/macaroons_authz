@@ -90,13 +90,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:c670c5cdbbcf7dfd74bea27376410e9b12b558820b52154fc17b17adca5e3c81"
+  digest = "1:728ac603ced9bb410289c97821f823fcb9ed7a2b79dc9f617c2cd960e6c1ee8b"
   name = "github.com/gobuffalo/buffalo"
   packages = [
     ".",
     "binding",
     "render",
-    "runtime",
     "servers",
     "worker",
   ]
@@ -444,6 +443,14 @@
   version = "v1.3.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:a330103bc9731260ee9fa14764e9e3fce46e02de19d6aca3eeba1d425badfbf0"
+  name = "github.com/juju/loggo"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "584905176618da46b895b176c721b02c476b6993"
+
+[[projects]]
   digest = "1:d395d2621c61bdbcaf62fb749d90ec55a51d112329e653aeca87fbd1075723aa"
   name = "github.com/karrick/godirwalk"
   packages = ["."]
@@ -477,6 +484,14 @@
   pruneopts = "UT"
   revision = "4ded0e9383f75c197b3a2aaa6d590ac52df6fd79"
   version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:be40f095cd741773905744f16c1f7a21fd9226ccd0529f019deb7da6d667f71c"
+  name = "github.com/logrusorgru/aurora"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "a7b3b318ed4e1ae5b80602b08627267303c68572"
 
 [[projects]]
   digest = "1:415c4eb126a312ba2baa4654a02f5dde420403d66e772ad0a9554639f40eb0d1"
@@ -664,6 +679,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:d673e95129a1107bfd04e093751a5e1267faabc27d218d824fb013f57ac08f55"
+  name = "github.com/rogpeppe/fastuuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6724a57986aff9bff1a1770e9347036def7c89f6"
+
+[[projects]]
+  branch = "master"
   digest = "1:efa124a0ca36a35cc1a1b472cb0fa2be1e7d9fd1db0f8bc9a042e42e4c6405aa"
   name = "github.com/serenize/snaker"
   packages = ["."]
@@ -769,12 +792,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2dbc77c22128a4a1d8f33f3e51383d5f65624bc90f5e1971a29f61afa2cf85f6"
+  digest = "1:cb1860433296706dc659bf923ac93b46c49ba125693edc2a83e060eb11d6106b"
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
     "blowfish",
+    "curve25519",
     "internal/subtle",
+    "nacl/box",
     "nacl/secretbox",
     "poly1305",
     "salsa20/salsa",
@@ -844,6 +869,33 @@
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:9f0c81ca4b497d3723d0a66495d8a1efe277068b77ef3ad2d6460e480bf09bb3"
+  name = "gopkg.in/errgo.v1"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b20caedf0710d0988e92b5f2d76843ad1f231f2d"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "v1"
+  digest = "1:3e8d2bf8b783f9883797f74ca841fb9916653d6adf9c06553372dab8df2b42ad"
+  name = "gopkg.in/macaroon-bakery.v1"
+  packages = [
+    "bakery",
+    "bakery/checkers",
+  ]
+  pruneopts = "UT"
+  revision = "f3518acd1415c71218f8675b123ac95564072873"
+
+[[projects]]
+  branch = "v1"
+  digest = "1:4174b0590ce22bc31f0cc9a64ce6fd7af5729ace37ccf66f24392782b619b66f"
+  name = "gopkg.in/macaroon.v1"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "ab101776739ee61baab9bc50e4b33b5aeb3ac843"
+
+[[projects]]
   digest = "1:0622939c131fd6ca6fc9dfb25adda2f195062975045baba7ad94607e6f3c52b7"
   name = "gopkg.in/macaroon.v2"
   packages = ["."]
@@ -866,7 +918,6 @@
     "github.com/gobuffalo/buffalo",
     "github.com/gobuffalo/buffalo-pop/pop/popmw",
     "github.com/gobuffalo/buffalo/render",
-    "github.com/gobuffalo/buffalo/runtime",
     "github.com/gobuffalo/envy",
     "github.com/gobuffalo/logger",
     "github.com/gobuffalo/mw-csrf",
@@ -881,16 +932,17 @@
     "github.com/gobuffalo/validate",
     "github.com/gobuffalo/validate/validators",
     "github.com/gofrs/uuid",
+    "github.com/logrusorgru/aurora",
     "github.com/markbates/going/defaults",
     "github.com/markbates/goth",
     "github.com/markbates/goth/gothic",
     "github.com/markbates/goth/providers/github",
     "github.com/markbates/goth/providers/openidConnect",
     "github.com/markbates/grift/grift",
-    "github.com/markbates/inflect",
     "github.com/mitchellh/mapstructure",
     "github.com/pkg/errors",
     "github.com/unrolled/secure",
+    "gopkg.in/macaroon-bakery.v1/bakery",
     "gopkg.in/macaroon.v2",
   ]
   solver-name = "gps-cdcl"
