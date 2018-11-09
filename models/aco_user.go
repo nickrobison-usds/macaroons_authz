@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gobuffalo/pop"
-	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
 	"github.com/nickrobison/cms_authz/lib/auth/macaroons"
@@ -79,8 +78,6 @@ func (a *AcoUser) BeforeCreate(tx *pop.Connection) error {
 		return err
 	}
 
-	log.Debug("Debugging Macaroon:", macaroons.EncodeMacaroon(mBinary))
-
-	aco.Macaroon = nulls.NewByteSlice(mBinary)
+	a.Macaroon = mBinary
 	return nil
 }

@@ -20,6 +20,7 @@ type User struct {
 	Email      nulls.String `json:"email" db:"email"`
 	Provider   string       `json:"provider" db:"provider"`
 	ProviderID string       `json:"provider_id" db:"provider_id"`
+	ACOTokens  AcoUsers     `json:"aco_tokens" has_many:"aco_users"`
 }
 
 // String is not required by pop and may be deleted

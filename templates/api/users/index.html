@@ -14,7 +14,7 @@
         <%= for (user) in users { %>
         <tr>
             <td>
-                <%= user.Name %>
+                <a href="show/<%=user.ID%>"><%=user.Name %></a>
             </td>
             <td>
                 <%= user.Email %>

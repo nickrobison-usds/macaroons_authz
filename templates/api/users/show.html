@@ -1,1 +1,9 @@
-<h1>Users#Show</h1>
+<h2>Details for: <%=user.Name%></h2>
+
+<h5> Macaroons:</h5>
+
+<ul>
+    <%= for (token) in user.ACOTokens { %>
+    <li><%=binary(token.Macaroon)%></li>
+    <% } %>
+</ul>

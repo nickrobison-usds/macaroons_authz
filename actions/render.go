@@ -3,6 +3,7 @@ package actions
 import (
 	"github.com/gobuffalo/buffalo/render"
 	"github.com/gobuffalo/packr"
+	"github.com/nickrobison/cms_authz/lib/helpers"
 )
 
 var r *render.Engine
@@ -19,6 +20,7 @@ func init() {
 
 		// Add template helpers here:
 		Helpers: render.Helpers{
+			"binary": helpers.BinaryToString,
 			// uncomment for non-Bootstrap form helpers:
 			// "form":     plush.FormHelper,
 			// "form_for": plush.FormForHelper,

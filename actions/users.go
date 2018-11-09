@@ -33,6 +33,21 @@ func UsersIndex(c buffalo.Context) error {
 
 // UsersShow default implementation.
 func UsersShow(c buffalo.Context) error {
+	userID := c.Param("id")
+	user := models.User{}
+
+	tx := c.Value("tx").(*pop.Connection)
+	err := tx.Find(&user, userID)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	err = tx.Load(&user)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	c.Set("user", user)
 	return c.Render(200, r.HTML("api/users/show.html"))
 }
 
