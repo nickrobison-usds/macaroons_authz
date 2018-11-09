@@ -1,11 +1,8 @@
 package models
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/gobuffalo/pop"
@@ -13,6 +10,7 @@ import (
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
 	"github.com/nickrobison/cms_authz/lib/auth/ca"
+	"github.com/nickrobison/cms_authz/lib/auth/macaroons"
 	"github.com/pkg/errors"
 	macaroon "gopkg.in/macaroon.v2"
 )
@@ -96,13 +94,10 @@ func (a *ACO) BeforeCreate(tx *pop.Connection) error {
 	a.Certificate = acoCert
 
 	// Now, generate the macaroon
-
-	nonce := make([]byte, 12)
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+	nonceString, err := macaroons.GenerateNonce()
+	if err != nil {
 		return err
 	}
-
-	nonceString := base64.StdEncoding.EncodeToString(nonce)
 
 	// We need to use V1 serialization, for some reason.
 	log.Debug(a.Certificate.Key)
