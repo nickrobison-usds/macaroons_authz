@@ -3,12 +3,12 @@ package actions
 import (
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/envy"
+	"github.com/gobuffalo/logger"
 	forcessl "github.com/gobuffalo/mw-forcessl"
 	paramlogger "github.com/gobuffalo/mw-paramlogger"
 	"github.com/unrolled/secure"
 
 	"github.com/gobuffalo/buffalo-pop/pop/popmw"
-	csrf "github.com/gobuffalo/mw-csrf"
 	i18n "github.com/gobuffalo/mw-i18n"
 	"github.com/gobuffalo/packr"
 	"github.com/nickrobison/cms_authz/models"
@@ -19,6 +19,11 @@ import (
 var ENV = envy.Get("GO_ENV", "development")
 var app *buffalo.App
 var T *i18n.Translator
+var log logger.FieldLogger
+
+func init() {
+	log = logger.NewLogger("ACTIONS")
+}
 
 // App is where all routes and middleware for buffalo
 // should be defined. This is the nerve center of your
@@ -48,7 +53,7 @@ func App() *buffalo.App {
 
 		// Protect against CSRF attacks. https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
 		// Remove to disable this.
-		app.Use(csrf.New)
+		// app.Use(csrf.New)
 
 		// Wraps each request in a transaction.
 		//  c.Value("tx").(*pop.Connection)
@@ -72,14 +77,18 @@ func App() *buffalo.App {
 
 		api := app.Group("/api")
 		api.Use(Authorize)
+		api.Middleware.Skip(Authorize, AcoVerifyUser)
 
+		// ACO Endpoints
 		api.GET("/acos/index", AcosIndex)
 		api.GET("/acos/list", AcosHeadIndex)
 		api.GET("/acos/create", RenderCreatePage)
 		api.POST("/acos/create", AcosCreateACO)
 		api.GET("/acos/delete/{id}", AcosDelete)
 		api.GET("/acos/show/{id}", AcoShow)
+		api.POST("/acos/verify", AcoVerifyUser)
 
+		// User Endpoints
 		api.GET("/users/index", UsersIndex)
 		api.GET("/users/show/{id}", UsersShow)
 		api.POST("/users/create", UsersCreate)

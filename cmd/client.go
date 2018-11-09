@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -30,11 +32,22 @@ func main() {
 		panic(err)
 	}
 
-	// We need to get an authorization discharge macaroon
+	// lWe need to get an authorization discharge macaroon
 	fmt.Println(Green("Fetching Authorization macaroon."))
 
+	data := map[string]interface{}{
+		"aco_id":   acoID,
+		"user_id":  userID,
+		"macaroon": bin,
+	}
+
+	jsonValues, err := json.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+
 	var client http.Client
-	_, err = client.Get("http://localhost:8080/api/acos/" + acoID + "/verify/" + userID)
+	_, err = client.Post("http://localhost:8080/api/acos/verify", "application/json", bytes.NewBuffer(jsonValues))
 	if err != nil {
 		panic(err)
 	}

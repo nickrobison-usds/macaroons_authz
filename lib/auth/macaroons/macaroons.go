@@ -7,7 +7,7 @@ import (
 	"io"
 
 	"github.com/gobuffalo/uuid"
-	macaroon "gopkg.in/macaroon.v2"
+	macaroon "gopkg.in/macaroon.v1"
 )
 
 func MacaroonFromBytes(b []byte) (macaroon.Macaroon, error) {
@@ -34,14 +34,14 @@ func DelegateACOToUser(acoID uuid.UUID, userID uuid.UUID, m *macaroon.Macaroon) 
 }
 
 // GenerateNonce creates a random ID that can be used for macaroons.
-func GenerateNonce() ([]byte, error) {
+func GenerateNonce() (string, error) {
 	nonce := make([]byte, 12)
 	_, err := io.ReadFull(rand.Reader, nonce)
 	if err != nil {
-		return nonce, err
+		return "", err
 	}
 
-	return []byte(base64.StdEncoding.EncodeToString(nonce)), err
+	return base64.StdEncoding.EncodeToString(nonce), err
 }
 
 func EncodeMacaroon(b []byte) string {

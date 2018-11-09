@@ -9,13 +9,33 @@ import (
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
+	"github.com/nickrobison/cms_authz/lib/auth/macaroons"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
+	"gopkg.in/macaroon-bakery.v1/bakery"
+	macaroon "gopkg.in/macaroon.v1"
 )
 
 type idNamePair struct {
 	ID   string
 	Name string
+}
+
+var service *bakery.Service
+
+func init() {
+	p := bakery.NewServiceParams{
+		Location: "http://test.loc",
+		Store:    nil,
+		Key:      nil,
+		Locator:  nil,
+	}
+
+	b, err := bakery.NewService(p)
+	if err != nil {
+		log.Fatal(err)
+	}
+	service = b
 }
 
 // acoIndex default implementation.
@@ -125,7 +145,58 @@ func AcosCreateACO(c buffalo.Context) error {
 	return c.Redirect(302, "/api/acos/index")
 }
 
+func AcoVerifyUser(c buffalo.Context) error {
+	fmt.Println("Some things are here")
+
+	var requestData models.AcoUser
+	err := c.Bind(&requestData)
+	if err != nil {
+		log.Error(err)
+		return c.Render(http.StatusInternalServerError, r.String("Something bad happened."))
+	}
+	fmt.Println(requestData)
+
+	log.Debugf("Verifying that user %s is a member of %s", requestData.UserID, requestData.ACOID)
+
+	// Check that the association actually exists.
+	tx := c.Value("tx").(*pop.Connection)
+
+	var acoUser models.AcoUser
+
+	err = tx.Where("aco_id = ?", requestData.ACOID).Where("user_id = ?", requestData.UserID).First(&acoUser)
+	if err != nil {
+		log.Error(err)
+		return c.Render(http.StatusInternalServerError, r.String("Something wen't wrong: %s", err.Error()))
+	}
+
+	// If it exists, discharge it
+	reqM, err := macaroons.MacaroonFromBytes(requestData.Macaroon)
+	if err != nil {
+		log.Error(err)
+		return c.Render(http.StatusInternalServerError, r.String("Something wen't wrong: %s", err.Error()))
+	}
+
+	d, err := bakery.DischargeAll(&reqM, dischargeUserCaveat)
+	if err != nil {
+		return c.Render(http.StatusInternalServerError, r.String("Something went wrong: %s", err.Error()))
+	}
+
+	// Inspect everything
+	for i, mac := range d {
+		log.Debug("Macaroon: ", i)
+		log.Debug(mac)
+	}
+
+	return c.Render(http.StatusOK, r.String("ok"))
+}
+
 // Returns a byte array as a string
 func showBytes(s nulls.ByteSlice) string {
 	return base64.URLEncoding.EncodeToString(s.ByteSlice)
+}
+
+func dischargeUserCaveat(firstPartyLocation string, cav macaroon.Caveat) (*macaroon.Macaroon, error) {
+	log.Debug("First party: ", firstPartyLocation)
+	log.Debug(cav)
+	return nil, nil
 }

@@ -12,7 +12,7 @@ import (
 
 type AcoUser struct {
 	ID        uuid.UUID `json:"id" db:"id"`
-	ACOID     uuid.UUID `json:"aco" db:"aco_id"`
+	ACOID     uuid.UUID `json:"aco_id" db:"aco_id"`
 	UserID    uuid.UUID `json:"user_id" db:"user_id"`
 	Macaroon  []byte    `json:"macaroon" db:"macaroon"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
