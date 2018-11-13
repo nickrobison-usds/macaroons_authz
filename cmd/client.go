@@ -11,8 +11,8 @@ import (
 	macaroon "gopkg.in/macaroon.v2"
 )
 
-var acoID = "8752e6a2-2838-4b8b-91d8-9642e8dae729"
-var userID = "280ea269-c427-48e3-bd97-4aa255fbf610"
+var acoID = "496290ec-3f8e-481c-b637-bc6f29a005bf"
+var userID = "c4654147-7f16-43a2-a5eb-aeee4a74984a"
 
 func main() {
 	token, err := envy.MustGet("TOKEN")
@@ -30,6 +30,15 @@ func main() {
 	err = m.UnmarshalBinary(bin)
 	if err != nil {
 		panic(err)
+	}
+
+	cavs := m.Caveats()
+
+	fmt.Println(Blue("Printing Caveats:"))
+
+	for _, cav := range cavs {
+
+		fmt.Println(cav.Location)
 	}
 
 	// lWe need to get an authorization discharge macaroon

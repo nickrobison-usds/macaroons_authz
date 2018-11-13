@@ -30,6 +30,12 @@ func DelegateACOToUser(acoID uuid.UUID, userID uuid.UUID, m *macaroon.Macaroon) 
 		return m, err
 	}
 
+	// Add another test caveat
+	err = m.AddThirdPartyCaveat([]byte("test key"), "0test nonce", "http://localhost:8080/other/things/to/test")
+	if err != nil {
+		return nil, err
+	}
+
 	return m, nil
 }
 

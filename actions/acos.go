@@ -119,6 +119,7 @@ func AcosDelete(c buffalo.Context) error {
 }
 
 func AcosCreateACO(c buffalo.Context) error {
+
 	fmt.Println(c.Request())
 
 	aco := models.ACO{}
@@ -146,15 +147,12 @@ func AcosCreateACO(c buffalo.Context) error {
 }
 
 func AcoVerifyUser(c buffalo.Context) error {
-	fmt.Println("Some things are here")
-
 	var requestData models.AcoUser
 	err := c.Bind(&requestData)
 	if err != nil {
 		log.Error(err)
 		return c.Render(http.StatusInternalServerError, r.String("Something bad happened."))
 	}
-	fmt.Println(requestData)
 
 	log.Debugf("Verifying that user %s is a member of %s", requestData.UserID, requestData.ACOID)
 
@@ -196,7 +194,15 @@ func showBytes(s nulls.ByteSlice) string {
 }
 
 func dischargeUserCaveat(firstPartyLocation string, cav macaroon.Caveat) (*macaroon.Macaroon, error) {
+
 	log.Debug("First party: ", firstPartyLocation)
-	log.Debug(cav)
-	return nil, nil
+	log.Debug(cav.Id)
+
+	mac, err := service.Discharge(macaroons.StrcmpChecker("user_id = test"), cav.Id)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	return mac, nil
 }
