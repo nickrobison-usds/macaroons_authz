@@ -1,7 +1,6 @@
 package actions
 
 import (
-	"context"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -15,7 +14,6 @@ import (
 	"github.com/nickrobison/cms_authz/lib/helpers"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
-	macaroon "gopkg.in/macaroon.v2"
 )
 
 type idNamePair struct {
@@ -119,14 +117,9 @@ func AcosCreateACO(c buffalo.Context) error {
 
 	aco := models.ACO{}
 
-	// Generate a new ID for the ACO
-	uid, err := uuid.NewV4()
-	if err != nil {
-		return errors.WithStack(err)
-	}
 	aco.ID = helpers.MustGenerateID()
 
-	err = c.Bind(&aco)
+	err := c.Bind(&aco)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -191,22 +184,13 @@ func AcoVerifyUser(c buffalo.Context) error {
 	}
 
 	// If it exists, discharge it
-	reqM, err := macaroons.MacaroonFromBytes(requestData.Macaroon)
+	_, err = macaroons.MacaroonFromBytes(requestData.Macaroon)
 	if err != nil {
 		log.Error(err)
 		return c.Render(http.StatusInternalServerError, r.String("Something wen't wrong: %s", err.Error()))
 	}
 
-	d, err := service.DischargeAll(context.Background(), reqM, dischargeUserCaveat)
-	if err != nil {
-		return c.Render(http.StatusInternalServerError, r.String("Something went wrong: %s", err.Error()))
-	}
-
-	// Inspect everything
-	for i, mac := range d {
-		log.Debug("Macaroon: ", i)
-		log.Debug(mac)
-	}
+	// Validate  it?
 
 	return c.Render(http.StatusOK, r.String("ok"))
 }
@@ -216,6 +200,7 @@ func showBytes(s nulls.ByteSlice) string {
 	return base64.URLEncoding.EncodeToString(s.ByteSlice)
 }
 
+/*
 func dischargeUserCaveat(ctx context.Context, cav macaroon.Caveat, encodedCav []byte) (*macaroon.Macaroon, error) {
 
 	log.Debug(cav.Id)
@@ -229,27 +214,28 @@ func dischargeUserCaveat(ctx context.Context, cav macaroon.Caveat, encodedCav []
 
 	return mac, nil
 }
+*/
 
 // TransformCFSSLResponse converts a ca.CFSSLCertificateResponse into a models.Certificate
-func TransformCFSSLResponse(id uuid.UUID, cert *ca.CFSSLCertificateResponse) (*models.Certificate, error) {
+func TransformCFSSLResponse(id uuid.UUID, cert *ca.CFSSLCertificateResponse) (models.Certificate, error) {
 	fmt.Println(cert)
 
 	parsed, err := ca.ParseCFSSLResponse(cert)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return models.Certificate{}, errors.WithStack(err)
 	}
 
 	encCert, err := parsed.EncodeCertificate()
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return models.Certificate{}, errors.WithStack(err)
 	}
 
 	priv, err := parsed.EncodePrivateKey()
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return models.Certificate{}, errors.WithStack(err)
 	}
 
-	acoCert := &models.Certificate{
+	acoCert := models.Certificate{
 		ACOID:       id,
 		Key:         priv,
 		Certificate: encCert,

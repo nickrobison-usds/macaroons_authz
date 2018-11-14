@@ -15,7 +15,7 @@ type ACO struct {
 	ID          uuid.UUID       `json:"id" db:"id"`
 	Name        string          `json:"name" db:"name"`
 	Macaroon    nulls.ByteSlice `json:"macaroon" db:"macaroon"`
-	Certificate *Certificate    `json:"certificates" has_many:"certificates" fd_id:"aco_id"`
+	Certificate Certificate     `json:"certificates" has_many:"certificates" fd_id:"aco_id"`
 	CreatedAt   time.Time       `json:"created_at" db:"created_at"`
 	UpdatedAt   time.Time       `json:"updated_at" db:"updated_at"`
 }
