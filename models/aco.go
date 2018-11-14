@@ -46,6 +46,7 @@ func (a ACOS) String() string {
 }
 
 func (a *ACO) AfterCreate(tx *pop.Connection) error {
+	log.Debugf("Loading %s and %s\n", a.ID, a.Certificate.ACOID)
 	return tx.Save(&a.Certificate)
 }
 

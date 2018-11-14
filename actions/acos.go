@@ -123,16 +123,32 @@ func AcosCreateACO(c buffalo.Context) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-
-	// Generate CA
-	cert, err := ca.CreateCA(aco.Name, "aco")
+	err = CreateACOCertificates(&aco)
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
+	fmt.Printf("\n\n\nACO: %v\n\n\n", aco)
+
+	tx := c.Value("tx").(*pop.Connection)
+	if err := tx.Create(aco); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return c.Redirect(302, "/api/acos/index")
+}
+
+func CreateACOCertificates(aco *models.ACO) error {
+
+	// Generate CA
+	cert, err := ca.CreateCA(aco.Name, "aco")
+	if err != nil {
+		return err
+	}
+
 	parsed, err := TransformCFSSLResponse(aco.ID, &cert)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	aco.Certificate = parsed
@@ -143,23 +159,15 @@ func AcosCreateACO(c buffalo.Context) error {
 	condition := fmt.Sprintf("aco_id = %s", aco.ID)
 	mac, err := service.NewFirstPartyMacaroon([]string{condition})
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	b, err := macaroons.MacaroonToByteSlice(mac)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	aco.Macaroon = b
-
-	fmt.Printf("\n\n\nACO: %v\n\n\n", aco)
-
-	tx := c.Value("tx").(*pop.Connection)
-	if err := tx.Create(&aco); err != nil {
-		return errors.WithStack(err)
-	}
-
-	return c.Redirect(302, "/api/acos/index")
+	return nil
 }
 
 func AcoVerifyUser(c buffalo.Context) error {
@@ -234,6 +242,8 @@ func TransformCFSSLResponse(id uuid.UUID, cert *ca.CFSSLCertificateResponse) (mo
 	if err != nil {
 		return models.Certificate{}, errors.WithStack(err)
 	}
+
+	fmt.Printf("ACO ID: %s\n", id)
 
 	acoCert := models.Certificate{
 		ACOID:       id,

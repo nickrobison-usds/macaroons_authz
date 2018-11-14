@@ -8,8 +8,9 @@ import (
 	"github.com/gobuffalo/logger"
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
-	"github.com/gofrs/uuid"
 	"github.com/markbates/grift/grift"
+	"github.com/nickrobison/cms_authz/actions"
+	"github.com/nickrobison/cms_authz/lib/helpers"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
 )
@@ -102,15 +103,21 @@ func processCSV(reader *csv.Reader, tx *pop.Connection, deserializer func(record
 func deserializeACO(record []string, tx *pop.Connection) error {
 	aco := models.ACO{}
 
-	aco.ID = mustGenerateUUID()
+	aco.ID = helpers.MustGenerateID()
 	aco.Name = record[0]
+
+	// Add the certs and macaroons
+	err := actions.CreateACOCertificates(&aco)
+	if err != nil {
+		return err
+	}
 
 	return tx.Create(&aco)
 }
 
 func deserializeUser(record []string, tx *pop.Connection) error {
 	user := models.User{}
-	user.ID = mustGenerateUUID()
+	user.ID = helpers.MustGenerateID()
 
 	user.Name = record[0]
 	user.Email = nulls.NewString(record[1])
@@ -118,13 +125,4 @@ func deserializeUser(record []string, tx *pop.Connection) error {
 	user.ProviderID = record[3]
 
 	return tx.Create(&user)
-}
-
-func mustGenerateUUID() uuid.UUID {
-	uuid, err := uuid.NewV4()
-	if err != nil {
-		panic(err)
-	}
-
-	return uuid
 }
