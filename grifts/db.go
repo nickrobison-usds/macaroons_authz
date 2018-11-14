@@ -61,7 +61,16 @@ func seedDatabase(c *grift.Context) error {
 		}
 
 		// Vendors
-		log.Debug("Not loading Vendor seeds, yet")
+		log.Debug("Loading Vendor seeds")
+		vreader, err := getCSVReader("./db/seeds_vendor.csv")
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		err = processCSV(vreader, tx, deserializeVendor)
+		if err != nil {
+			return errors.WithStack(err)
+		}
 
 		log.Debug("Seeding finished")
 		return nil
@@ -125,4 +134,17 @@ func deserializeUser(record []string, tx *pop.Connection) error {
 	user.ProviderID = record[3]
 
 	return tx.Create(&user)
+}
+
+func deserializeVendor(record []string, tx *pop.Connection) error {
+	vendor := models.Vendor{}
+	vendor.ID = helpers.MustGenerateID()
+	err := actions.CreateVendorCertificates(&vendor)
+	if err != nil {
+		return err
+	}
+
+	vendor.Name = record[0]
+
+	return tx.Create(&vendor)
 }

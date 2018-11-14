@@ -206,22 +206,10 @@ func AcoTest(c buffalo.Context) error {
 func createACOCheckers() *checkers.Checker {
 	c := checkers.New(nil)
 	c.Namespace().Register("std", "")
-	c.Register("aco_id=", "std", contextCheck{"aco_id"}.strCheck)
-	c.Register("user_id=", "std", contextCheck{"user_id"}.strCheck)
+	c.Register("aco_id=", "std", macaroons.ContextCheck{"aco_id"}.StrCheck)
+	c.Register("user_id=", "std", macaroons.ContextCheck{"user_id"}.StrCheck)
 
 	return c
-}
-
-type contextCheck struct {
-	key string
-}
-
-func (c contextCheck) strCheck(ctx context.Context, cond, args string) error {
-	expect, _ := ctx.Value(c.key).(string)
-	if args != expect {
-		return fmt.Errorf("%s doesn't match %s", cond, expect)
-	}
-	return nil
 }
 
 func AcoVerifyUser(c buffalo.Context) error {
