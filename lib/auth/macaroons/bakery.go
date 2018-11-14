@@ -7,7 +7,7 @@ import (
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 )
 
-var dischargeOp = bakery.Op{"thirdparty", "x"}
+var dischargeOp = bakery.Op{"firstparty", "x"}
 
 type Bakery struct {
 	b        *bakery.Bakery
@@ -15,8 +15,19 @@ type Bakery struct {
 }
 
 func NewBakery(location string) (*Bakery, error) {
+
+	// Do something dumb for public keys
+	locator := bakery.NewThirdPartyStore()
+	third := bakery.MustGenerateKey()
+	locator.AddInfo(location, bakery.ThirdPartyInfo{
+		PublicKey: third.Public,
+		Version:   bakery.LatestVersion,
+	})
+
 	p := bakery.BakeryParams{
 		Location: location,
+		Key:      nil,
+		Locator:  locator,
 	}
 
 	return &Bakery{
@@ -30,7 +41,6 @@ func (b Bakery) NewFirstPartyMacaroon(conditions []string) (*bakery.Macaroon, er
 
 	for _, cond := range conditions {
 		caveat := checkers.Caveat{
-			Location:  b.location,
 			Condition: cond,
 		}
 		caveats = append(caveats, caveat)

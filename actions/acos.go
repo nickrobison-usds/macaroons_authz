@@ -138,6 +138,7 @@ func AcosCreateACO(c buffalo.Context) error {
 	return c.Redirect(302, "/api/acos/index")
 }
 
+// CreateACOCertificates sets up the certs, keys and macaroons for the given ACO
 func CreateACOCertificates(aco *models.ACO) error {
 
 	// Generate CA
@@ -157,6 +158,7 @@ func CreateACOCertificates(aco *models.ACO) error {
 
 	// Create a Macaroon for the ACO
 	condition := fmt.Sprintf("aco_id = %s", aco.ID)
+	log.Debug(condition)
 	mac, err := service.NewFirstPartyMacaroon([]string{condition})
 	if err != nil {
 		return err
