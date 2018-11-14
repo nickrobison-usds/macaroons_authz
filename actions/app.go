@@ -96,6 +96,11 @@ func App() *buffalo.App {
 		api.GET("/users/delete/{id}", UsersDelete)
 		api.POST("/users/assign", UsersAssign)
 
+		// Vendor endpoints
+		api.GET("/vendors/show{id}", VendorsShow)
+		api.GET("/vendors/index", VendorsIndex)
+		api.GET("/vendors/create", VendorsCreate)
+
 		app.ServeFiles("/", assetsBox) // serve files from the public directory
 	}
 
