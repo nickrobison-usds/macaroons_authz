@@ -2,6 +2,7 @@ package macaroons
 
 import (
 	"context"
+	"fmt"
 
 	"gopkg.in/macaroon-bakery.v2/bakery"
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
@@ -15,6 +16,8 @@ type Bakery struct {
 	oven     *bakery.Oven
 	location string
 }
+
+type strKey struct{}
 
 func NewBakery(location string, checker *checkers.Checker) (*Bakery, error) {
 
@@ -47,7 +50,12 @@ func (b Bakery) NewFirstPartyMacaroon(conditions []string) (*bakery.Macaroon, er
 
 	caveats := buildCaveats("", conditions)
 
-	return b.b.Oven.NewMacaroon(context.Background(), bakery.LatestVersion, caveats, dischargeOp)
+	mac, err := b.b.Oven.NewMacaroon(context.Background(), bakery.LatestVersion, caveats, dischargeOp)
+	if err != nil {
+		return nil, err
+	}
+
+	return mac, nil
 }
 
 func (b Bakery) AddFirstPartyCaveats(m *bakery.Macaroon, conditions []string) (*bakery.Macaroon, error) {
@@ -64,9 +72,24 @@ func (b Bakery) AddThirdPartyCaveat(m *bakery.Macaroon, loc string, conditions [
 	return m, err
 }
 
-func (b Bakery) VerifyMacaroon(m *bakery.Macaroon) error {
-	_, _, err := b.oven.VerifyMacaroon(context.Background(), macaroon.Slice{m.M()})
-	return err
+func (b Bakery) VerifyMacaroon(ctx context.Context, m *bakery.Macaroon) error {
+	ops, conds, err := b.oven.VerifyMacaroon(context.Background(), macaroon.Slice{m.M()})
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Ops: %s\n", ops)
+	fmt.Printf("Conds: %s\n", conds)
+
+	for _, cond := range conds {
+		err := b.b.Checker.CheckFirstPartyCaveat(ctx, cond)
+		if err != nil {
+			fmt.Println(err.Error())
+			return err
+		}
+	}
+
+	return nil
 }
 
 func buildCaveats(location string, conditions []string) []checkers.Caveat {
@@ -76,8 +99,13 @@ func buildCaveats(location string, conditions []string) []checkers.Caveat {
 		caveat := checkers.Caveat{
 			Location:  location,
 			Condition: cond,
+			Namespace: checkers.StdNamespace,
 		}
 		caveats = append(caveats, caveat)
 	}
 	return caveats
+}
+
+func strContext(key, s string) context.Context {
+	return context.WithValue(context.Background(), key, s)
 }

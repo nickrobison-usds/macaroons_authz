@@ -10,7 +10,7 @@ import (
 	macaroon "gopkg.in/macaroon.v2"
 )
 
-var acoID = "496290ec-3f8e-481c-b637-bc6f29a005bf"
+var acoID = "f9e21e80-c47d-4f1d-bcbc-a90ff2c55517"
 var userID = "c4654147-7f16-43a2-a5eb-aeee4a74984a"
 
 func main() {
@@ -37,6 +37,7 @@ func main() {
 
 	for _, cav := range cavs {
 		fmt.Println(string(cav.Id))
+		fmt.Println(cav.Location)
 	}
 
 	// Try to make a request to read the data
@@ -51,12 +52,11 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println(resp.Status)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Status: %d. %s", resp.StatusCode, body)
+	fmt.Printf("Status: %s. %s", resp.Status, body)
 
 	/*
 		// lWe need to get an authorization discharge macaroon

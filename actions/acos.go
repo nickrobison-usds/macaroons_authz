@@ -18,7 +18,7 @@ import (
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 )
 
-type strKey struct{}
+var acoURI = "http://localhost:8080/api/acos"
 
 type idNamePair struct {
 	ID   string
@@ -28,7 +28,7 @@ type idNamePair struct {
 var service *macaroons.Bakery
 
 func init() {
-	s, err := macaroons.NewBakery("http://localhost:8080/acos", createACOCheckers())
+	s, err := macaroons.NewBakery(acoURI, createACOCheckers())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -161,7 +161,7 @@ func CreateACOCertificates(aco *models.ACO) error {
 	// Now do the macaroon
 
 	// Create a Macaroon for the ACO
-	condition := fmt.Sprintf("aco_id = %s", aco.ID)
+	condition := fmt.Sprintf("aco_id= %s", aco.ID)
 	log.Debug(condition)
 	mac, err := service.NewFirstPartyMacaroon([]string{condition})
 	if err != nil {
@@ -188,8 +188,14 @@ func AcoTest(c buffalo.Context) error {
 
 	log.Debug("Verifying")
 
+	log.Debug(m.Namespace().String())
 	// Verify
-	err = service.VerifyMacaroon(m)
+	// Gen context
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "aco_id", aco_id)
+	ctx = context.WithValue(ctx, "user_id", "58eceb10-9b73-436b-8631-bd50c006d05e")
+
+	err = service.VerifyMacaroon(ctx, m)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -199,16 +205,19 @@ func AcoTest(c buffalo.Context) error {
 
 func createACOCheckers() *checkers.Checker {
 	c := checkers.New(nil)
-	c.Namespace().Register("testns", "")
-	c.Register("aco_id", "testns", strCheck)
-	c.Register("user_id", "testns", strCheck)
+	c.Namespace().Register("std", "")
+	c.Register("aco_id=", "std", contextCheck{"aco_id"}.strCheck)
+	c.Register("user_id=", "std", contextCheck{"user_id"}.strCheck)
 
 	return c
 }
 
-func strCheck(ctx context.Context, cond, args string) error {
-	fmt.Printf("cond: %s, args: %s\n", cond, args)
-	expect, _ := ctx.Value(strKey{}).(string)
+type contextCheck struct {
+	key string
+}
+
+func (c contextCheck) strCheck(ctx context.Context, cond, args string) error {
+	expect, _ := ctx.Value(c.key).(string)
 	if args != expect {
 		return fmt.Errorf("%s doesn't match %s", cond, expect)
 	}
@@ -325,7 +334,7 @@ func DelegateACOToUser(acoID, userID uuid.UUID, tx *pop.Connection) error {
 	}
 
 	// Add the caveats
-	user_id := fmt.Sprintf("user_id = %s", userID.String())
+	user_id := fmt.Sprintf("user_id= %s", userID.String())
 	delegated, err := service.AddFirstPartyCaveats(m, []string{user_id})
 	if err != nil {
 		return err
