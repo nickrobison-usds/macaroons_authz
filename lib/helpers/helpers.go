@@ -26,3 +26,12 @@ func MustGenerateID() uuid.UUID {
 	}
 	return u
 }
+
+// UUIDOfString always returns a uuid.UUID, otherwise it panics
+func UUIDOfString(id string) uuid.UUID {
+	str, err := uuid.FromString(id)
+	if err != nil {
+		panic(err)
+	}
+	return str
+}

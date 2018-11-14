@@ -3,11 +3,9 @@ package macaroons
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 	"io"
 
 	"github.com/gobuffalo/pop/nulls"
-	"github.com/gofrs/uuid"
 	"gopkg.in/macaroon-bakery.v2/bakery"
 	macaroon "gopkg.in/macaroon.v2"
 )
@@ -42,18 +40,6 @@ func GenerateNonce() ([]byte, error) {
 	}
 
 	return nonce, err
-}
-
-// DelegateACOToUser restricts an existing macaroon to a certain user
-func DelegateACOToUser(acoID uuid.UUID, userID uuid.UUID, m *bakery.Macaroon) (*bakery.Macaroon, error) {
-
-	// Add the User restrictions
-	m2, err := AddThirdPartyCaveat(m, "http://localhost:8080/api/aco/verify", []string{fmt.Sprintf("user_id = %s", userID.String())})
-	if err != nil {
-		return nil, err
-	}
-
-	return m2, nil
 }
 
 func EncodeMacaroon(b []byte) string {

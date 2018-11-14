@@ -6,7 +6,7 @@ import (
 
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/pop"
-	"github.com/gobuffalo/uuid"
+	"github.com/nickrobison/cms_authz/lib/helpers"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
 )
@@ -75,7 +75,7 @@ func UsersAssign(c buffalo.Context) error {
 	switch req.EntityType {
 	case "ACO":
 		{
-			err := delegateUserToACO(req, tx)
+			err := DelegateACOToUser(helpers.UUIDOfString(req.EntityID), helpers.UUIDOfString(req.UserID), tx)
 			if err != nil {
 				return errors.WithStack(err)
 			}
@@ -86,22 +86,4 @@ func UsersAssign(c buffalo.Context) error {
 	}
 
 	return c.Redirect(http.StatusTemporaryRedirect, "/api/users/index")
-}
-
-func delegateUserToACO(req userAssignRequest, tx *pop.Connection) error {
-	link := models.AcoUser{
-		ACOID:  UUIDOfString(req.EntityID),
-		UserID: UUIDOfString(req.UserID),
-	}
-
-	return tx.Save(&link)
-}
-
-// UUIDOfString always returns a uuid.UUID, otherwise it panics
-func UUIDOfString(id string) uuid.UUID {
-	str, err := uuid.FromString(id)
-	if err != nil {
-		panic(err)
-	}
-	return str
 }

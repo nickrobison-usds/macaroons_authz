@@ -11,6 +11,7 @@ var dischargeOp = bakery.Op{"firstparty", "x"}
 
 type Bakery struct {
 	b        *bakery.Bakery
+	oven     *bakery.Oven
 	location string
 }
 
@@ -30,35 +31,45 @@ func NewBakery(location string) (*Bakery, error) {
 		Locator:  locator,
 	}
 
+	b := bakery.New(p)
+
 	return &Bakery{
-		b:        bakery.New(p),
+		b:        b,
+		oven:     b.Oven,
 		location: location,
 	}, nil
 }
 
 func (b Bakery) NewFirstPartyMacaroon(conditions []string) (*bakery.Macaroon, error) {
-	caveats := []checkers.Caveat{}
 
-	for _, cond := range conditions {
-		caveat := checkers.Caveat{
-			Condition: cond,
-		}
-		caveats = append(caveats, caveat)
-	}
+	caveats := buildCaveats("", conditions)
+
 	return b.b.Oven.NewMacaroon(context.Background(), bakery.LatestVersion, caveats, dischargeOp)
 }
 
-func AddThirdPartyCaveat(m *bakery.Macaroon, loc string, conditions []string) (*bakery.Macaroon, error) {
+func (b Bakery) AddFirstPartyCaveats(m *bakery.Macaroon, conditions []string) (*bakery.Macaroon, error) {
+	caveats := buildCaveats("", conditions)
+	err := b.oven.AddCaveats(context.Background(), m, caveats)
+	return m, err
+}
+
+func (b Bakery) AddThirdPartyCaveat(m *bakery.Macaroon, loc string, conditions []string) (*bakery.Macaroon, error) {
+
+	caveats := buildCaveats(loc, conditions)
+
+	err := b.oven.AddCaveats(context.Background(), m, caveats)
+	return m, err
+}
+
+func buildCaveats(location string, conditions []string) []checkers.Caveat {
 	caveats := []checkers.Caveat{}
 
 	for _, cond := range conditions {
 		caveat := checkers.Caveat{
-			Location:  loc,
+			Location:  location,
 			Condition: cond,
 		}
 		caveats = append(caveats, caveat)
 	}
-
-	err := m.AddCaveats(context.Background(), caveats, nil, nil)
-	return m, err
+	return caveats
 }

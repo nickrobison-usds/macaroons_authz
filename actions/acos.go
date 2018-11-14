@@ -256,3 +256,44 @@ func TransformCFSSLResponse(id uuid.UUID, cert *ca.CFSSLCertificateResponse) (mo
 
 	return acoCert, nil
 }
+
+func DelegateACOToUser(acoID, userID uuid.UUID, tx *pop.Connection) error {
+	// Create the intitial model
+	link := models.AcoUser{
+		ACOID:  acoID,
+		UserID: userID,
+	}
+
+	// Get the Macaroon from the ACO
+	aco := models.ACO{}
+
+	err := tx.Select("macaroon").Where("id = ?",
+		acoID.String()).First(&aco)
+	if err != nil {
+		return err
+	}
+
+	// Generate a delegating Macaroon
+	// We need a third party to attest that the user is who they say they are.
+
+	m, err := macaroons.MacaroonFromBytes(aco.Macaroon.ByteSlice)
+	if err != nil {
+		return err
+	}
+
+	// Add the caveats
+	user_id := fmt.Sprintf("user_id = %s", userID.String())
+	delegated, err := service.AddFirstPartyCaveats(m, []string{user_id})
+	if err != nil {
+		return err
+	}
+
+	mBinary, err := delegated.M().MarshalBinary()
+	if err != nil {
+		return err
+	}
+
+	link.Macaroon = mBinary
+
+	return tx.Save(&link)
+}

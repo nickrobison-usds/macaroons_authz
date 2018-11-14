@@ -7,7 +7,6 @@ import (
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
-	"github.com/nickrobison/cms_authz/lib/auth/macaroons"
 )
 
 type AcoUser struct {
@@ -50,34 +49,4 @@ func (a *AcoUser) ValidateCreate(tx *pop.Connection) (*validate.Errors, error) {
 // This method is not required and may be deleted.
 func (a *AcoUser) ValidateUpdate(tx *pop.Connection) (*validate.Errors, error) {
 	return validate.NewErrors(), nil
-}
-
-// BeforeCreate generates a delegated macaroon from the ACO.
-func (a *AcoUser) BeforeCreate(tx *pop.Connection) error {
-	// Get the Macaroon from the ACO
-	aco := ACO{}
-
-	err := tx.Select("macaroon").Where("id = ?",
-		a.ACOID.String()).First(&aco)
-	if err != nil {
-		return err
-	}
-
-	// Generate a delegating Macaroon
-	m, err := macaroons.MacaroonFromBytes(aco.Macaroon.ByteSlice)
-	if err != nil {
-		return err
-	}
-
-	delegated, err := macaroons.DelegateACOToUser(a.ACOID, a.UserID, m)
-	if err != nil {
-		return err
-	}
-	mBinary, err := delegated.M().MarshalBinary()
-	if err != nil {
-		return err
-	}
-
-	a.Macaroon = mBinary
-	return nil
 }
