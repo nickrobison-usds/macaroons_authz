@@ -1,16 +1,17 @@
 package macaroons
 
 import (
+	"context"
 	"fmt"
 
-	"gopkg.in/macaroon-bakery.v1/bakery/checkers"
+	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 )
 
 // StrcmpChecker verifies that a string caveat is satisfied
 type StrcmpChecker string
 
 // CheckFirstPartyCaveat verifies that a first party, string caveat is satisfied
-func (c StrcmpChecker) CheckFirstPartyCaveat(caveat string) error {
+func (c StrcmpChecker) CheckFirstPartyCaveat(ctx context.Context, caveat string) error {
 	return c.checkCaveat(caveat)
 }
 

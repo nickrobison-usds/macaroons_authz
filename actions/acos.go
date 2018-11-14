@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -14,7 +15,10 @@ import (
 	"github.com/nickrobison/cms_authz/lib/helpers"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
+	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 )
+
+type strKey struct{}
 
 type idNamePair struct {
 	ID   string
@@ -24,7 +28,7 @@ type idNamePair struct {
 var service *macaroons.Bakery
 
 func init() {
-	s, err := macaroons.NewBakery("http://localhost:8080/acos")
+	s, err := macaroons.NewBakery("http://localhost:8080/acos", createACOCheckers())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -169,6 +173,45 @@ func CreateACOCertificates(aco *models.ACO) error {
 	}
 
 	aco.Macaroon = b
+	return nil
+}
+
+func AcoTest(c buffalo.Context) error {
+	log.Debug("Trying to test that it works.")
+	aco_id := c.Param("id")
+	token := c.Param("token")
+
+	m, err := macaroons.DecodeMacaroon(token)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	log.Debug("Verifying")
+
+	// Verify
+	err = service.VerifyMacaroon(m)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return c.Render(200, r.String("success! %s", aco_id))
+}
+
+func createACOCheckers() *checkers.Checker {
+	c := checkers.New(nil)
+	c.Namespace().Register("testns", "")
+	c.Register("aco_id", "testns", strCheck)
+	c.Register("user_id", "testns", strCheck)
+
+	return c
+}
+
+func strCheck(ctx context.Context, cond, args string) error {
+	fmt.Printf("cond: %s, args: %s\n", cond, args)
+	expect, _ := ctx.Value(strKey{}).(string)
+	if args != expect {
+		return fmt.Errorf("%s doesn't match %s", cond, expect)
+	}
 	return nil
 }
 

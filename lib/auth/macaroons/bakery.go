@@ -5,6 +5,7 @@ import (
 
 	"gopkg.in/macaroon-bakery.v2/bakery"
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
+	macaroon "gopkg.in/macaroon.v2"
 )
 
 var dischargeOp = bakery.Op{"firstparty", "x"}
@@ -15,7 +16,7 @@ type Bakery struct {
 	location string
 }
 
-func NewBakery(location string) (*Bakery, error) {
+func NewBakery(location string, checker *checkers.Checker) (*Bakery, error) {
 
 	// Do something dumb for public keys
 	locator := bakery.NewThirdPartyStore()
@@ -26,9 +27,11 @@ func NewBakery(location string) (*Bakery, error) {
 	})
 
 	p := bakery.BakeryParams{
-		Location: location,
-		Key:      nil,
-		Locator:  locator,
+		Location:     location,
+		Key:          nil,
+		Locator:      locator,
+		Checker:      checker,
+		RootKeyStore: NewDevKeyRootStore(),
 	}
 
 	b := bakery.New(p)
@@ -59,6 +62,11 @@ func (b Bakery) AddThirdPartyCaveat(m *bakery.Macaroon, loc string, conditions [
 
 	err := b.oven.AddCaveats(context.Background(), m, caveats)
 	return m, err
+}
+
+func (b Bakery) VerifyMacaroon(m *bakery.Macaroon) error {
+	_, _, err := b.oven.VerifyMacaroon(context.Background(), macaroon.Slice{m.M()})
+	return err
 }
 
 func buildCaveats(location string, conditions []string) []checkers.Caveat {
