@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"net/http"
@@ -9,11 +10,12 @@ import (
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
+	"github.com/nickrobison/cms_authz/lib/auth/ca"
 	"github.com/nickrobison/cms_authz/lib/auth/macaroons"
+	"github.com/nickrobison/cms_authz/lib/helpers"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
-	"gopkg.in/macaroon-bakery.v1/bakery"
-	macaroon "gopkg.in/macaroon.v1"
+	macaroon "gopkg.in/macaroon.v2"
 )
 
 type idNamePair struct {
@@ -21,21 +23,14 @@ type idNamePair struct {
 	Name string
 }
 
-var service *bakery.Service
+var service *macaroons.Bakery
 
 func init() {
-	p := bakery.NewServiceParams{
-		Location: "http://test.loc",
-		Store:    nil,
-		Key:      nil,
-		Locator:  nil,
-	}
-
-	b, err := bakery.NewService(p)
+	s, err := macaroons.NewBakery("http://localhost:8080/acos")
 	if err != nil {
 		log.Fatal(err)
 	}
-	service = b
+	service = s
 }
 
 // acoIndex default implementation.
@@ -129,12 +124,40 @@ func AcosCreateACO(c buffalo.Context) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	aco.ID = uid
+	aco.ID = helpers.MustGenerateID()
 
 	err = c.Bind(&aco)
 	if err != nil {
 		return errors.WithStack(err)
 	}
+
+	// Generate CA
+	cert, err := ca.CreateCA(aco.Name, "aco")
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	parsed, err := TransformCFSSLResponse(aco.ID, &cert)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	aco.Certificate = parsed
+
+	// Now do the macaroon
+
+	// Create a Macaroon for the ACO
+	condition := fmt.Sprintf("aco_id = %s", aco.ID)
+	mac, err := service.NewFirstPartyMacaroon([]string{condition})
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	b, err := macaroons.MacaroonToByteSlice(mac)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	aco.Macaroon = b
 
 	fmt.Printf("\n\n\nACO: %v\n\n\n", aco)
 
@@ -174,7 +197,7 @@ func AcoVerifyUser(c buffalo.Context) error {
 		return c.Render(http.StatusInternalServerError, r.String("Something wen't wrong: %s", err.Error()))
 	}
 
-	d, err := bakery.DischargeAll(&reqM, dischargeUserCaveat)
+	d, err := service.DischargeAll(context.Background(), reqM, dischargeUserCaveat)
 	if err != nil {
 		return c.Render(http.StatusInternalServerError, r.String("Something went wrong: %s", err.Error()))
 	}
@@ -193,10 +216,10 @@ func showBytes(s nulls.ByteSlice) string {
 	return base64.URLEncoding.EncodeToString(s.ByteSlice)
 }
 
-func dischargeUserCaveat(firstPartyLocation string, cav macaroon.Caveat) (*macaroon.Macaroon, error) {
+func dischargeUserCaveat(ctx context.Context, cav macaroon.Caveat, encodedCav []byte) (*macaroon.Macaroon, error) {
 
-	log.Debug("First party: ", firstPartyLocation)
 	log.Debug(cav.Id)
+	log.Debug(cav.Location)
 
 	mac, err := service.Discharge(macaroons.StrcmpChecker("user_id = test"), cav.Id)
 	if err != nil {
@@ -205,4 +228,33 @@ func dischargeUserCaveat(firstPartyLocation string, cav macaroon.Caveat) (*macar
 	}
 
 	return mac, nil
+}
+
+// TransformCFSSLResponse converts a ca.CFSSLCertificateResponse into a models.Certificate
+func TransformCFSSLResponse(id uuid.UUID, cert *ca.CFSSLCertificateResponse) (*models.Certificate, error) {
+	fmt.Println(cert)
+
+	parsed, err := ca.ParseCFSSLResponse(cert)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	encCert, err := parsed.EncodeCertificate()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	priv, err := parsed.EncodePrivateKey()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	acoCert := &models.Certificate{
+		ACOID:       id,
+		Key:         priv,
+		Certificate: encCert,
+		SHA:         parsed.SHA,
+	}
+
+	return acoCert, nil
 }

@@ -6,50 +6,65 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/gobuffalo/uuid"
-	macaroon "gopkg.in/macaroon.v1"
+	"github.com/gobuffalo/pop/nulls"
+	"github.com/gofrs/uuid"
+	"gopkg.in/macaroon-bakery.v2/bakery"
+	macaroon "gopkg.in/macaroon.v2"
 )
 
-func MacaroonFromBytes(b []byte) (macaroon.Macaroon, error) {
-	var m macaroon.Macaroon
-	err := m.UnmarshalBinary(b)
-	return m, err
+const (
+	// NonceSize denotes the number of bytes used for the nonce
+	NonceSize = 12
+)
+
+var oven *bakery.Oven
+
+func init() {
+	oven = bakery.NewOven(bakery.OvenParams{})
 }
 
-// DelegateACOToUser restricts an existing macaroon to a certain user
-func DelegateACOToUser(acoID uuid.UUID, userID uuid.UUID, m *macaroon.Macaroon) (*macaroon.Macaroon, error) {
-
-	nonce, err := GenerateNonce()
-	if err != nil {
-		return m, err
-	}
-
-	locString := fmt.Sprintf("http://localhost:8080/api/aco/%s/verify/%s", acoID.String(), userID.String())
-	err = m.AddThirdPartyCaveat([]byte("test key"), nonce, locString)
-	if err != nil {
-		return m, err
-	}
-
-	// Add another test caveat
-	err = m.AddThirdPartyCaveat([]byte("test key"), "0test nonce", "http://localhost:8080/other/things/to/test")
+func MacaroonFromBytes(b []byte) (*bakery.Macaroon, error) {
+	var m macaroon.Macaroon
+	err := m.UnmarshalBinary(b)
 	if err != nil {
 		return nil, err
 	}
 
-	return m, nil
+	return bakery.NewLegacyMacaroon(&m)
 }
 
 // GenerateNonce creates a random ID that can be used for macaroons.
-func GenerateNonce() (string, error) {
-	nonce := make([]byte, 12)
-	_, err := io.ReadFull(rand.Reader, nonce)
+func GenerateNonce() ([]byte, error) {
+	nonce := make([]byte, NonceSize)
+	_, err := io.ReadFull(rand.Reader, nonce[:])
 	if err != nil {
-		return "", err
+		return nonce, err
 	}
 
-	return base64.StdEncoding.EncodeToString(nonce), err
+	return nonce, err
+}
+
+// DelegateACOToUser restricts an existing macaroon to a certain user
+func DelegateACOToUser(acoID uuid.UUID, userID uuid.UUID, m *bakery.Macaroon) (*bakery.Macaroon, error) {
+
+	// Add the User restrictions
+	m2, err := AddThirdPartyCaveat(m, "http://localhost:8080/api/aco/verify", []string{fmt.Sprintf("user_id = %s", userID.String())})
+	if err != nil {
+		return nil, err
+	}
+
+	return m2, nil
 }
 
 func EncodeMacaroon(b []byte) string {
 	return base64.URLEncoding.EncodeToString(b)
+}
+
+func MacaroonToByteSlice(m *bakery.Macaroon) (nulls.ByteSlice, error) {
+	b, err := m.M().MarshalBinary()
+	if err != nil {
+		return nulls.NewByteSlice([]byte{}), err
+	}
+
+	return nulls.NewByteSlice(b), nil
 }

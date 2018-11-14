@@ -69,11 +69,11 @@ func (a *AcoUser) BeforeCreate(tx *pop.Connection) error {
 		return err
 	}
 
-	delegated, err := macaroons.DelegateACOToUser(a.ACOID, a.UserID, &m)
+	delegated, err := macaroons.DelegateACOToUser(a.ACOID, a.UserID, m)
 	if err != nil {
 		return err
 	}
-	mBinary, err := delegated.MarshalBinary()
+	mBinary, err := delegated.M().MarshalBinary()
 	if err != nil {
 		return err
 	}

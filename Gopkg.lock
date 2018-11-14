@@ -878,14 +878,23 @@
 
 [[projects]]
   branch = "v1"
-  digest = "1:3e8d2bf8b783f9883797f74ca841fb9916653d6adf9c06553372dab8df2b42ad"
+  digest = "1:5c8e05afc145ba5160b355c214dfb596a114c2c307bef0481b08a8eaa699e762"
   name = "gopkg.in/macaroon-bakery.v1"
+  packages = ["bakery/checkers"]
+  pruneopts = "UT"
+  revision = "f3518acd1415c71218f8675b123ac95564072873"
+
+[[projects]]
+  digest = "1:f2d4699b8d94f02668890feb87cf2bc8f74d9c481abc47e87fca1ac283ad88a7"
+  name = "gopkg.in/macaroon-bakery.v2"
   packages = [
     "bakery",
     "bakery/checkers",
+    "bakery/internal/macaroonpb",
   ]
   pruneopts = "UT"
-  revision = "f3518acd1415c71218f8675b123ac95564072873"
+  revision = "a0743b6619d68bbf8dc5cabbb49738b846f06080"
+  version = "v2.1.0"
 
 [[projects]]
   branch = "v1"
@@ -920,7 +929,6 @@
     "github.com/gobuffalo/buffalo/render",
     "github.com/gobuffalo/envy",
     "github.com/gobuffalo/logger",
-    "github.com/gobuffalo/mw-csrf",
     "github.com/gobuffalo/mw-forcessl",
     "github.com/gobuffalo/mw-i18n",
     "github.com/gobuffalo/mw-paramlogger",
@@ -942,7 +950,9 @@
     "github.com/mitchellh/mapstructure",
     "github.com/pkg/errors",
     "github.com/unrolled/secure",
-    "gopkg.in/macaroon-bakery.v1/bakery",
+    "gopkg.in/macaroon-bakery.v1/bakery/checkers",
+    "gopkg.in/macaroon-bakery.v2/bakery",
+    "gopkg.in/macaroon-bakery.v2/bakery/checkers",
     "gopkg.in/macaroon.v2",
   ]
   solver-name = "gps-cdcl"

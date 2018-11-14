@@ -100,3 +100,7 @@
 [[constraint]]
   branch = "v1"
   name = "gopkg.in/macaroon-bakery.v1"
+
+[[constraint]]
+  name = "gopkg.in/macaroon-bakery.v2"
+  version = "2.1.0"

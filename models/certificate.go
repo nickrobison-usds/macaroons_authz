@@ -7,6 +7,7 @@ import (
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
+	"github.com/nickrobison/cms_authz/lib/helpers"
 )
 
 type Certificate struct {
@@ -35,8 +36,7 @@ func (c Certificates) String() string {
 }
 
 func (c *Certificate) BeforeCreate(tx *pop.Connection) error {
-	c.ID = mustGenerateUUID()
-
+	c.ID = helpers.MustGenerateID()
 	return nil
 }
 
