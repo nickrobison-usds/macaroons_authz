@@ -99,6 +99,7 @@ func App() *buffalo.App {
 		// Vendor endpoints
 		api.GET("/vendors/show{id}", VendorsShow)
 		api.GET("/vendors/index", VendorsIndex)
+		api.GET("/vendors/list", VendorsList)
 		api.GET("/vendors/create", VendorsCreate)
 
 		app.ServeFiles("/", assetsBox) // serve files from the public directory

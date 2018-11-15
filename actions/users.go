@@ -80,6 +80,13 @@ func UsersAssign(c buffalo.Context) error {
 				return errors.WithStack(err)
 			}
 		}
+	case "Vendor":
+		{
+			err := DelegateUserToVendor(helpers.UUIDOfString(req.EntityID), helpers.UUIDOfString(req.UserID), tx)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+		}
 
 	default:
 		return errors.WithStack(errors.New("Cannot create a non-User type"))

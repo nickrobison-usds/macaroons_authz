@@ -24,6 +24,11 @@ func (v Vendor) String() string {
 	return string(jv)
 }
 
+// StringID returns the uuid.UUID as a String
+func (v Vendor) StringID() string {
+	return v.ID.String()
+}
+
 // Vendors is not required by pop and may be deleted
 type Vendors []Vendor
 

@@ -38,7 +38,7 @@ function handleForm($: JQueryStatic): void {
     $(".open-AssignUserModal").click(e => openModalHandler(e));
 }
 
-function openModalHandler(e: JQueryEventObject): void {
+function openModalHandler(e: JQuery.Event<HTMLElement, null>): void {
     console.log("Clicked");
     const userID = $(e.currentTarget).data("id");
     console.debug("Setting userID:", userID);
@@ -50,7 +50,7 @@ function fetchValuesOnChange(): void {
     console.log("Changed");
     console.log(this.value);
 
-    const data = fetchData<IACONamePair[]>("GET", "/api/acos/list");
+    const data = fetchData<IACONamePair[]>("GET", "/api/" + String(this.value).toLocaleLowerCase() + "s/list");
     data.then((d) => {
         console.log("Data:", d);
 

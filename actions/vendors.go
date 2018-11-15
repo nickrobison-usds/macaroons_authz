@@ -5,6 +5,7 @@ import (
 
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/uuid"
 	"github.com/nickrobison/cms_authz/lib/auth/ca"
 	"github.com/nickrobison/cms_authz/lib/auth/macaroons"
 	"github.com/nickrobison/cms_authz/models"
@@ -70,6 +71,46 @@ func CreateVendorCertificates(vendor *models.Vendor) error {
 	return nil
 }
 
+// DelegateUserToVendor creates a delegated macaroon from the vendor, to the appropriate user.
+func DelegateUserToVendor(vendorID, userID uuid.UUID, tx *pop.Connection) error {
+	// Create the initial model
+	link := models.VendorUser{
+		VendorID: vendorID,
+		UserID:   userID,
+	}
+
+	// Get the macaroon from the vendor
+	vendor := models.ACO{}
+
+	err := tx.Select("macaroon").Where("id = ?",
+		vendorID.String()).First(&vendor)
+	if err != nil {
+		return err
+	}
+
+	// Generate the delegating Macaroon
+	m, err := macaroons.MacaroonFromBytes(vendor.Macaroon.ByteSlice)
+	if err != nil {
+		return err
+	}
+
+	// Add the caveats
+	user_id := fmt.Sprintf("user_ID= %s", userID.String())
+	delegated, err := vs.AddFirstPartyCaveats(m, []string{user_id})
+	if err != nil {
+		return err
+	}
+
+	dBinary, err := delegated.M().MarshalBinary()
+	if err != nil {
+		return err
+	}
+
+	link.Macaroon = dBinary
+
+	return tx.Save(&link)
+}
+
 // VendorsIndex default implementation.
 func VendorsIndex(c buffalo.Context) error {
 
@@ -82,6 +123,24 @@ func VendorsIndex(c buffalo.Context) error {
 
 	c.Set("vendors", vendors)
 	return c.Render(200, r.HTML("api/vendors/index.html"))
+}
+
+func VendorsList(c buffalo.Context) error {
+
+	vendors := []models.Vendor{}
+
+	tx := c.Value("tx").(*pop.Connection)
+	if err := tx.All(&vendors); err != nil {
+		return errors.WithStack(err)
+	}
+
+	values := []idNamePair{}
+
+	for _, vendor := range vendors {
+		values = append(values, idNamePair{Name: vendor.Name, ID: vendor.StringID()})
+	}
+
+	return c.Render(200, r.JSON(&values))
 }
 
 // VendorsShow default implementation.
