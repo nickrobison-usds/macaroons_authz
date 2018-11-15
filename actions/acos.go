@@ -188,7 +188,7 @@ func AcoTest(c buffalo.Context) error {
 	// Gen context
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "aco_id", acoId)
-	ctx = context.WithValue(ctx, "user_id", "58eceb10-9b73-436b-8631-bd50c006d05e")
+	ctx = context.WithValue(ctx, "user_id", "5583ce7a-a5fd-419d-b78e-193e2da93331")
 
 	err = as.VerifyMacaroon(ctx, m)
 	if err != nil {

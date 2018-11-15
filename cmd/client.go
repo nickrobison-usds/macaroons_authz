@@ -10,8 +10,8 @@ import (
 	macaroon "gopkg.in/macaroon.v2"
 )
 
-var acoID = "f9e21e80-c47d-4f1d-bcbc-a90ff2c55517"
-var userID = "c4654147-7f16-43a2-a5eb-aeee4a74984a"
+var acoID = "7680b5db-5cec-47a5-8c07-5dec827c3680"
+var userID = "5583ce7a-a5fd-419d-b78e-193e2da93331"
 
 func main() {
 	token, err := envy.MustGet("TOKEN")

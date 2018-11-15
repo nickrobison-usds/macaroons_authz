@@ -1,32 +1,42 @@
-<h2>Details for:
-    <%=user.Name%>
-</h2>
+<div class="row">
+    <h2>Details for:
+        <%=user.Name%>
+    </h2>
+</div>
 
-<h5> Macaroons:</h5>
+<div class="row">
+    ID:
+    <%= user.ID %>
+</div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th scope="col"> Type </th>
-            <th scope="col"> Macaroon </th>
-        </tr>
-    </thead>
-    <tbody>
-        <%= for (at) in user.ACOTokens { %>
-        <tr>
-            <td> ACO </td>
-            <td>
-                <%= binary(at.Macaroon)%>
-            </td>
-        </tr>
-        <% } %>
-        <%= for (vt) in user.VendorTokens { %>
-        <tr>
-            <td> Vendor </td>
-            <td>
-                <%= binary(vt.Macaroon)%>
-            </td>
-        </tr>
-        <% } %>
-    </tbody>
-</table>
+<div class="row">
+
+    <h5> Macaroons:</h5>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col"> Type </th>
+                <th scope="col"> Macaroon </th>
+            </tr>
+        </thead>
+        <tbody>
+            <%= for (at) in user.ACOTokens { %>
+            <tr>
+                <td> ACO </td>
+                <td>
+                    <%= binary(at.Macaroon)%>
+                </td>
+            </tr>
+            <% } %>
+            <%= for (vt) in user.VendorTokens { %>
+            <tr>
+                <td> Vendor </td>
+                <td>
+                    <%= binary(vt.Macaroon)%>
+                </td>
+            </tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>

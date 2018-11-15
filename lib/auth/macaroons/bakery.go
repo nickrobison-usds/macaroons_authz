@@ -25,8 +25,6 @@ type Bakery struct {
 	location string
 }
 
-type strKey struct{}
-
 func init() {
 	log = logger.NewLogger("BAKERY")
 	// Create store
