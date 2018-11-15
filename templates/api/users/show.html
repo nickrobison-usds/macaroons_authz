@@ -1,9 +1,32 @@
-<h2>Details for: <%=user.Name%></h2>
+<h2>Details for:
+    <%=user.Name%>
+</h2>
 
 <h5> Macaroons:</h5>
 
-<ul>
-    <%= for (token) in user.ACOTokens { %>
-    <li><%=binary(token.Macaroon)%></li>
-    <% } %>
-</ul>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col"> Type </th>
+            <th scope="col"> Macaroon </th>
+        </tr>
+    </thead>
+    <tbody>
+        <%= for (at) in user.ACOTokens { %>
+        <tr>
+            <td> ACO </td>
+            <td>
+                <%= binary(at.Macaroon)%>
+            </td>
+        </tr>
+        <% } %>
+        <%= for (vt) in user.VendorTokens { %>
+        <tr>
+            <td> Vendor </td>
+            <td>
+                <%= binary(vt.Macaroon)%>
+            </td>
+        </tr>
+        <% } %>
+    </tbody>
+</table>

@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gobuffalo/buffalo"
@@ -146,4 +147,28 @@ func VendorsList(c buffalo.Context) error {
 // VendorsShow default implementation.
 func VendorsShow(c buffalo.Context) error {
 	return c.Render(200, r.HTML("api/vendors/show.html"))
+}
+
+// VendorsTest tests whether a delegated vendor token can be used to access resources.
+func VendorsTest(c buffalo.Context) error {
+	log.Debug("Attempting to verify test vendor macaroon")
+
+	vendorID := c.Param("id")
+	token := c.Param("token")
+
+	m, err := macaroons.DecodeMacaroon(token)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "vendor_id", vendorID)
+	ctx = context.WithValue(ctx, "user_id", "test-user")
+
+	err = vs.VerifyMacaroon(ctx, m)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return c.Render(200, r.String("success! %s", vendorID))
 }

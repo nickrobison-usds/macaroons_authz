@@ -178,7 +178,7 @@ func CreateACOCertificates(aco *models.ACO) error {
 
 func AcoTest(c buffalo.Context) error {
 	log.Debug("Trying to test that it works.")
-	aco_id := c.Param("id")
+	acoId := c.Param("id")
 	token := c.Param("token")
 
 	m, err := macaroons.DecodeMacaroon(token)
@@ -192,7 +192,7 @@ func AcoTest(c buffalo.Context) error {
 	// Verify
 	// Gen context
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, "aco_id", aco_id)
+	ctx = context.WithValue(ctx, "aco_id", acoId)
 	ctx = context.WithValue(ctx, "user_id", "58eceb10-9b73-436b-8631-bd50c006d05e")
 
 	err = as.VerifyMacaroon(ctx, m)
@@ -200,7 +200,7 @@ func AcoTest(c buffalo.Context) error {
 		return errors.WithStack(err)
 	}
 
-	return c.Render(200, r.String("success! %s", aco_id))
+	return c.Render(200, r.String("success! %s", acoId))
 }
 
 func createACOCheckers() *checkers.Checker {
