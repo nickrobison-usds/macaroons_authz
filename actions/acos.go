@@ -26,7 +26,7 @@ type idNamePair struct {
 var as *macaroons.Bakery
 
 func init() {
-	s, err := macaroons.NewBakery(acoURI, createACOCheckers())
+	s, err := macaroons.NewBakery(acoURI, createACOCheckers(), models.DB)
 	if err != nil {
 		log.Fatal(err)
 	}

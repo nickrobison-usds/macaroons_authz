@@ -877,32 +877,18 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "v1"
-  digest = "1:5c8e05afc145ba5160b355c214dfb596a114c2c307bef0481b08a8eaa699e762"
-  name = "gopkg.in/macaroon-bakery.v1"
-  packages = ["bakery/checkers"]
-  pruneopts = "UT"
-  revision = "f3518acd1415c71218f8675b123ac95564072873"
-
-[[projects]]
-  digest = "1:f2d4699b8d94f02668890feb87cf2bc8f74d9c481abc47e87fca1ac283ad88a7"
+  digest = "1:79fc26fd1cd58b6be82cd056bd9d44ace458b58ca65bb6650a70bce8cea9a1f7"
   name = "gopkg.in/macaroon-bakery.v2"
   packages = [
     "bakery",
     "bakery/checkers",
+    "bakery/dbrootkeystore",
     "bakery/internal/macaroonpb",
+    "bakery/postgresrootkeystore",
   ]
   pruneopts = "UT"
   revision = "a0743b6619d68bbf8dc5cabbb49738b846f06080"
   version = "v2.1.0"
-
-[[projects]]
-  branch = "v1"
-  digest = "1:4174b0590ce22bc31f0cc9a64ce6fd7af5729ace37ccf66f24392782b619b66f"
-  name = "gopkg.in/macaroon.v1"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "ab101776739ee61baab9bc50e4b33b5aeb3ac843"
 
 [[projects]]
   digest = "1:0622939c131fd6ca6fc9dfb25adda2f195062975045baba7ad94607e6f3c52b7"
@@ -939,7 +925,6 @@
     "github.com/gobuffalo/uuid",
     "github.com/gobuffalo/validate",
     "github.com/gobuffalo/validate/validators",
-    "github.com/gofrs/uuid",
     "github.com/logrusorgru/aurora",
     "github.com/markbates/going/defaults",
     "github.com/markbates/goth",
@@ -950,9 +935,9 @@
     "github.com/mitchellh/mapstructure",
     "github.com/pkg/errors",
     "github.com/unrolled/secure",
-    "gopkg.in/macaroon-bakery.v1/bakery/checkers",
     "gopkg.in/macaroon-bakery.v2/bakery",
     "gopkg.in/macaroon-bakery.v2/bakery/checkers",
+    "gopkg.in/macaroon-bakery.v2/bakery/postgresrootkeystore",
     "gopkg.in/macaroon.v2",
   ]
   solver-name = "gps-cdcl"

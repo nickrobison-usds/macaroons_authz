@@ -1,10 +1,17 @@
 package helpers
 
 import (
+	"crypto/rand"
 	"encoding/base64"
+	"io"
 
 	"github.com/gobuffalo/logger"
 	"github.com/gobuffalo/uuid"
+)
+
+const (
+	// NonceSize denotes the number of bytes used for the nonce
+	NonceSize = 12
 )
 
 var log logger.FieldLogger
@@ -34,4 +41,15 @@ func UUIDOfString(id string) uuid.UUID {
 		panic(err)
 	}
 	return str
+}
+
+// GenerateNonce creates a random ID that can be used for macaroons.
+func GenerateNonce() ([]byte, error) {
+	nonce := make([]byte, NonceSize)
+	_, err := io.ReadFull(rand.Reader, nonce[:])
+	if err != nil {
+		return nonce, err
+	}
+
+	return nonce, err
 }

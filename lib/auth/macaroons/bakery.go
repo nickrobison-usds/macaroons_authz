@@ -2,15 +2,23 @@ package macaroons
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"time"
 
+	"github.com/gobuffalo/logger"
+	"github.com/gobuffalo/pop"
 	"gopkg.in/macaroon-bakery.v2/bakery"
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
+	"gopkg.in/macaroon-bakery.v2/bakery/postgresrootkeystore"
 	macaroon "gopkg.in/macaroon.v2"
 )
 
 var dischargeOp = bakery.Op{"firstparty", "x"}
+var log logger.FieldLogger
+var store bakery.RootKeyStore
 
+// Bakery wraps a bakery.Bakery and provides some nice helper functions
 type Bakery struct {
 	b        *bakery.Bakery
 	oven     *bakery.Oven
@@ -19,7 +27,22 @@ type Bakery struct {
 
 type strKey struct{}
 
-func NewBakery(location string, checker *checkers.Checker) (*Bakery, error) {
+func init() {
+	log = logger.NewLogger("BAKERY")
+	// Create store
+	// This is bad, but it seems to work
+	db, err := sql.Open("postgres", "host=localhost user=postgres password=postgres database=cms_authz_development sslmode=disable")
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Debug("Creating root key store")
+	ks := postgresrootkeystore.NewRootKeys(db, "root_keys", 100)
+	store = ks.NewStore(postgresrootkeystore.Policy{
+		ExpiryDuration: 5 * time.Hour,
+	})
+}
+
+func NewBakery(location string, checker *checkers.Checker, db *pop.Connection) (*Bakery, error) {
 
 	// Do something dumb for public keys
 	locator := bakery.NewThirdPartyStore()
@@ -34,7 +57,7 @@ func NewBakery(location string, checker *checkers.Checker) (*Bakery, error) {
 		Key:          nil,
 		Locator:      locator,
 		Checker:      checker,
-		RootKeyStore: NewDevKeyRootStore(),
+		RootKeyStore: store,
 	}
 
 	b := bakery.New(p)
