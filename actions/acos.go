@@ -244,22 +244,6 @@ func AcoVerifyUser(c buffalo.Context) error {
 	return c.Render(http.StatusOK, r.String("ok"))
 }
 
-/*
-func dischargeUserCaveat(ctx context.Context, cav macaroon.Caveat, encodedCav []byte) (*macaroon.Macaroon, error) {
-
-	log.Debug(cav.Id)
-	log.Debug(cav.Location)
-
-	mac, err := service.Discharge(macaroons.StrcmpChecker("user_id = test"), cav.Id)
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-
-	return mac, nil
-}
-*/
-
 // TransformCFSSLResponse converts a ca.CFSSLCertificateResponse into a models.Certificate
 func TransformCFSSLResponse(id uuid.UUID, cert *ca.CFSSLCertificateResponse) (models.Certificate, error) {
 	fmt.Println(cert)
@@ -322,7 +306,13 @@ func DelegateACOToUser(acoID, userID uuid.UUID, tx *pop.Connection) error {
 		return err
 	}
 
-	mBinary, err := delegated.M().MarshalBinary()
+	// Add a third party caveat
+	d2, err := as.AddThirdPartyCaveat(delegated, "http://localhost:8080/api/users/verify", []string{userId})
+	if err != nil {
+		return err
+	}
+
+	mBinary, err := d2.M().MarshalBinary()
 	if err != nil {
 		return err
 	}

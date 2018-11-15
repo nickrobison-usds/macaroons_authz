@@ -6,15 +6,29 @@ import (
 
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/pop"
+	"github.com/nickrobison/cms_authz/lib/auth/macaroons"
 	"github.com/nickrobison/cms_authz/lib/helpers"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
+	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 )
+
+var userURI = "http://localhost:8080/api/users/verify"
+
+var us *macaroons.Bakery
 
 type userAssignRequest struct {
 	UserID     string `form:"userID"`
 	EntityType string `form:"assignEntity"`
 	EntityID   string `form:"entityOptions"`
+}
+
+func init() {
+	s, err := macaroons.NewBakery(userURI, checkers.New(nil), models.DB)
+	if err != nil {
+		log.Fatal(err)
+	}
+	us = s
 }
 
 // UsersIndex default implementation.

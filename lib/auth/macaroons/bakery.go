@@ -17,6 +17,7 @@ import (
 var dischargeOp = bakery.Op{"firstparty", "x"}
 var log logger.FieldLogger
 var store bakery.RootKeyStore
+var tstore MemThirdPartyStore
 
 // Bakery wraps a bakery.Bakery and provides some nice helper functions
 type Bakery struct {
@@ -38,22 +39,22 @@ func init() {
 	store = ks.NewStore(postgresrootkeystore.Policy{
 		ExpiryDuration: 5 * time.Hour,
 	})
+	tstore = NewMemThirdPartyStore()
 }
 
 func NewBakery(location string, checker *checkers.Checker, db *pop.Connection) (*Bakery, error) {
 
 	// Do something dumb for public keys
-	locator := bakery.NewThirdPartyStore()
 	third := bakery.MustGenerateKey()
-	locator.AddInfo(location, bakery.ThirdPartyInfo{
+	tstore.AddInfo(location, bakery.ThirdPartyInfo{
 		PublicKey: third.Public,
 		Version:   bakery.LatestVersion,
 	})
 
 	p := bakery.BakeryParams{
 		Location:     location,
-		Key:          nil,
-		Locator:      locator,
+		Key:          third,
+		Locator:      tstore,
 		Checker:      checker,
 		RootKeyStore: store,
 	}
