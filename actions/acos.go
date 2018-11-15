@@ -185,10 +185,10 @@ func AcoTest(c buffalo.Context) error {
 
 	log.Debug(m.Namespace().String())
 	// Verify
+
 	// Gen context
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "aco_id", acoId)
-	ctx = context.WithValue(ctx, "user_id", "5583ce7a-a5fd-419d-b78e-193e2da93331")
 
 	err = as.VerifyMacaroon(ctx, m)
 	if err != nil {
@@ -202,7 +202,11 @@ func createACOCheckers() *checkers.Checker {
 	c := checkers.New(nil)
 	c.Namespace().Register("std", "")
 	c.Register("aco_id=", "std", macaroons.ContextCheck{"aco_id"}.StrCheck)
-	c.Register("user_id=", "std", macaroons.ContextCheck{"user_id"}.StrCheck)
+	c.Register("user_id=", "std", macaroons.CMSAssociationCheck{
+		ContextKey:       "aco_id",
+		AssociationTable: "aco_users",
+		DB:               models.DB,
+	}.Check)
 
 	return c
 }

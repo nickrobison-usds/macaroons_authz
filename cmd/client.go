@@ -11,7 +11,6 @@ import (
 )
 
 var acoID = "7680b5db-5cec-47a5-8c07-5dec827c3680"
-var userID = "5583ce7a-a5fd-419d-b78e-193e2da93331"
 
 func main() {
 	token, err := envy.MustGet("TOKEN")
