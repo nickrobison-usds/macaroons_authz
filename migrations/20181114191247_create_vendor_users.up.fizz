@@ -2,6 +2,7 @@ create_table("vendor_users") {
 	t.Column("id", "uuid", {"primary": true})
   t.Column("vendor_id", "uuid", {})
   t.Column("user_id", "uuid", {})
+  t.Column("macaroon", "blob", {})
   t.ForeignKey("vendor_id", {"vendors": ["id"]}, {"on_delete": "cascade"})
   t.ForeignKey("user_id", {"users": ["id"]}, {"on_delete": "cascade"})
 }

@@ -80,7 +80,7 @@ func DelegateUserToVendor(vendorID, userID uuid.UUID, tx *pop.Connection) error 
 	}
 
 	// Get the macaroon from the vendor
-	vendor := models.ACO{}
+	vendor := models.Vendor{}
 
 	err := tx.Select("macaroon").Where("id = ?",
 		vendorID.String()).First(&vendor)
@@ -89,14 +89,14 @@ func DelegateUserToVendor(vendorID, userID uuid.UUID, tx *pop.Connection) error 
 	}
 
 	// Generate the delegating Macaroon
-	m, err := macaroons.MacaroonFromBytes(vendor.Macaroon.ByteSlice)
+	m, err := macaroons.MacaroonFromBytes(vendor.Macaroon)
 	if err != nil {
 		return err
 	}
 
 	// Add the caveats
-	user_id := fmt.Sprintf("user_ID= %s", userID.String())
-	delegated, err := vs.AddFirstPartyCaveats(m, []string{user_id})
+	userId := fmt.Sprintf("user_ID= %s", userID.String())
+	delegated, err := vs.AddFirstPartyCaveats(m, []string{userId})
 	if err != nil {
 		return err
 	}

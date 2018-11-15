@@ -25,14 +25,14 @@ type idNamePair struct {
 	Name string
 }
 
-var service *macaroons.Bakery
+var as *macaroons.Bakery
 
 func init() {
 	s, err := macaroons.NewBakery(acoURI, createACOCheckers())
 	if err != nil {
 		log.Fatal(err)
 	}
-	service = s
+	as = s
 }
 
 // acoIndex default implementation.
@@ -163,7 +163,7 @@ func CreateACOCertificates(aco *models.ACO) error {
 	// Create a Macaroon for the ACO
 	condition := fmt.Sprintf("aco_id= %s", aco.ID)
 	log.Debug(condition)
-	mac, err := service.NewFirstPartyMacaroon([]string{condition})
+	mac, err := as.NewFirstPartyMacaroon([]string{condition})
 	if err != nil {
 		return err
 	}
@@ -195,7 +195,7 @@ func AcoTest(c buffalo.Context) error {
 	ctx = context.WithValue(ctx, "aco_id", aco_id)
 	ctx = context.WithValue(ctx, "user_id", "58eceb10-9b73-436b-8631-bd50c006d05e")
 
-	err = service.VerifyMacaroon(ctx, m)
+	err = as.VerifyMacaroon(ctx, m)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -322,8 +322,8 @@ func DelegateACOToUser(acoID, userID uuid.UUID, tx *pop.Connection) error {
 	}
 
 	// Add the caveats
-	user_id := fmt.Sprintf("user_id= %s", userID.String())
-	delegated, err := service.AddFirstPartyCaveats(m, []string{user_id})
+	userId := fmt.Sprintf("user_id= %s", userID.String())
+	delegated, err := as.AddFirstPartyCaveats(m, []string{userId})
 	if err != nil {
 		return err
 	}
