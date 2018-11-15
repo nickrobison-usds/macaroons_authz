@@ -5,19 +5,18 @@ import (
 	"time"
 
 	"github.com/gobuffalo/pop"
-	"github.com/gobuffalo/pop/nulls"
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
 )
 
 // Data model representing an ACO
 type ACO struct {
-	ID          uuid.UUID       `json:"id" db:"id"`
-	Name        string          `json:"name" db:"name"`
-	Macaroon    nulls.ByteSlice `json:"macaroon" db:"macaroon"`
-	Certificate Certificate     `json:"certificates" has_many:"certificates" fd_id:"aco_id"`
-	CreatedAt   time.Time       `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time       `json:"updated_at" db:"updated_at"`
+	ID          uuid.UUID   `json:"id" db:"id"`
+	Name        string      `json:"name" db:"name"`
+	Macaroon    []byte      `json:"macaroon" db:"macaroon"`
+	Certificate Certificate `json:"certificates" has_many:"certificates" fd_id:"aco_id"`
+	CreatedAt   time.Time   `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at" db:"updated_at"`
 }
 
 // Returns the appropriate TableName, which addresses the weird pluralization

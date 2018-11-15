@@ -167,7 +167,7 @@ func CreateACOCertificates(aco *models.ACO) error {
 	if err != nil {
 		return err
 	}
-	b, err := macaroons.MacaroonToByteSlice(mac)
+	b, err := mac.M().MarshalBinary()
 	if err != nil {
 		return err
 	}
@@ -316,7 +316,7 @@ func DelegateACOToUser(acoID, userID uuid.UUID, tx *pop.Connection) error {
 	// Generate a delegating Macaroon
 	// We need a third party to attest that the user is who they say they are.
 
-	m, err := macaroons.MacaroonFromBytes(aco.Macaroon.ByteSlice)
+	m, err := macaroons.MacaroonFromBytes(aco.Macaroon)
 	if err != nil {
 		return err
 	}
