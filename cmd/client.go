@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -13,7 +14,7 @@ import (
 	macaroon "gopkg.in/macaroon.v2"
 )
 
-var acoID = "ba62259e-8083-4a2e-8de4-bd55622a9dd4"
+var acoID = "facfaa12-d6c2-4b07-8be2-91f353c24685"
 
 func main() {
 	token, err := envy.MustGet("TOKEN")
@@ -21,7 +22,6 @@ func main() {
 		panic(err)
 	}
 	fmt.Println(Green("Starting up"))
-	fmt.Println(Sprintf("Token: %s", Cyan(token)))
 
 	var m macaroon.Macaroon
 	bin, err := macaroon.Base64Decode([]byte(token))
@@ -45,27 +45,32 @@ func main() {
 	// Try to make a request to read the data
 	fmt.Println(Green("Trying to fetch the data"))
 
-	// Can we try to use the httpbakery?
+	// Using HTTP bakery
+	client := httpbakery.NewClient()
 
+	// Decode the token and discharge anything
+	fmt.Println(Blue("Discharging necessary caveats"))
 	mac, err := macaroons.DecodeMacaroon(token)
 	if err != nil {
 		panic(err)
 	}
-
-	client := httpbakery.NewClient()
 
 	macs, err := client.DischargeAll(context.Background(), mac)
 	if err != nil {
 		panic(err)
 	}
 
+	fmt.Println(Green("Discharge succeeded, making actual request"))
+
+	// Build and execute the actual request.
+	url := fmt.Sprintf("http://localhost:8080/api/acos/test/%s", acoID)
+
+	httpbakery.SetCookie(client.Jar, mustParseURL(url), nil, macs)
+
 	mBinary, err := macs[0].MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
-
-	// Build and execute the actual request.
-	url := fmt.Sprintf("http://localhost:8080/api/acos/test/%s", acoID)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -78,47 +83,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer resp.Body.Close()
 
-	fmt.Println(resp)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
 
-	/*
-
-
-		var client http.Client
-		url := fmt.Sprintf("http://localhost:8080/api/acos/test/%s?token=%s", acoID, token)
-		fmt.Println(Blue(url))
-		resp, err := client.Get(url)
-		if err != nil {
-			panic(err)
-		}
-		defer resp.Body.Close()
-
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("Status: %s. %s", resp.Status, body)
-
-			// lWe need to get an authorization discharge macaroon
-			fmt.Println(Green("Fetching Authorization macaroon."))
-
-			data := map[string]interface{}{
-				"aco_id":   acoID,
-				"user_id":  userID,
-				"macaroon": bin,
-			}
-
-			jsonValues, err := json.Marshal(data)
-			if err != nil {
-				panic(err)
-			}
-
-			var client http.Client
-			_, err = client.Post("http://localhost:8080/api/acos/verify", "application/json", bytes.NewBuffer(jsonValues))
-			if err != nil {
-				panic(err)
-			}
-	*/
+	fmt.Println(Green(string(body)))
 }
 
 func mustParseURL(s string) *url.URL {

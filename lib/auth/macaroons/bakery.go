@@ -103,9 +103,9 @@ func (b Bakery) AddThirdPartyCaveat(m *bakery.Macaroon, loc string, conditions [
 	return m, err
 }
 
-func (b Bakery) VerifyMacaroon(ctx context.Context, m *bakery.Macaroon) error {
+func (b Bakery) VerifyMacaroons(ctx context.Context, m macaroon.Slice) error {
 
-	_, conds, err := b.oven.VerifyMacaroon(context.Background(), macaroon.Slice{m.M()})
+	_, conds, err := b.oven.VerifyMacaroon(context.Background(), m)
 	if err != nil {
 		return err
 	}
@@ -119,6 +119,10 @@ func (b Bakery) VerifyMacaroon(ctx context.Context, m *bakery.Macaroon) error {
 	}
 
 	return nil
+}
+
+func (b Bakery) VerifyMacaroon(ctx context.Context, m *bakery.Macaroon) error {
+	return b.VerifyMacaroons(ctx, macaroon.Slice{m.M()})
 }
 
 func (b Bakery) DischargeCaveatByID(ctx context.Context, id string, caveatChecker bakery.ThirdPartyCaveatCheckerFunc) (*bakery.Macaroon, error) {

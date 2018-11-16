@@ -14,6 +14,7 @@ import (
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
+	"gopkg.in/macaroon-bakery.v2/httpbakery"
 )
 
 var acoURI = "http://localhost:8080/api/acos"
@@ -174,29 +175,25 @@ func CreateACOCertificates(aco *models.ACO) error {
 func AcoTest(c buffalo.Context) error {
 	log.Debug("Trying to test that it works.")
 	acoId := c.Param("id")
-	// This should be a helper function, to be more robust.
-	token := c.Request().Header.Get("Macaroons")
 
-	m, err := macaroons.DecodeMacaroon(token)
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	// Get the macaroons from the request
+	// Right now, we only need the first set.
+	mSlice := httpbakery.RequestMacaroons(c.Request())
 
-	log.Debug("Verifying")
+	log.Debug("Verifying macaroon")
 
-	log.Debug(m.Namespace().String())
 	// Verify
 	// Gen context
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "aco_id", acoId)
 
-	err = as.VerifyMacaroon(ctx, m)
+	err := as.VerifyMacaroons(ctx, mSlice[0])
 	if err != nil {
 		log.Errorf("Auth error: %s", err.Error())
 		return c.Render(http.StatusUnauthorized, r.String("Unauthorized"))
 	}
 
-	return c.Render(200, r.String("success! %s", acoId))
+	return c.Render(200, r.String("Successfully accessed data for: %s", acoId))
 }
 
 func createACOCheckers() *checkers.Checker {
