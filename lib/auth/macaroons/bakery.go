@@ -52,6 +52,7 @@ func NewBakery(location string, checker *checkers.Checker, db *pop.Connection) (
 	})
 
 	p := bakery.BakeryParams{
+		Logger:       BakedLogger{log},
 		Location:     location,
 		Key:          third,
 		Locator:      tstore,
@@ -95,13 +96,11 @@ func (b Bakery) AddThirdPartyCaveat(m *bakery.Macaroon, loc string, conditions [
 }
 
 func (b Bakery) VerifyMacaroon(ctx context.Context, m *bakery.Macaroon) error {
-	ops, conds, err := b.oven.VerifyMacaroon(context.Background(), macaroon.Slice{m.M()})
+
+	_, conds, err := b.oven.VerifyMacaroon(context.Background(), macaroon.Slice{m.M()})
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("Ops: %s\n", ops)
-	fmt.Printf("Conds: %s\n", conds)
 
 	for _, cond := range conds {
 		err := b.b.Checker.CheckFirstPartyCaveat(ctx, cond)
@@ -130,4 +129,19 @@ func buildCaveats(location string, conditions []string) []checkers.Caveat {
 
 func strContext(key, s string) context.Context {
 	return context.WithValue(context.Background(), key, s)
+}
+
+// BakedLogger wraps a buffalo.Logger so that it works as a bakery.Logger
+type BakedLogger struct {
+	log logger.FieldLogger
+}
+
+// Infof logs info logs
+func (b BakedLogger) Infof(_ context.Context, f string, args ...interface{}) {
+	b.log.Infof(f, args)
+}
+
+// Debugf logs debug logs
+func (b BakedLogger) Debugf(_ context.Context, f string, args ...interface{}) {
+	b.log.Debugf(f, args)
 }

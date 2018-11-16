@@ -174,7 +174,8 @@ func CreateACOCertificates(aco *models.ACO) error {
 func AcoTest(c buffalo.Context) error {
 	log.Debug("Trying to test that it works.")
 	acoId := c.Param("id")
-	token := c.Param("token")
+	// This should be a helper function, to be more robust.
+	token := c.Request().Header.Get("Macaroons")
 
 	m, err := macaroons.DecodeMacaroon(token)
 	if err != nil {
@@ -185,14 +186,13 @@ func AcoTest(c buffalo.Context) error {
 
 	log.Debug(m.Namespace().String())
 	// Verify
-
 	// Gen context
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, "aco_id", acoId)
 
 	err = as.VerifyMacaroon(ctx, m)
 	if err != nil {
-		return errors.WithStack(err)
+		return c.Render(http.StatusUnauthorized, r.String("Unauthorized"))
 	}
 
 	return c.Render(200, r.String("success! %s", acoId))

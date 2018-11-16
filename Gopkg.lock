@@ -451,6 +451,22 @@
   revision = "584905176618da46b895b176c721b02c476b6993"
 
 [[projects]]
+  branch = "master"
+  digest = "1:4b100fcfff4c16b8cccada24d19da4826c7d36f2b6065df146eeeffc3ae7a853"
+  name = "github.com/juju/webbrowser"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "efb9432b2bcb671b0cf2237468e209d10e2ac373"
+
+[[projects]]
+  digest = "1:f97285a3b0a496dcf8801072622230d513f69175665d94de60eb042d03387f6c"
+  name = "github.com/julienschmidt/httprouter"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "348b672cd90d8190f8240323e372ecd1e66b59dc"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:d395d2621c61bdbcaf62fb749d90ec55a51d112329e653aeca87fbd1075723aa"
   name = "github.com/karrick/godirwalk"
   packages = ["."]
@@ -810,13 +826,15 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:db7528233e2f178f8770284f05c60708b31e73d9b8d287676ce52a3389681fe4"
+  digest = "1:ae76ddfe06c072cd60f7cda6cc1e09a85fe62679077b4f13f01a1ec12b3bff0a"
   name = "golang.org/x/net"
   packages = [
     "context",
     "context/ctxhttp",
     "html",
     "html/atom",
+    "idna",
+    "publicsuffix",
   ]
   pruneopts = "UT"
   revision = "c44066c5c816ec500d459a2a324a753f78531ae0"
@@ -852,6 +870,29 @@
   revision = "d69651ed3497faee15a5363a89578e9991f6d5e2"
 
 [[projects]]
+  digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
+  name = "golang.org/x/text"
+  packages = [
+    "collate",
+    "collate/build",
+    "internal/colltab",
+    "internal/gen",
+    "internal/tag",
+    "internal/triegen",
+    "internal/ucd",
+    "language",
+    "secure/bidirule",
+    "transform",
+    "unicode/bidi",
+    "unicode/cldr",
+    "unicode/norm",
+    "unicode/rangetable",
+  ]
+  pruneopts = "UT"
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
+
+[[projects]]
   digest = "1:4b8f3d164fcba1aed1e5ec63edb518b7d436b001f01e06c7f9c2335498b4c5a3"
   name = "google.golang.org/appengine"
   packages = [
@@ -877,7 +918,15 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:79fc26fd1cd58b6be82cd056bd9d44ace458b58ca65bb6650a70bce8cea9a1f7"
+  digest = "1:bbe9ba411f7f948caf21d2d431ea8ea70195f51c9bb5bfa70c44cd9d8de3fb33"
+  name = "gopkg.in/httprequest.v1"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "a1015531595ff2ed1a0c126b55da352e6923eaac"
+  version = "v1.1.2"
+
+[[projects]]
+  digest = "1:56af1db3531b93bb81141e26101b77ea7c0c70db4e5cafe50035d6e36304603e"
   name = "gopkg.in/macaroon-bakery.v2"
   packages = [
     "bakery",
@@ -885,6 +934,8 @@
     "bakery/dbrootkeystore",
     "bakery/internal/macaroonpb",
     "bakery/postgresrootkeystore",
+    "httpbakery",
+    "internal/httputil",
   ]
   pruneopts = "UT"
   revision = "a0743b6619d68bbf8dc5cabbb49738b846f06080"
@@ -938,6 +989,7 @@
     "gopkg.in/macaroon-bakery.v2/bakery",
     "gopkg.in/macaroon-bakery.v2/bakery/checkers",
     "gopkg.in/macaroon-bakery.v2/bakery/postgresrootkeystore",
+    "gopkg.in/macaroon-bakery.v2/httpbakery",
     "gopkg.in/macaroon.v2",
   ]
   solver-name = "gps-cdcl"
