@@ -113,6 +113,33 @@ func (b Bakery) VerifyMacaroon(ctx context.Context, m *bakery.Macaroon) error {
 	return nil
 }
 
+func (b Bakery) DischargeCaveatByID(ctx context.Context, id string, caveatChecker bakery.ThirdPartyCaveatCheckerFunc) (*bakery.Macaroon, error) {
+
+	// Decode the id
+	decodedID, err := macaroon.Base64Decode([]byte(id))
+	if err != nil {
+		return nil, err
+	}
+
+	var caveat []byte
+
+	// Do the discharge thing
+	params := bakery.DischargeParams{
+		Id:      decodedID,
+		Caveat:  caveat,
+		Checker: caveatChecker,
+		Key:     b.oven.Key(),
+	}
+
+	log.Debug("Discharging it")
+
+	mac, err := bakery.Discharge(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return mac, err
+}
+
 func buildCaveats(location string, conditions []string) []checkers.Caveat {
 	caveats := []checkers.Caveat{}
 

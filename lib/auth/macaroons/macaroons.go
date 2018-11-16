@@ -10,13 +10,23 @@ import (
 
 var oven *bakery.Oven
 
+// DischargeRequest holds the basic structure of a caveat discharge request
+type DischargeRequest struct {
+	Id        string `httprequest:"id,form,omitempty"`
+	Id64      string `httprequest:"id64,form,omitempty"`
+	Caveat    string `httprequest:"caveat64,form,omitempty"`
+	Token     string `httprequest:"token,form,omitempty"`
+	Token64   string `httprequest:"token64,form,omitempty"`
+	TokenKind string `httprequest:"token-kind,form,omitempty"`
+}
+
 func init() {
 	oven = bakery.NewOven(bakery.OvenParams{})
 }
 
 // DecodeMacaroon returns a bakery.Macaroon from a base64 encoded string
 func DecodeMacaroon(s string) (*bakery.Macaroon, error) {
-	b, err := base64.URLEncoding.DecodeString(s)
+	b, err := macaroon.Base64Decode([]byte(s))
 	if err != nil {
 		return nil, err
 	}

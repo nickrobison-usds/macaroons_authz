@@ -77,7 +77,7 @@ func App() *buffalo.App {
 
 		api := app.Group("/api")
 		api.Use(Authorize)
-		api.Middleware.Skip(Authorize, AcoVerifyUser, AcoTest)
+		api.Middleware.Skip(Authorize, AcoVerifyUser, AcoTest, UsersVerify)
 
 		// ACO Endpoints
 		api.GET("/acos/index", AcosIndex)
@@ -95,6 +95,7 @@ func App() *buffalo.App {
 		api.POST("/users/create", UsersCreate)
 		api.GET("/users/delete/{id}", UsersDelete)
 		api.POST("/users/assign", UsersAssign)
+		api.POST("/users/verify/discharge", UsersVerify)
 
 		// Vendor endpoints
 		api.GET("/vendors/show{id}", VendorsShow)

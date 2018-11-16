@@ -19,6 +19,7 @@ func (l *MemThirdPartyStore) AddInfo(loc string, info bakery.ThirdPartyInfo) {
 }
 
 func (l MemThirdPartyStore) ThirdPartyInfo(ctx context.Context, loc string) (bakery.ThirdPartyInfo, error) {
+	log.Debugf("Getting key for location: %s", loc)
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 

@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/nickrobison/cms_authz/lib/helpers"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
+	"gopkg.in/macaroon-bakery.v2/bakery"
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 )
 
@@ -107,4 +109,27 @@ func UsersAssign(c buffalo.Context) error {
 	}
 
 	return c.Redirect(http.StatusTemporaryRedirect, "/api/users/index")
+}
+
+func UsersVerify(c buffalo.Context) error {
+	token := c.Param("id64")
+
+	log.Debugf("Token: %s", token)
+
+	log.Debug("Discharging")
+
+	_, err := us.DischargeCaveatByID(c.Request().Context(), token, caveatChecker)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	log.Debug("Verification complete.")
+	return c.Render(http.StatusUnauthorized, r.String("Nope"))
+}
+
+func caveatChecker(ctx context.Context, cav *bakery.ThirdPartyCaveatInfo) ([]checkers.Caveat, error) {
+	log.Debug("In the checker")
+	log.Debug(ctx)
+	log.Debug(cav)
+	return []checkers.Caveat{}, nil
 }
