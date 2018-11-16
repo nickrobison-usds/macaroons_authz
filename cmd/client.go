@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/gobuffalo/envy"
 	. "github.com/logrusorgru/aurora"
@@ -45,12 +46,6 @@ func main() {
 	fmt.Println(Green("Trying to fetch the data"))
 
 	// Can we try to use the httpbakery?
-	url := fmt.Sprintf("http://localhost:8080/api/acos/test/%s", acoID)
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		panic(err)
-	}
 
 	mac, err := macaroons.DecodeMacaroon(token)
 	if err != nil {
@@ -59,12 +54,25 @@ func main() {
 
 	client := httpbakery.NewClient()
 
-	_, err = client.DischargeAll(context.Background(), mac)
+	macs, err := client.DischargeAll(context.Background(), mac)
 	if err != nil {
 		panic(err)
 	}
 
-	req.Header.Set(httpbakery.MacaroonsHeader, token)
+	mBinary, err := macs[0].MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
+
+	// Build and execute the actual request.
+	url := fmt.Sprintf("http://localhost:8080/api/acos/test/%s", acoID)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	req.Header.Set("Macaroons", macaroons.EncodeMacaroon(mBinary))
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -111,4 +119,12 @@ func main() {
 				panic(err)
 			}
 	*/
+}
+
+func mustParseURL(s string) *url.URL {
+	u, err := url.Parse(s)
+	if err != nil {
+		panic(err)
+	}
+	return u
 }

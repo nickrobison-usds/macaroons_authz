@@ -27,6 +27,11 @@ type userAssignRequest struct {
 	EntityID   string `form:"entityOptions"`
 }
 
+// dischargeResponse contains the response from a /discharge POST request.
+type dischargeResponse struct {
+	Macaroon *bakery.Macaroon `json:",omitempty"`
+}
+
 func init() {
 
 	// Read in the demo file
@@ -132,13 +137,19 @@ func UsersVerify(c buffalo.Context) error {
 
 	log.Debug("Discharging")
 
-	_, err := us.DischargeCaveatByID(c.Request().Context(), token, newCaveatChecker(c.Value("tx").(*pop.Connection)))
+	mac, err := us.DischargeCaveatByID(c.Request().Context(), token, newCaveatChecker(c.Value("tx").(*pop.Connection)))
 	if err != nil {
 		return errors.WithStack(err)
 	}
 
-	log.Debug("Verification complete.")
-	return c.Render(http.StatusUnauthorized, r.String("Nope"))
+	b, err := mac.MarshalJSON()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	log.Debugf("Marshalled: %s", string(b))
+
+	return c.Render(200, r.JSON(&dischargeResponse{mac}))
 }
 
 func newCaveatChecker(db *pop.Connection) bakery.ThirdPartyCaveatCheckerFunc {

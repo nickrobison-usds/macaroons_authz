@@ -192,6 +192,7 @@ func AcoTest(c buffalo.Context) error {
 
 	err = as.VerifyMacaroon(ctx, m)
 	if err != nil {
+		log.Errorf("Auth error: %s", err.Error())
 		return c.Render(http.StatusUnauthorized, r.String("Unauthorized"))
 	}
 

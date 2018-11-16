@@ -53,7 +53,7 @@ func NewBakery(location string, checker *checkers.Checker, db *pop.Connection, k
 	if keys == nil {
 		keys = bakery.MustGenerateKey()
 	}
-	log.Debugf("Private: %s, Pub: %s", keys.Private, keys.Public)
+	log.Debugf("Private: %s, Public: %s", keys.Private, keys.Public)
 	tstore.AddInfo(location, bakery.ThirdPartyInfo{
 		PublicKey: keys.Public,
 		Version:   bakery.LatestVersion,
