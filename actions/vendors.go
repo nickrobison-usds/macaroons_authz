@@ -19,7 +19,7 @@ const vendorURI = "http://localhost:8080/api/vendors"
 var vs *macaroons.Bakery
 
 func init() {
-	b, err := macaroons.NewBakery(vendorURI, createVendorChecker(), models.DB)
+	b, err := macaroons.NewBakery(vendorURI, createVendorChecker(), models.DB, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -15,6 +15,13 @@ type MemThirdPartyStore struct {
 func (l *MemThirdPartyStore) AddInfo(loc string, info bakery.ThirdPartyInfo) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+
+	// Check if it already exists, if so, don't overwrite it
+	_, ok := l.m[loc]
+	if ok {
+		log.Debugf("Already have key for %s", loc)
+		return
+	}
 	l.m[loc] = info
 }
 

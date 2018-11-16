@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/gobuffalo/logger"
@@ -18,6 +19,7 @@ var dischargeOp = bakery.Op{"firstparty", "x"}
 var log logger.FieldLogger
 var store bakery.RootKeyStore
 var tstore MemThirdPartyStore
+var once sync.Once
 
 // Bakery wraps a bakery.Bakery and provides some nice helper functions
 type Bakery struct {
@@ -39,22 +41,28 @@ func init() {
 	store = ks.NewStore(postgresrootkeystore.Policy{
 		ExpiryDuration: 5 * time.Hour,
 	})
-	tstore = NewMemThirdPartyStore()
+	once.Do(func() {
+		log.Debug("Creating new Third party key store")
+		tstore = NewMemThirdPartyStore()
+	})
 }
 
-func NewBakery(location string, checker *checkers.Checker, db *pop.Connection) (*Bakery, error) {
+func NewBakery(location string, checker *checkers.Checker, db *pop.Connection, keys *bakery.KeyPair) (*Bakery, error) {
 
 	// Do something dumb for public keys
-	third := bakery.MustGenerateKey()
+	if keys == nil {
+		keys = bakery.MustGenerateKey()
+	}
+	log.Debugf("Private: %s, Pub: %s", keys.Private, keys.Public)
 	tstore.AddInfo(location, bakery.ThirdPartyInfo{
-		PublicKey: third.Public,
+		PublicKey: keys.Public,
 		Version:   bakery.LatestVersion,
 	})
 
 	p := bakery.BakeryParams{
 		Logger:       BakedLogger{log},
 		Location:     location,
-		Key:          third,
+		Key:          keys,
 		Locator:      tstore,
 		Checker:      checker,
 		RootKeyStore: store,

@@ -2,7 +2,9 @@ package actions
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gobuffalo/buffalo"
@@ -26,7 +28,19 @@ type userAssignRequest struct {
 }
 
 func init() {
-	s, err := macaroons.NewBakery(userURI, checkers.New(nil), models.DB)
+
+	// Read in the demo file
+	f, err := ioutil.ReadFile("./user_keys.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	key := &bakery.KeyPair{}
+	err = json.Unmarshal(f, key)
+	if err != nil {
+		log.Fatal(err)
+	}
+	s, err := macaroons.NewBakery(userURI, checkers.New(nil), models.DB, key)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -118,7 +132,7 @@ func UsersVerify(c buffalo.Context) error {
 
 	log.Debug("Discharging")
 
-	_, err := us.DischargeCaveatByID(c.Request().Context(), token, caveatChecker)
+	_, err := us.DischargeCaveatByID(c.Request().Context(), token, newCaveatChecker(c.Value("tx").(*pop.Connection)))
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -127,9 +141,33 @@ func UsersVerify(c buffalo.Context) error {
 	return c.Render(http.StatusUnauthorized, r.String("Nope"))
 }
 
-func caveatChecker(ctx context.Context, cav *bakery.ThirdPartyCaveatInfo) ([]checkers.Caveat, error) {
-	log.Debug("In the checker")
-	log.Debug(ctx)
-	log.Debug(cav)
-	return []checkers.Caveat{}, nil
+func newCaveatChecker(db *pop.Connection) bakery.ThirdPartyCaveatCheckerFunc {
+	return func(ctx context.Context, cav *bakery.ThirdPartyCaveatInfo) ([]checkers.Caveat, error) {
+
+		var caveats []checkers.Caveat
+		log.Debug("In the checker")
+		log.Debug(ctx)
+		log.Debug(string(cav.Condition))
+		_, arg, err := checkers.ParseCaveat(string(cav.Condition))
+		if err != nil {
+			return caveats, err
+		}
+
+		// Getting from the DB
+		var user models.User
+
+		userID := helpers.UUIDOfString(arg)
+
+		err = db.Select("id").Where("id = ? ", userID).First(&user)
+		if err != nil {
+			return caveats, err
+		}
+
+		if user.ID != userID {
+			return nil, bakery.ErrPermissionDenied
+		}
+
+		return nil, nil
+	}
+
 }
