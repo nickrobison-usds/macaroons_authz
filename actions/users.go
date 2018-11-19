@@ -110,14 +110,14 @@ func UsersAssign(c buffalo.Context) error {
 	switch req.EntityType {
 	case "ACO":
 		{
-			err := DelegateACOToUser(helpers.UUIDOfString(req.EntityID), helpers.UUIDOfString(req.UserID), tx)
+			err := AssignUserToACO(helpers.UUIDOfString(req.EntityID), helpers.UUIDOfString(req.UserID), tx)
 			if err != nil {
 				return errors.WithStack(err)
 			}
 		}
 	case "Vendor":
 		{
-			err := DelegateUserToVendor(helpers.UUIDOfString(req.EntityID), helpers.UUIDOfString(req.UserID), tx)
+			err := AssignUserToVendor(helpers.UUIDOfString(req.EntityID), helpers.UUIDOfString(req.UserID), tx)
 			if err != nil {
 				return errors.WithStack(err)
 			}

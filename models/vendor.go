@@ -16,6 +16,7 @@ type Vendor struct {
 	CreatedAt time.Time   `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time   `json:"updated_at" db:"updated_at"`
 	Users     VendorUsers `json:"vendor_users" has_many:"vendor_users"`
+	ACOTokens AcoVendors  `json:"aco_tokens" has_many:"aco_vendors"`
 }
 
 // String is not required by pop and may be deleted

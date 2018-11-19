@@ -3,18 +3,25 @@ package actions
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/uuid"
 	"github.com/nickrobison/cms_authz/lib/auth/ca"
 	"github.com/nickrobison/cms_authz/lib/auth/macaroons"
+	"github.com/nickrobison/cms_authz/lib/helpers"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 )
 
 const vendorURI = "http://localhost:8080/api/vendors"
+
+type vendorAssignRequest struct {
+	VendorID string `form:"vendorID"`
+	EntityId string `form:"entityOptions"`
+}
 
 var vs *macaroons.Bakery
 
@@ -33,6 +40,27 @@ func createVendorChecker() *checkers.Checker {
 	c.Register("vendor_id=", "std", macaroons.ContextCheck{"vendor_id"}.StrCheck)
 
 	return c
+}
+
+// VendorsAssign assigns a vendor to a given ACO
+func VendorsAssign(c buffalo.Context) error {
+
+	req := vendorAssignRequest{}
+
+	err := c.Bind(&req)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	log.Debugf("Assigning vendor %s to ACO %s.\n", req.VendorID, req.EntityId)
+
+	tx := c.Value("tx").(*pop.Connection)
+
+	err = AssignVendorToACO(helpers.UUIDOfString(req.EntityId), helpers.UUIDOfString(req.VendorID), tx)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return c.Redirect(http.StatusTemporaryRedirect, "/api/vendors/index")
 }
 
 // VendorsCreate default implementation.
@@ -72,8 +100,8 @@ func CreateVendorCertificates(vendor *models.Vendor) error {
 	return nil
 }
 
-// DelegateUserToVendor creates a delegated macaroon from the vendor, to the appropriate user.
-func DelegateUserToVendor(vendorID, userID uuid.UUID, tx *pop.Connection) error {
+// AssignUserToVendor creates a delegated macaroon from the vendor, to the appropriate user.
+func AssignUserToVendor(vendorID, userID uuid.UUID, tx *pop.Connection) error {
 	// Create the initial model
 	link := models.VendorUser{
 		VendorID: vendorID,
@@ -146,6 +174,20 @@ func VendorsList(c buffalo.Context) error {
 
 // VendorsShow default implementation.
 func VendorsShow(c buffalo.Context) error {
+
+	vendorID := c.Param("id")
+
+	vendor := &models.Vendor{
+		ID: helpers.UUIDOfString(vendorID),
+	}
+
+	tx := c.Value("tx").(*pop.Connection)
+	if err := tx.Eager().Find(vendor, vendor.ID); err != nil {
+		return errors.WithStack(err)
+	}
+
+	c.Set("vendor", vendor)
+
 	return c.Render(200, r.HTML("api/vendors/show.html"))
 }
 

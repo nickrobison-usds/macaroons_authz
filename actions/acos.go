@@ -273,7 +273,7 @@ func TransformCFSSLResponse(id uuid.UUID, cert *ca.CFSSLCertificateResponse) (mo
 	return acoCert, nil
 }
 
-func DelegateACOToUser(acoID, userID uuid.UUID, tx *pop.Connection) error {
+func AssignUserToACO(acoID, userID uuid.UUID, tx *pop.Connection) error {
 	// Create the intitial model
 	link := models.AcoUser{
 		ACOID:  acoID,
@@ -306,6 +306,52 @@ func DelegateACOToUser(acoID, userID uuid.UUID, tx *pop.Connection) error {
 
 	// Add a third party caveat
 	d2, err := as.AddThirdPartyCaveat(delegated, "http://localhost:8080/api/users/verify", []string{userId})
+	if err != nil {
+		return err
+	}
+
+	mBinary, err := d2.M().MarshalBinary()
+	if err != nil {
+		return err
+	}
+
+	link.Macaroon = mBinary
+
+	return tx.Save(&link)
+}
+
+func AssignVendorToACO(acoID, vendorID uuid.UUID, tx *pop.Connection) error {
+	// Create the initial model
+	link := models.AcoVendor{
+		ACOID:    acoID,
+		VendorID: vendorID,
+	}
+
+	// Get the Vendors' Macaroon
+	vendor := models.Vendor{}
+
+	err := tx.Select("macaroon").Where("id = ?", vendorID.String()).First(&vendor)
+	if err != nil {
+		return err
+	}
+
+	// Generate a delegating Macaroon
+
+	m, err := macaroons.MacaroonFromBytes(vendor.Macaroon)
+	if err != nil {
+		return err
+	}
+
+	// Restrict macaroon to only that Vendor
+
+	vendorCaveat := fmt.Sprintf("vendor_id= %s", vendorID.String())
+	d1, err := as.AddThirdPartyCaveat(m, "http://localhost:8080/api/users/verify", []string{vendorCaveat})
+	if err != nil {
+		return err
+	}
+
+	// Verify that the vendor is known to the ACO
+	d2, err := as.AddFirstPartyCaveats(d1, []string{vendorCaveat})
 	if err != nil {
 		return err
 	}

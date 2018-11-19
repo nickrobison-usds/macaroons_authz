@@ -9,16 +9,17 @@
 
                 <%= form({action: "/api/vendors/assign", method: "POST"}) { %>
                 <div class="form-group">
-                    <div class="form-group">
-                        <label for="entityOptions">Entity list:</label>
-                        <%= f.SelectTag({id: "entityOptions", name: "entityOptions", aria-describedby: "entityOptionsHelp"}) %>
-                        <small id="entityOptionsHelps" class="form-text text-muted">Select entity to assign vendor to</small>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Assign</button>
-                    </div>
-                    <% } %>
+                    <input type="hidden" id="vendorID" name="vendorID">
+                    <label for="entityOptions">Entity list:</label>
+                    <%= f.SelectTag({id: "entityOptions", name: "entityOptions", aria-describedby: "entityOptionsHelp"}) %>
+                    <small id="entityOptionsHelps" class="form-text text-muted">Select entity to assign vendor to</small>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Assign</button>
+                </div>
+                <% } %>
             </div>
         </div>
+    </div>
+</div>

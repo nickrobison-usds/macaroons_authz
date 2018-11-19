@@ -1,1 +1,37 @@
-<h1>Vendors#Show</h1>
+<div class="col col-md-12">
+
+    <div class="row">
+        <h2>Details for:
+            <%=vendor.Name%>
+        </h2>
+    </div>
+
+    <div class="row">
+        ID:
+        <%= vendor.ID %>
+    </div>
+
+    <div class="row">
+
+        <h5> Macaroons:</h5>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col"> Type </th>
+                    <th scope="col"> Macaroon </th>
+                </tr>
+            </thead>
+            <tbody>
+                <%= for (vt) in vendor.ACOTokens { %>
+                <tr>
+                    <td> ACO </td>
+                    <td>
+                        <%= binary(vt.Macaroon)%>
+                    </td>
+                </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -14,7 +14,7 @@ import (
 	macaroon "gopkg.in/macaroon.v2"
 )
 
-var acoID = "facfaa12-d6c2-4b07-8be2-91f353c24685"
+var acoID = "f92af150-7c69-4f56-958e-9f5fd529c57c"
 
 func main() {
 	token, err := envy.MustGet("TOKEN")
@@ -61,23 +61,15 @@ func main() {
 	}
 
 	fmt.Println(Green("Discharge succeeded, making actual request"))
-
 	// Build and execute the actual request.
 	url := fmt.Sprintf("http://localhost:8080/api/acos/test/%s", acoID)
 
 	httpbakery.SetCookie(client.Jar, mustParseURL(url), nil, macs)
 
-	mBinary, err := macs[0].MarshalBinary()
-	if err != nil {
-		panic(err)
-	}
-
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		panic(err)
 	}
-
-	req.Header.Set("Macaroons", macaroons.EncodeMacaroon(mBinary))
 
 	resp, err := client.Do(req)
 	if err != nil {
