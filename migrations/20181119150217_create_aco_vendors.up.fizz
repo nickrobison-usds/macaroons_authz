@@ -1,0 +1,9 @@
+create_table("aco_vendors") {
+	t.Column("id", "uuid", {"primary": true})
+  t.Column("aco_id", "uuid", {})
+  t.Column("vendor_id", "uuid", {})
+  t.Column("macaroon", "blob", {})
+  t.ForeignKey("aco_id", {"acos": ["id"]}, {"on_delete": "cascade"})
+  t.ForeignKey("vendor_id", {"vendors": ["id"]}, {"on_delete": "cascade"})
+
+}
