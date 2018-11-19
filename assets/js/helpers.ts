@@ -25,6 +25,12 @@ export class JQueryPromise<T> {
 }
 
 
+
+export interface IACONamePair {
+    ID: string
+    Name: string
+}
+
 export class AsyncFetch {
 
     public static async fetchValuesOnChange<T>(value: string, builder: (value: T) => HTMLOptionElement): Promise<HTMLOptionElement[]> {
@@ -41,4 +47,12 @@ export class AsyncFetch {
 
         return data;
     }
+}
+
+export class UserAssign {
+
+    public static BuildACOOption(value: IACONamePair): HTMLOptionElement {
+        return new Option(value.Name, value.ID, false, false);
+    }
+
 }

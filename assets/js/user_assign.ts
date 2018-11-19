@@ -1,10 +1,4 @@
-import { AsyncFetch } from "./helpers"
-
-interface IACONamePair {
-    ID: string
-    Name: string
-}
-
+import { AsyncFetch, IACONamePair, UserAssign } from "./helpers"
 $(document).ready(handleForm)
 
 
@@ -25,15 +19,12 @@ function changeHandler(value: JQuery.Event<HTMLElement, null>): void {
 
     const val = this.value;
     console.log("Value:", val)
-    AsyncFetch.fetchValuesOnChange<IACONamePair>(val, buildACOOption)
+    AsyncFetch.fetchValuesOnChange<IACONamePair>(val, UserAssign.BuildACOOption)
         .then((newOptions) => {
-            const opts = $("#entityOptions").empty()
-            opts.append(newOptions)
+            const opts = $("#entityOptions").empty();
+            opts.append(newOptions);
         })
 }
 
-function buildACOOption(value: IACONamePair): HTMLOptionElement {
-    return new Option(value.Name, value.ID, false, false);
-}
 
 
