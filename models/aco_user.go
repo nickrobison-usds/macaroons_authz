@@ -12,8 +12,9 @@ import (
 type AcoUser struct {
 	ID        uuid.UUID `json:"id" db:"id"`
 	ACOID     uuid.UUID `json:"aco_id" db:"aco_id"`
-	UserID    uuid.UUID `json:"user_id" db:"user_id"`
+	EntityID  uuid.UUID `json:"entity_id" db:"entity_id"`
 	Macaroon  []byte    `json:"macaroon" db:"macaroon"`
+	IsUser    bool      `json:"is_user" db:"is_user"`
 	CreatedAt time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }

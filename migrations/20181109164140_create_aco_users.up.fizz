@@ -1,8 +1,8 @@
 create_table("aco_users") {
 	t.Column("id", "uuid", {"primary": true})
   t.Column("aco_id", "uuid", {})
-  t.Column("user_id", "uuid", {})
+  t.Column("entity_id", "uuid", {})
+  t.Column("is_user", "bool", {})
   t.Column("macaroon", "blob", {})
   t.ForeignKey("aco_id", {"acos": ["id"]}, {"on_delete": "cascade"})
-  t.ForeignKey("user_id", {"users": ["id"]}, {"on_delete": "cascade"})
 }

@@ -224,14 +224,14 @@ func AcoVerifyUser(c buffalo.Context) error {
 		return c.Render(http.StatusInternalServerError, r.String("Something bad happened."))
 	}
 
-	log.Debugf("Verifying that user %s is a member of %s", requestData.UserID, requestData.ACOID)
+	log.Debugf("Verifying that user %s is a member of %s", requestData.EntityID, requestData.ACOID)
 
 	// Check that the association actually exists.
 	tx := c.Value("tx").(*pop.Connection)
 
 	var acoUser models.AcoUser
 
-	err = tx.Where("aco_id = ?", requestData.ACOID).Where("user_id = ?", requestData.UserID).First(&acoUser)
+	err = tx.Where("aco_id = ?", requestData.ACOID).Where("user_id = ?", requestData.EntityID).First(&acoUser)
 	if err != nil {
 		log.Error(err)
 		return c.Render(http.StatusInternalServerError, r.String("Something wen't wrong: %s", err.Error()))
@@ -283,8 +283,9 @@ func TransformCFSSLResponse(id uuid.UUID, cert *ca.CFSSLCertificateResponse) (mo
 func AssignUserToACO(acoID, userID uuid.UUID, tx *pop.Connection) error {
 	// Create the intitial model
 	link := models.AcoUser{
-		ACOID:  acoID,
-		UserID: userID,
+		ACOID:    acoID,
+		EntityID: userID,
+		IsUser:   true,
 	}
 
 	// Get the Macaroon from the ACO
@@ -329,9 +330,10 @@ func AssignUserToACO(acoID, userID uuid.UUID, tx *pop.Connection) error {
 
 func AssignVendorToACO(acoID, vendorID uuid.UUID, tx *pop.Connection) error {
 	// Create the initial model
-	link := models.AcoVendor{
+	link := models.AcoUser{
 		ACOID:    acoID,
-		VendorID: vendorID,
+		EntityID: vendorID,
+		IsUser:   false,
 	}
 
 	// Get the Vendors' Macaroon
