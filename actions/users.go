@@ -9,6 +9,7 @@ import (
 
 	"github.com/gobuffalo/buffalo"
 	"github.com/gobuffalo/pop"
+	"github.com/gobuffalo/uuid"
 	"github.com/nickrobison/cms_authz/lib/auth/macaroons"
 	"github.com/nickrobison/cms_authz/lib/helpers"
 	"github.com/nickrobison/cms_authz/models"
@@ -30,6 +31,11 @@ type userAssignRequest struct {
 // dischargeResponse contains the response from a /discharge POST request.
 type dischargeResponse struct {
 	Macaroon *bakery.Macaroon `json:",omitempty"`
+}
+
+type Identifiable interface {
+	GetID() uuid.UUID
+	TableName() string
 }
 
 func init() {
@@ -137,7 +143,7 @@ func UsersVerify(c buffalo.Context) error {
 
 	log.Debug("Discharging")
 
-	mac, err := us.DischargeCaveatByID(c.Request().Context(), token, newCaveatChecker(c.Value("tx").(*pop.Connection)))
+	mac, err := us.DischargeCaveatByID(c.Request().Context(), token, userIDCaveatChecker(c.Value("tx").(*pop.Connection)))
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -152,11 +158,12 @@ func UsersVerify(c buffalo.Context) error {
 	return c.Render(200, r.JSON(&dischargeResponse{mac}))
 }
 
-func newCaveatChecker(db *pop.Connection) bakery.ThirdPartyCaveatCheckerFunc {
+func userIDCaveatChecker(db *pop.Connection) bakery.ThirdPartyCaveatCheckerFunc {
+
 	return func(ctx context.Context, cav *bakery.ThirdPartyCaveatInfo) ([]checkers.Caveat, error) {
 
 		var caveats []checkers.Caveat
-		log.Debug("In the checker")
+		log.Debug("In the ID checker")
 		log.Debug(ctx)
 		log.Debug(string(cav.Condition))
 		_, arg, err := checkers.ParseCaveat(string(cav.Condition))
@@ -164,17 +171,17 @@ func newCaveatChecker(db *pop.Connection) bakery.ThirdPartyCaveatCheckerFunc {
 			return caveats, err
 		}
 
-		// Getting from the DB
 		var user models.User
 
-		userID := helpers.UUIDOfString(arg)
+		// Getting from the DB
+		ID := helpers.UUIDOfString(arg)
 
-		err = db.Select("id").Where("id = ? ", userID).First(&user)
+		err = db.Select("id").Where("id = ? ", ID).First(&user)
 		if err != nil {
-			return caveats, err
+			return nil, err
 		}
 
-		if user.ID != userID {
+		if user.ID != ID {
 			return nil, bakery.ErrPermissionDenied
 		}
 

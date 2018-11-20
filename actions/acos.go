@@ -199,12 +199,20 @@ func AcoTest(c buffalo.Context) error {
 func createACOCheckers() *checkers.Checker {
 	c := checkers.New(nil)
 	c.Namespace().Register("std", "")
-	c.Register("aco_id=", "std", macaroons.ContextCheck{"aco_id"}.StrCheck)
-	c.Register("user_id=", "std", macaroons.CMSAssociationCheck{
-		ContextKey:       "aco_id",
-		AssociationTable: "aco_users",
-		DB:               models.DB,
+	c.Register("vendor_id=", "std", macaroons.CMSAssociationCheck{
+		ContextKey:        "aco_id",
+		AssociationTable:  "aco_vendors",
+		AssociationColumn: "vendor_id",
+		DB:                models.DB,
 	}.Check)
+	/*c.Register("aco_id=", "std", macaroons.ContextCheck{Key: "aco_id"}.Check)
+	c.Register("user_id=", "std", macaroons.CMSAssociationCheck{
+		ContextKey:        "aco_id",
+		AssociationTable:  "aco_users",
+		AssociationColumn: "user_id",
+		DB:                models.DB,
+	}.Check)
+	*/
 
 	return c
 }
@@ -350,13 +358,18 @@ func AssignVendorToACO(acoID, vendorID uuid.UUID, tx *pop.Connection) error {
 		return err
 	}
 
-	// Verify that the vendor is known to the ACO
-	d2, err := as.AddFirstPartyCaveats(d1, []string{vendorCaveat})
-	if err != nil {
-		return err
-	}
+	/**
+	This needs to be added back, at some point
 
-	mBinary, err := d2.M().MarshalBinary()
+		// Verify that the vendor is known to the ACO
+		d2, err := as.AddFirstPartyCaveats(d1, []string{vendorCaveat})
+		if err != nil {
+			return err
+		}
+
+	*/
+
+	mBinary, err := d1.M().MarshalBinary()
 	if err != nil {
 		return err
 	}

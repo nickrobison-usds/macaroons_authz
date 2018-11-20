@@ -77,7 +77,11 @@ func App() *buffalo.App {
 
 		api := app.Group("/api")
 		api.Use(Authorize)
-		api.Middleware.Skip(Authorize, AcoVerifyUser, AcoTest, UsersVerify)
+		api.Middleware.Skip(Authorize,
+			AcoVerifyUser,
+			AcoTest,
+			UsersVerify,
+			VendorsVerify)
 
 		// ACO Endpoints
 		api.GET("/acos/index", AcosIndex)
@@ -104,6 +108,7 @@ func App() *buffalo.App {
 		api.GET("/vendors/create", VendorsCreate)
 		api.POST("/vendors/assign", VendorsAssign)
 		api.GET("/vendors/test/{id}", VendorsTest)
+		api.POST("/vendors/{id}/verify/discharge", VendorsVerify)
 
 		app.ServeFiles("/", assetsBox) // serve files from the public directory
 	}

@@ -30,6 +30,16 @@ func (u User) String() string {
 	return string(ju)
 }
 
+// GetID implements the Identifiable interface
+func (u User) GetID() uuid.UUID {
+	return u.ID
+}
+
+// TableName implements the Identifiable interface
+func (u User) TableName() string {
+	return "users"
+}
+
 // Users is not required by pop and may be deleted
 type Users []User
 

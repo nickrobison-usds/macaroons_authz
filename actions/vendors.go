@@ -2,7 +2,9 @@ package actions
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gobuffalo/buffalo"
@@ -13,10 +15,11 @@ import (
 	"github.com/nickrobison/cms_authz/lib/helpers"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
+	"gopkg.in/macaroon-bakery.v2/bakery"
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 )
 
-const vendorURI = "http://localhost:8080/api/vendors"
+const vendorURI = "http://localhost:8080/api/vendors/verify"
 
 type vendorAssignRequest struct {
 	VendorID string `form:"vendorID"`
@@ -26,7 +29,20 @@ type vendorAssignRequest struct {
 var vs *macaroons.Bakery
 
 func init() {
-	b, err := macaroons.NewBakery(vendorURI, createVendorChecker(), models.DB, nil)
+
+	// Read in the demo file
+	f, err := ioutil.ReadFile("./user_keys.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	key := &bakery.KeyPair{}
+	err = json.Unmarshal(f, key)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b, err := macaroons.NewBakery(vendorURI, createVendorChecker(), models.DB, key)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,7 +53,7 @@ func init() {
 func createVendorChecker() *checkers.Checker {
 	c := checkers.New(nil)
 	c.Namespace().Register("std", "")
-	c.Register("vendor_id=", "std", macaroons.ContextCheck{"vendor_id"}.StrCheck)
+	c.Register("vendor_id=", "std", macaroons.ContextCheck{"vendor_id"}.Check)
 
 	return c
 }
@@ -85,10 +101,16 @@ func CreateVendorCertificates(vendor *models.Vendor) error {
 	// Create a Macaroon for the Vendor
 	condition := fmt.Sprintf("vendor_id= %s", vendor.ID)
 	log.Debug(condition)
-
-	mac, err := vs.NewFirstPartyMacaroon([]string{condition})
+	/*
+		mac, err := vs.NewFirstPartyMacaroon([]string{condition})
+		if err != nil {
+			return err
+		}
+	*/
+	// Add a third party caveat to verify that the vendor is assigned to the aco
+	mac, err := vs.NewThirdPartyMacaroon(context.Background(), "http://localhost:8080/api/acos/verify", []string{condition})
 	if err != nil {
-		return err
+		return nil
 	}
 
 	b, err := macaroons.MacaroonToByteSlice(mac)
@@ -124,13 +146,18 @@ func AssignUserToVendor(vendorID, userID uuid.UUID, tx *pop.Connection) error {
 	}
 
 	// Add the caveats
-	userId := fmt.Sprintf("user_ID= %s", userID.String())
-	delegated, err := vs.AddFirstPartyCaveats(m, []string{userId})
+	userId := fmt.Sprintf("user_id= %s", userID.String())
+	// Use a third party caveat, because we need to have other APIs verify the user list.
+
+	verifyString := fmt.Sprintf("http://localhost:8080/api/vendors/%s/verify", vendorID.String())
+	delegated, err := vs.AddThirdPartyCaveat(m, verifyString, []string{userId})
 	if err != nil {
 		return err
 	}
 
-	dBinary, err := delegated.M().MarshalBinary()
+	d2, err := vs.AddThirdPartyCaveat(delegated, "http://localhost:8080/api/users/verify", []string{userId})
+
+	dBinary, err := d2.M().MarshalBinary()
 	if err != nil {
 		return err
 	}
@@ -213,4 +240,60 @@ func VendorsTest(c buffalo.Context) error {
 	}
 
 	return c.Render(200, r.String("success! %s", vendorID))
+}
+
+// VendorsVerify verifies that a given user is a member of the Vendor
+func VendorsVerify(c buffalo.Context) error {
+	token := c.Param("id64")
+
+	log.Debug("Token: ", token)
+
+	log.Debug("Checking user association for vendor: ", c.Param("id"))
+
+	// Set the vendor_id
+
+	ctx := context.WithValue(c.Request().Context(), "vendor_id", c.Param("id"))
+
+	mac, err := us.DischargeCaveatByID(ctx, token, vendorUserIDCaveatChecker(c.Value("tx").(*pop.Connection)))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return c.Render(200, r.JSON(&dischargeResponse{mac}))
+}
+
+func vendorUserIDCaveatChecker(db *pop.Connection) bakery.ThirdPartyCaveatCheckerFunc {
+
+	return func(ctx context.Context, cav *bakery.ThirdPartyCaveatInfo) ([]checkers.Caveat, error) {
+
+		// Get the vendor ID from the context
+		vendorIDString := ctx.Value("vendor_id").(string)
+		vendorID := helpers.UUIDOfString(vendorIDString)
+
+		var caveats []checkers.Caveat
+		log.Debug("In the Vendor ID checker")
+		log.Debug(ctx)
+		log.Debug(string(cav.Condition))
+		_, arg, err := checkers.ParseCaveat(string(cav.Condition))
+		if err != nil {
+			return caveats, err
+		}
+
+		var vendor models.VendorUser
+
+		// Getting from the DB
+		ID := helpers.UUIDOfString(arg)
+
+		err = db.Select("user_id").Where("vendor_id = ? and user_id = ?", vendorID, ID).First(&vendor)
+		if err != nil {
+			return nil, err
+		}
+
+		if vendor.UserID != ID {
+			return nil, bakery.ErrPermissionDenied
+		}
+
+		return nil, nil
+	}
+
 }

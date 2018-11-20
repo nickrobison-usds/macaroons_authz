@@ -30,6 +30,16 @@ func (v Vendor) StringID() string {
 	return v.ID.String()
 }
 
+// GetID implements the Identifiable interface
+func (v Vendor) GetID() uuid.UUID {
+	return v.ID
+}
+
+// TableName implements the identifiable interface
+func (v Vendor) TableName() string {
+	return "vendors"
+}
+
 // Vendors is not required by pop and may be deleted
 type Vendors []Vendor
 

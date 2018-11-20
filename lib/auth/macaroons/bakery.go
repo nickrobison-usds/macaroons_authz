@@ -3,7 +3,6 @@ package macaroons
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"sync"
 	"time"
 
@@ -89,6 +88,18 @@ func (b Bakery) NewFirstPartyMacaroon(conditions []string) (*bakery.Macaroon, er
 	return mac, nil
 }
 
+// NewThirdPartyMacaroon creates a new macaroon with a set of third party caveats, linked to a given locaiton.
+func (b Bakery) NewThirdPartyMacaroon(ctx context.Context, loc string, conditions []string) (*bakery.Macaroon, error) {
+	caveats := buildCaveats("", conditions)
+
+	mac, err := b.oven.NewMacaroon(ctx, bakery.LatestVersion, caveats, dischargeOp)
+	if err != nil {
+		return nil, err
+	}
+
+	return mac, nil
+}
+
 func (b Bakery) AddFirstPartyCaveats(m *bakery.Macaroon, conditions []string) (*bakery.Macaroon, error) {
 	caveats := buildCaveats("", conditions)
 	err := b.oven.AddCaveats(context.Background(), m, caveats)
@@ -113,11 +124,9 @@ func (b Bakery) VerifyMacaroons(ctx context.Context, m macaroon.Slice) error {
 	for _, cond := range conds {
 		err := b.b.Checker.CheckFirstPartyCaveat(ctx, cond)
 		if err != nil {
-			fmt.Println(err.Error())
 			return err
 		}
 	}
-
 	return nil
 }
 
