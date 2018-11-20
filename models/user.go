@@ -20,7 +20,7 @@ type User struct {
 	Email        nulls.String `json:"email" db:"email"`
 	Provider     string       `json:"provider" db:"provider"`
 	ProviderID   string       `json:"provider_id" db:"provider_id"`
-	ACOTokens    AcoUsers     `json:"aco_tokens" has_many:"aco_users"`
+	ACOTokens    AcoUsers     `json:"aco_tokens" has_many:"aco_users" fk_id:"entity_id"`
 	VendorTokens VendorUsers  `json:"vendor_tokens" has_many:"vendor_users"`
 }
 

@@ -53,7 +53,7 @@ func init() {
 func createVendorChecker() *checkers.Checker {
 	c := checkers.New(nil)
 	c.Namespace().Register("std", "")
-	c.Register("vendor_id=", "std", macaroons.ContextCheck{"vendor_id"}.Check)
+	c.Register("entity_id=", "std", macaroons.ContextCheck{"entity_id"}.Check)
 
 	return c
 }
@@ -99,26 +99,29 @@ func CreateVendorCertificates(vendor *models.Vendor) error {
 	}
 
 	// Create a Macaroon for the Vendor
-	condition := fmt.Sprintf("vendor_id= %s", vendor.ID)
+	log.Debug("Creating vendor macaroon.")
+	condition := fmt.Sprintf("entity_id= %s", vendor.ID)
 	log.Debug(condition)
+	mac, err := vs.NewFirstPartyMacaroon([]string{condition})
+	if err != nil {
+		return err
+	}
+	// Add a third party caveat to verify that the vendor is assigned to the aco
 	/*
-		mac, err := vs.NewFirstPartyMacaroon([]string{condition})
+		mac, err := vs.NewThirdPartyMacaroon(context.Background(), "http://localhost:8080/api/acos/verify", []string{condition})
 		if err != nil {
 			return err
 		}
 	*/
-	// Add a third party caveat to verify that the vendor is assigned to the aco
-	mac, err := vs.NewThirdPartyMacaroon(context.Background(), "http://localhost:8080/api/acos/verify", []string{condition})
-	if err != nil {
-		return nil
-	}
 
-	b, err := macaroons.MacaroonToByteSlice(mac)
+	log.Debug("Vendor thing:", mac)
+
+	b, err := mac.M().MarshalBinary()
 	if err != nil {
 		return err
 	}
 
-	vendor.Macaroon = b.ByteSlice
+	vendor.Macaroon = b
 	return nil
 }
 

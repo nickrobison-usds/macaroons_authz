@@ -198,14 +198,14 @@ func AcoTest(c buffalo.Context) error {
 func createACOCheckers() *checkers.Checker {
 	c := checkers.New(nil)
 	c.Namespace().Register("std", "")
-	c.Register("vendor_id=", "std", macaroons.CMSAssociationCheck{
+	c.Register("entity_id=", "std", macaroons.CMSAssociationCheck{
 		ContextKey:        "aco_id",
-		AssociationTable:  "aco_vendors",
-		AssociationColumn: "vendor_id",
+		AssociationTable:  "aco_users",
+		AssociationColumn: "entity_id",
 		DB:                models.DB,
 	}.Check)
-	/*c.Register("aco_id=", "std", macaroons.ContextCheck{Key: "aco_id"}.Check)
-	c.Register("user_id=", "std", macaroons.CMSAssociationCheck{
+	c.Register("aco_id=", "std", macaroons.ContextCheck{Key: "aco_id"}.Check)
+	/*c.Register("user_id=", "std", macaroons.CMSAssociationCheck{
 		ContextKey:        "aco_id",
 		AssociationTable:  "aco_users",
 		AssociationColumn: "user_id",
@@ -300,25 +300,28 @@ func AssignUserToACO(acoID, userID uuid.UUID, tx *pop.Connection) error {
 	// Generate a delegating Macaroon
 	// We need a third party to attest that the user is who they say they are.
 
+	// Decode macaroon
 	m, err := macaroons.MacaroonFromBytes(aco.Macaroon)
 	if err != nil {
 		return err
 	}
 
-	// Add the caveats
-	userId := fmt.Sprintf("user_id= %s", userID.String())
-	delegated, err := as.AddFirstPartyCaveats(m, []string{userId})
+	entityCaveat := fmt.Sprintf("entity_id= %s", userID.String())
+	delegated, err := as.AddFirstPartyCaveats(m, []string{entityCaveat})
 	if err != nil {
 		return err
 	}
 
 	// Add a third party caveat
-	d2, err := as.AddThirdPartyCaveat(delegated, "http://localhost:8080/api/users/verify", []string{userId})
+	userCaveat := fmt.Sprintf("user_id= %s", userID.String())
+	d1, err := as.AddThirdPartyCaveat(delegated, "http://localhost:8080/api/users/verify", []string{userCaveat})
 	if err != nil {
 		return err
 	}
 
-	mBinary, err := d2.M().MarshalBinary()
+	log.Debug("User assigned token:", d1)
+
+	mBinary, err := d1.M().MarshalBinary()
 	if err != nil {
 		return err
 	}
@@ -336,24 +339,24 @@ func AssignVendorToACO(acoID, vendorID uuid.UUID, tx *pop.Connection) error {
 		IsUser:   false,
 	}
 
-	// Get the Vendors' Macaroon
-	vendor := models.Vendor{}
+	// Get the ACO's Macaroon
+	aco := models.ACO{}
 
-	err := tx.Select("macaroon").Where("id = ?", vendorID.String()).First(&vendor)
+	err := tx.Select("macaroon").Where("id = ?", acoID.String()).First(&aco)
 	if err != nil {
 		return err
 	}
 
 	// Generate a delegating Macaroon
 
-	m, err := macaroons.MacaroonFromBytes(vendor.Macaroon)
+	m, err := macaroons.MacaroonFromBytes(aco.Macaroon)
 	if err != nil {
 		return err
 	}
 
 	// Restrict macaroon to only that Vendor
 
-	vendorCaveat := fmt.Sprintf("vendor_id= %s", vendorID.String())
+	vendorCaveat := fmt.Sprintf("entity_id= %s", vendorID.String())
 
 	// Verify that the vendor is known to the ACO
 	d1, err := as.AddFirstPartyCaveats(m, []string{vendorCaveat})

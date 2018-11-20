@@ -90,7 +90,7 @@ func (b Bakery) NewFirstPartyMacaroon(conditions []string) (*bakery.Macaroon, er
 
 // NewThirdPartyMacaroon creates a new macaroon with a set of third party caveats, linked to a given locaiton.
 func (b Bakery) NewThirdPartyMacaroon(ctx context.Context, loc string, conditions []string) (*bakery.Macaroon, error) {
-	caveats := buildCaveats("", conditions)
+	caveats := buildCaveats(loc, conditions)
 
 	mac, err := b.oven.NewMacaroon(ctx, bakery.LatestVersion, caveats, dischargeOp)
 	if err != nil {
@@ -107,9 +107,7 @@ func (b Bakery) AddFirstPartyCaveats(m *bakery.Macaroon, conditions []string) (*
 }
 
 func (b Bakery) AddThirdPartyCaveat(m *bakery.Macaroon, loc string, conditions []string) (*bakery.Macaroon, error) {
-
 	caveats := buildCaveats(loc, conditions)
-
 	err := b.oven.AddCaveats(context.Background(), m, caveats)
 	return m, err
 }
