@@ -150,6 +150,7 @@ func (b Bakery) DischargeCaveatByID(ctx context.Context, id string, caveatChecke
 		Caveat:  caveat,
 		Checker: caveatChecker,
 		Key:     b.oven.Key(),
+		Locator: b.oven.Locator(),
 	}
 
 	log.Debug("Discharging it")

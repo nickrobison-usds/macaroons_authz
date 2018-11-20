@@ -184,8 +184,7 @@ func AcoTest(c buffalo.Context) error {
 
 	// Verify
 	// Gen context
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, "aco_id", acoId)
+	ctx := context.WithValue(c.Request().Context(), "aco_id", acoId)
 
 	err := as.VerifyMacaroons(ctx, mSlice[0])
 	if err != nil {
@@ -353,21 +352,12 @@ func AssignVendorToACO(acoID, vendorID uuid.UUID, tx *pop.Connection) error {
 	// Restrict macaroon to only that Vendor
 
 	vendorCaveat := fmt.Sprintf("vendor_id= %s", vendorID.String())
-	d1, err := as.AddThirdPartyCaveat(m, "http://localhost:8080/api/users/verify", []string{vendorCaveat})
+
+	// Verify that the vendor is known to the ACO
+	d1, err := as.AddFirstPartyCaveats(m, []string{vendorCaveat})
 	if err != nil {
 		return err
 	}
-
-	/**
-	This needs to be added back, at some point
-
-		// Verify that the vendor is known to the ACO
-		d2, err := as.AddFirstPartyCaveats(d1, []string{vendorCaveat})
-		if err != nil {
-			return err
-		}
-
-	*/
 
 	mBinary, err := d1.M().MarshalBinary()
 	if err != nil {

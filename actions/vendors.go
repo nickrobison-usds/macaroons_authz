@@ -155,9 +155,7 @@ func AssignUserToVendor(vendorID, userID uuid.UUID, tx *pop.Connection) error {
 		return err
 	}
 
-	d2, err := vs.AddThirdPartyCaveat(delegated, "http://localhost:8080/api/users/verify", []string{userId})
-
-	dBinary, err := d2.M().MarshalBinary()
+	dBinary, err := delegated.M().MarshalBinary()
 	if err != nil {
 		return err
 	}
@@ -293,7 +291,14 @@ func vendorUserIDCaveatChecker(db *pop.Connection) bakery.ThirdPartyCaveatChecke
 			return nil, bakery.ErrPermissionDenied
 		}
 
-		return nil, nil
+		// The user is known to us, but are they valid?
+		// Need to verify
+
+		return []checkers.Caveat{checkers.Caveat{
+			Location:  "http://localhost:8080/api/users/verify",
+			Condition: fmt.Sprintf("user_id= %s", vendor.UserID.String()),
+			Namespace: checkers.StdNamespace,
+		}}, nil
 	}
 
 }
