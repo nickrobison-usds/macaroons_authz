@@ -223,7 +223,7 @@ func VendorsShow(c buffalo.Context) error {
 func VendorsTest(c buffalo.Context) error {
 	log.Debug("Attempting to verify test vendor macaroon")
 
-	vendorID := c.Param("id")
+	vendorID := c.Param("vendorID")
 	token := c.Param("token")
 
 	m, err := macaroons.DecodeMacaroon(token)
@@ -249,11 +249,13 @@ func VendorsVerify(c buffalo.Context) error {
 
 	log.Debug("Token: ", token)
 
-	log.Debug("Checking user association for vendor: ", c.Param("id"))
+	log.Debug("Checking user association for vendor: ", c.Param("vendorID"))
 
 	// Set the vendor_id
 
-	ctx := context.WithValue(c.Request().Context(), "vendor_id", c.Param("id"))
+	ctx := context.WithValue(c.Request().Context(), "vendor_id", c.Param("vendorID"))
+
+	// Decode the caveat, and keep going
 
 	mac, err := us.DischargeCaveatByID(ctx, token, vendorUserIDCaveatChecker(c.Value("tx").(*pop.Connection)))
 	if err != nil {
@@ -298,7 +300,7 @@ func vendorUserIDCaveatChecker(db *pop.Connection) bakery.ThirdPartyCaveatChecke
 		// Need to verify
 
 		return []checkers.Caveat{checkers.Caveat{
-			Location:  "http://localhost:8080/api/users/verify",
+			Location:  "http://localhost:3002/users/verify",
 			Condition: fmt.Sprintf("user_id= %s", vendor.UserID.String()),
 			Namespace: checkers.StdNamespace,
 		}}, nil

@@ -17,3 +17,4 @@ cms_authz
 *.csr
 **/*.tfstate*
 **/.terraform
+javascript/src/**/*.js

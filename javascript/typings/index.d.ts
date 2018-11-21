@@ -1,0 +1,1 @@
+/// <reference path="./js-macaroon.d.ts" />
