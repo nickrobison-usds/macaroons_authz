@@ -1,12 +1,11 @@
 declare module "macaroon" {
 
-
     type dischargeFunc = (macLocation: string, cavLocation: string, cavID: string, success: Function, failure: Function) => void;
 
     export interface MacaroonCaveat {
-        identifierBytes: Uint8Array;
-        locationStr: string;
-        vidBytes: Uint8Array;
+        identifier: Uint8Array;
+        location?: string;
+        vid?: Uint8Array;
     }
 
 
@@ -20,10 +19,10 @@ declare module "macaroon" {
 
     export class Macaroon {
         constructor(params: MacaroonParams);
-        caveats(): Array<MacaroonCaveat>;
-        location2(): string;
-        identifie2r(): Uint8Array;
-        signature(): Uint8Array;
+        caveats: Array<MacaroonCaveat>;
+        location: string;
+        identifier: Uint8Array;
+        signature: Uint8Array;
         addThirdPartyCaveat(
             rootKeyBytes: Uint8Array,
             caveatIdBytes: Uint8Array | string,
@@ -31,10 +30,12 @@ declare module "macaroon" {
         addFirstPartyCaveat(caveatIdBytes: Uint8Array): void;
         bindToRoot(rootSig: Uint8Array): void;
         clone(): Macaroon;
-        verify(rootKeyBytes: Uint8Array, discharges?: MacaroonCaveat[]): void;
+        verify(
+            rootKeyBytes: Uint8Array,
+            check: (condition: string) => string | null,
+            discharges?: MacaroonCaveat[]): void;
         exportJSON(): MacaroonParams;
         exportBinary(): Uint8Array;
-
     }
 
     export function newMacaroon(params: MacaroonParams): Macaroon;

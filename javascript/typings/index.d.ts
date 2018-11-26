@@ -1,1 +1,1 @@
-/// <reference path="./js-macaroon.d.ts" />
+/// <reference path="./macaroon.d.ts" />

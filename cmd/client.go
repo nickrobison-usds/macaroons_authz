@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -54,17 +53,18 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	macs, err := client.DischargeAll(context.Background(), mac)
-	if err != nil {
-		panic(err)
-	}
+	/*
+		macs, err := client.DischargeAll(context.Background(), mac)
+		if err != nil {
+			panic(err)
+		}*/
 
 	fmt.Println(Green("Discharge succeeded, making actual request"))
 	// Build and execute the actual request.
-	url := fmt.Sprintf("http://localhost:8080/api/acos/test/%s", acoID)
+	//url := fmt.Sprintf("http://localhost:8080/api/acos/test/%s", acoID)
+	url := fmt.Sprintf("http://localhost:3002/test?id64=%s", token)
 
-	httpbakery.SetCookie(client.Jar, mustParseURL(url), nil, macs)
+	httpbakery.SetCookie(client.Jar, mustParseURL(url), nil, macaroon.Slice{mac.M()})
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

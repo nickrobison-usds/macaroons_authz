@@ -1,7 +1,7 @@
 import express from "express";
 import { AuthController } from "./controllers/auth";
 
-console.log("Starting User Service");
+console.log("Starting API Service");
 
 const app = express();
 
@@ -13,7 +13,7 @@ app.set("port", process.env.Port || 3002);
 const ac = new AuthController();
 
 app.get("/", ac.hello);
-app.post("/users/verify/discharge", ac.dischargeMacaroon);
+app.get("/test", (req, res) => ac.dischargeMacaroon(req, res));
 // Start it up
 
 app.listen(app.get("port"), () => {
