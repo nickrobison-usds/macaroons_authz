@@ -1,11 +1,6 @@
 import { Request, Response } from "express";
 import { base64ToBytes, importMacaroons, Macaroon } from "macaroon";
-import { readFileSync } from "fs";
-import { resolve } from "path";
-import { privateDecrypt } from "crypto";
 
-const nacl: any = require("tweetnacl");
-const pemtools: any = require("pemtools");
 
 interface IKeyPair {
     pub: string;
@@ -13,36 +8,11 @@ interface IKeyPair {
 }
 
 export class AuthController {
-    private keys: IKeyPair;
-    private privPemKey: string;
-    private pubPemKey: string;
     private rootKey = "eeyiIuD5a2yrXjj6BlKctUC7k6qF/H6B";
-    private rkEncode: Uint8Array;
-    private privBytes: Buffer;
     private decoder: TextDecoder;
 
     constructor(privateKeyPath = "../user_keys.json") {
         console.debug("Creating controller");
-        // Read the file
-        const absPath = resolve(privateKeyPath);
-        const json = JSON.parse(readFileSync(absPath, "utf8"));
-        this.keys = {
-            pub: json["public"],
-            priv: json["private"]
-        }
-
-        this.privPemKey = "-----BEGIN EC PRIVATE KEY-----\n" + this.keys.priv + "\n-----END EC PRIVATE KEY-----";
-        this.pubPemKey = "";
-        this.rkEncode = base64ToBytes(this.rootKey);
-        this.privBytes = Buffer.from(this.keys.priv, "utf8");
-        console.log("Size:", this.privBytes.length);
-
-        // Read real file?
-        const file = readFileSync(resolve("../vendor__ca-key.pem"), "utf8");
-        this.privPemKey = file;
-        console.log(file);
-        const pem = pemtools(file);
-        console.log("Pem:", pemtools(file));
         this.decoder = new TextDecoder("utf-8");
 
     }
@@ -80,9 +50,8 @@ export class AuthController {
         try {
             macaroons[0].verify(base64ToBytes(this.rootKey), ((cond) => AuthController.verifyACOID(cond, acoID)), macaroons[1]);
         } catch (err) {
-            console.error("Checked with error.")
             console.error(err);
-            res.status(404).send("Nope, not authed.");
+            res.status(404).send(err.message);
             return;
         }
         console.log("Verified");
@@ -100,7 +69,7 @@ export class AuthController {
             if (splits[1] == acoID) {
                 return null;
             }
-            return "ACO ID does not match";
+            return `This token is only valid for ACO: ${splits[1]}`;
         }
         return null;
     }

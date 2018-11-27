@@ -12,7 +12,6 @@
         "express": "^4.16.4",
         "macaroon": "^3.0.3",
         "nacl-fast": "^0.1.0",
-        "pemtools": "^0.4.7",
         "sjcl": "^1.0.8",
         "tweetnacl": "^1.0.0"
     },
