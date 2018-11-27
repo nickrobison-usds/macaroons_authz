@@ -18,7 +18,7 @@ import (
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 )
 
-var userURI = "http://localhost:3002/users/verify"
+var userURI = "http://localhost:8080/api/users/verify"
 
 var us *macaroons.Bakery
 

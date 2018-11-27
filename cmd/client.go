@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,7 +14,7 @@ import (
 	macaroon "gopkg.in/macaroon.v2"
 )
 
-var acoID = "7b7d2aea-2a2b-47c8-8d73-a35d74b6a651"
+var acoID = "4d24935c-a5bb-4ab1-a4ba-0ac7e730e4a9"
 
 func main() {
 	token, err := envy.MustGet("TOKEN")
@@ -53,18 +54,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	/*
-		macs, err := client.DischargeAll(context.Background(), mac)
-		if err != nil {
-			panic(err)
-		}*/
+	macs, err := client.DischargeAll(context.Background(), mac)
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Println(Green("Discharge succeeded, making actual request"))
 	// Build and execute the actual request.
 	//url := fmt.Sprintf("http://localhost:8080/api/acos/test/%s", acoID)
-	url := fmt.Sprintf("http://localhost:3002/test?id64=%s", token)
+	url := fmt.Sprintf("http://localhost:3002/%s", acoID)
 
-	httpbakery.SetCookie(client.Jar, mustParseURL(url), nil, macaroon.Slice{mac.M()})
+	httpbakery.SetCookie(client.Jar, mustParseURL(url), nil, macs)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

@@ -1,9 +1,12 @@
 import express from "express";
 import { AuthController } from "./controllers/auth";
+import cookieParser = require("cookie-parser");
 
 console.log("Starting API Service");
 
 const app = express();
+
+app.use(cookieParser());
 
 // Express config
 
@@ -12,8 +15,7 @@ app.set("port", process.env.Port || 3002);
 // Add the controllers and routes
 const ac = new AuthController();
 
-app.get("/", ac.hello);
-app.get("/test", (req, res) => ac.dischargeMacaroon(req, res));
+app.get("/:acoID", (req, res) => ac.dischargeMacaroon(req, res));
 // Start it up
 
 app.listen(app.get("port"), () => {

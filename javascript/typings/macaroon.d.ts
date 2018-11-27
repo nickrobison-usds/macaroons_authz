@@ -33,7 +33,7 @@ declare module "macaroon" {
         verify(
             rootKeyBytes: Uint8Array,
             check: (condition: string) => string | null,
-            discharges?: MacaroonCaveat[]): void;
+            discharges?: Macaroon[]): void;
         exportJSON(): MacaroonParams;
         exportBinary(): Uint8Array;
     }
