@@ -49,17 +49,14 @@ export class AuthController {
     public dischargeMacaroon(req: Request, res: Response): void {
         const acoID = req.params["acoID"];
         // Get the macaroon from the reuest and import it.
-        const cook = AuthController.getRequestMacaroons(req);
-        console.log("Cookie:", req.cookies);
-        let token = req.cookies["macaroon-4809536c6ce8caa9dc97f074780ac3da29d3cb2d0ea64c8bf87cb43322832279"];
+        const token = AuthController.getRequestMacaroons(req);
+        console.log(`Verifying access for ACO ${acoID}\n`);
 
-
-        console.log("ACO ID:", acoID);
-        console.log("token:", token);
+        // Decode the macaroons from base64 encoding
         const b = base64ToBytes(token);
-
+        // Parse it as JSON and add the missing version key.
+        // Not sure why it's missing, it might be an issue with the go library, or my code.
         let decoded: Array<any> = JSON.parse(this.decoder.decode(b));
-        // Add version 2 manually. Not sure why it's missing.
         decoded = decoded.map((mac: any) => {
             mac["v"] = 2;
             return mac;
@@ -69,39 +66,24 @@ export class AuthController {
         const mac = importMacaroons(decoded);
 
         console.log(mac);
-        if (AuthController.isSingleton(mac)) {
-            // Print the caveats
-            console.log("Caveats:")
-            mac.caveats.forEach((cav) => {
-                console.log(cav);
-                console.log("Caveat: ", this.decoder.decode(cav.identifier));
-            })
 
-            try {
+        // Verify the macaroon and any discharges
+        const macaroons = AuthController.getMacaroonAndDischarges(mac);
 
-                mac.verify(base64ToBytes(this.rootKey), ((cond) => AuthController.verifyACOID(cond, acoID)));
-            } catch (err) {
-                console.error("Checked with error.")
-                console.error(err);
-                res.status(404).send("Nope, not authed.");
-                return;
-            }
-        } else {
-            // If it's an array, check to see if we have any discharges.
-            const discharges = mac
-                .filter((m) => m.location === null);
-            console.log("Have discharges: ", discharges.length);
-            for (const d of discharges) {
-                console.log("Discharge:", this.decoder.decode(d.identifier));
-            }
-            try {
-                mac[0].verify(base64ToBytes(this.rootKey), ((cond) => AuthController.verifyACOID(cond, acoID)), discharges);
-            } catch (err) {
-                console.error("Checked with error.");
-                console.error(err);
-                res.status(404).send("Nope, not authed.");
-                return;
-            }
+        // Print the caveats
+        console.log("Caveats:")
+        macaroons[0].caveats.forEach((cav) => {
+            console.log(cav);
+            console.log("Caveat: ", this.decoder.decode(cav.identifier));
+        })
+
+        try {
+            macaroons[0].verify(base64ToBytes(this.rootKey), ((cond) => AuthController.verifyACOID(cond, acoID)), macaroons[1]);
+        } catch (err) {
+            console.error("Checked with error.")
+            console.error(err);
+            res.status(404).send("Nope, not authed.");
+            return;
         }
         console.log("Verified");
         res.status(200).send("Successfully accessed data.");
@@ -123,32 +105,28 @@ export class AuthController {
         return null;
     }
 
+    // This expects the cookies to be already parsed and ready to go.
     private static getRequestMacaroons(req: Request): string {
-        const rc = req.headers.cookie;
+        const rc: { [name: string]: string; } = req.cookies;
         console.log(rc);
+
+        // Iterate through the cookies and find anything name that starts with macaroon-
         let value = "";
-        if (rc) {
-            const splitCookies = AuthController.splitStringMaybeArray(rc, " ");
-            console.log("Split:", splitCookies);
-            for (const cook of splitCookies) {
-                if (cook.startsWith("macaroon-")) {
-                    value += cook.replace("macaroon-", "");
-                }
+        for (const key in rc) {
+            if (key.startsWith("macaroon-")) {
+                value += rc[key];
             }
         }
-
-        return "";
+        return value;
     }
 
-    private static splitStringMaybeArray(str: string | string[], delim: string): string[] {
-        if (AuthController.isStringArray(str)) {
-            return str;
+    private static getMacaroonAndDischarges(mac: Macaroon | Macaroon[]): [Macaroon, Macaroon[]] {
+        if (AuthController.isSingleton(mac)) {
+            return [mac, []];
         }
-        return str.split(" ");
 
-    }
-
-    private static isStringArray(str: string | string[]): str is string[] {
-        return (<string[]>str).length !== undefined;
+        const m = mac[0];
+        const discharges = mac.filter((m) => m.location === null);
+        return [m, discharges];
     }
 }
