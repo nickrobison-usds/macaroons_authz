@@ -6,6 +6,10 @@ project(CMSAuthZCLI
 
 set(CMAKE_CXX_STANDARD 17)
 
+find_package(cpprestsdk REQUIRED)
+# We need to manually link Boost::System and thread. For some reason it's not being pulled in via REST SDK
+find_package(Boost REQUIRED COMPONENTS system thread)
+
 # Handle the submodules
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/../.git")
@@ -42,8 +46,7 @@ add_subdirectory(extern/termcolor)
 #file(GLOB CLI11_headers ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include/CLI/*)
 
 add_executable(cli main.cpp)
-target_link_libraries(cli cli11)
-target_link_libraries(cli termcolor::termcolor)
+target_link_libraries(cli PRIVATE cli11 termcolor::termcolor cpprestsdk::cpprest Boost::system Boost::thread)
 #target_include_directories(cli PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/cli11/include)
 #target_include_directories(cli PUBLIC ${CLI11_headers})
 #target_include_directories(cli PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include)

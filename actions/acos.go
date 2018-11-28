@@ -34,6 +34,29 @@ func init() {
 	as = s
 }
 
+// AcosFind looks up an ACO ID via the given parameter
+func AcosFind(c buffalo.Context) error {
+	/*
+		nameString, err := url.QueryUnescape(c.Param("name"))
+		if err != nil {
+			return errors.WithStack(err)
+		}
+	*/
+	nameString := c.Param("name")
+	if nameString == "" {
+		return c.Render(http.StatusBadRequest, r.String("Cannot have a blank query name."))
+	}
+
+	aco := models.ACO{}
+
+	tx := c.Value("tx").(*pop.Connection)
+	if err := tx.Where("name = ?", nameString).First(&aco); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return c.Render(http.StatusOK, r.String(aco.StringID()))
+}
+
 // acoIndex default implementation.
 func AcosIndex(c buffalo.Context) error {
 
