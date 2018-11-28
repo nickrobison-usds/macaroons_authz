@@ -23,6 +23,8 @@ func main() {
 	}
 	fmt.Println(Green("Starting up"))
 
+	// Decode it?
+
 	var m macaroon.Macaroon
 	bin, err := macaroon.Base64Decode([]byte(token))
 	if err != nil {

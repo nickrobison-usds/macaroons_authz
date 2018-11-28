@@ -2,11 +2,14 @@ cmake_minimum_required(VERSION 3.12)
 project(CMSAuthZCLI
         VERSION 0.1
         DESCRIPTION "CLI client for CMS AuthZ demo"
-        LANGUAGES CXX)
+        LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
+include(cmake/Findlibmacaroons.cmake)
+
 find_package(cpprestsdk REQUIRED)
+#find_package(libmacaroons REQUIRED)
 # We need to manually link Boost::System and thread. For some reason it's not being pulled in via REST SDK
 find_package(Boost REQUIRED COMPONENTS system thread)
 
@@ -45,8 +48,17 @@ add_subdirectory(extern/termcolor)
 # Should I do this?
 #file(GLOB CLI11_headers ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include/CLI/*)
 
-add_executable(cli main.cpp)
-target_link_libraries(cli PRIVATE cli11 termcolor::termcolor cpprestsdk::cpprest Boost::system Boost::thread)
+add_executable(cli main.cpp base64.h base64.cpp)
+target_link_libraries(cli PRIVATE
+        cli11
+        termcolor::termcolor
+        cpprestsdk::cpprest
+        Boost::system
+        Boost::thread
+        libmacaroons::libmacaroons)
+target_include_directories(cli PRIVATE ${LIBMACAROONS_INCLUDE_DIRS})
+message("${LIBMACAROONS_INCLUDE_DIRS}")
+set(CMAKE_INCLUDE_PATH /usr/local/include)
 #target_include_directories(cli PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/cli11/include)
 #target_include_directories(cli PUBLIC ${CLI11_headers})
 #target_include_directories(cli PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include)

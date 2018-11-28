@@ -2,6 +2,8 @@
 #include <CLI11.hpp>
 #include <termcolor/termcolor.hpp>
 #include <cpprest/http_client.h>
+#include <macaroons.h>
+#include "base64.h"
 
 using namespace std;
 using namespace utility;                    // Common utilities like string conversions
@@ -25,6 +27,25 @@ int main(int argc, char **argv) {
     cout << termcolor::green << "Starting up." << endl;
     // Make sure to reset the terminal color, otherwise the remaining text output is this way.
     cout << termcolor::reset << endl;
+
+    //    Fetch the user token from the environment and convert it to a macaroon.
+    const string token = getenv("TOKEN");
+    cout << token << endl;
+
+    // Decode input from base64
+    // It looks like the macaroons library does this automatically, but it doesn't seem to work.
+    // It also doesn't support URL safe encoding, so we have to handle it manually convert things, for now.
+    auto mtoken = utility::conversions::from_base64(token);
+//    const auto decoded_token = base64_decode(token);
+//    mtoken.data();
+
+    enum macaroon_returncode err;
+//    const auto mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(decoded_token.c_str()), decoded_token.size(), &err);
+    const auto mac = macaroon_deserialize(mtoken.data(), mtoken.size(), &err);
+    cout << err << endl;
+
+    const size_t msize = macaroon_inspect_size_hint(mac);
+    cout << "Size of mac: " << msize << endl;
 
     // Try to lookup a given ACO ID
 
@@ -51,10 +72,8 @@ int main(int argc, char **argv) {
 
     cout << "ACO ID: " << acoID << endl;
 
-//    Fetch the user token from the environment and decode it.
-    const string token = getenv("TOKEN");
-    cout << token << endl;
-    
+
+
     /*
 
     http_client client(U("http://localhost:3002"));
