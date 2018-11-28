@@ -34,6 +34,7 @@ endif()
 
 add_subdirectory(extern/cli11)
 add_subdirectory(extern/termcolor)
+add_subdirectory(extern/cppcodec)
 #add_subdirectory(extern/cliutils)
 
 #set(CLI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include CACHE PATH "CLIUtils include dir")
@@ -48,14 +49,15 @@ add_subdirectory(extern/termcolor)
 # Should I do this?
 #file(GLOB CLI11_headers ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include/CLI/*)
 
-add_executable(cli main.cpp base64.h base64.cpp)
+add_executable(cli main.cpp)
 target_link_libraries(cli PRIVATE
         cli11
         termcolor::termcolor
         cpprestsdk::cpprest
         Boost::system
         Boost::thread
-        libmacaroons::libmacaroons)
+        libmacaroons::libmacaroons
+        cppcodec)
 target_include_directories(cli PRIVATE ${LIBMACAROONS_INCLUDE_DIRS})
 message("${LIBMACAROONS_INCLUDE_DIRS}")
 set(CMAKE_INCLUDE_PATH /usr/local/include)

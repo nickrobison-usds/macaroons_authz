@@ -1,3 +1,6 @@
 [submodule "cli/extern/termcolor"]
 	path = cli/extern/termcolor
 	url = https://github.com/ikalnytskyi/termcolor.git
+[submodule "cli/extern/cppcodec"]
+	path = cli/extern/cppcodec
+	url = https://github.com/tplgy/cppcodec.git

@@ -3,7 +3,7 @@
 #include <termcolor/termcolor.hpp>
 #include <cpprest/http_client.h>
 #include <macaroons.h>
-#include "base64.h"
+#include "extern/cppcodec/cppcodec/base64_url.hpp"
 
 using namespace std;
 using namespace utility;                    // Common utilities like string conversions
@@ -13,6 +13,7 @@ using namespace web::http::client;          // HTTP client features
 using namespace concurrency::streams;       // Asynchronous streams
 
 int main(int argc, char **argv) {
+    using base64 = cppcodec::base64_url;
     CLI::App app{"CLI client for CMS AuthZ Demo"};
 
     string filename = "default";
@@ -33,19 +34,16 @@ int main(int argc, char **argv) {
     cout << token << endl;
 
     // Decode input from base64
-    // It looks like the macaroons library does this automatically, but it doesn't seem to work.
-    // It also doesn't support URL safe encoding, so we have to handle it manually convert things, for now.
-    auto mtoken = utility::conversions::from_base64(token);
-//    const auto decoded_token = base64_decode(token);
-//    mtoken.data();
+    // It looks like the macaroons library should do this automatically, but it doesn't seem to work.
+    const auto decoded_token = base64::decode(token);
 
     enum macaroon_returncode err;
 //    const auto mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(decoded_token.c_str()), decoded_token.size(), &err);
-    const auto mac = macaroon_deserialize(mtoken.data(), mtoken.size(), &err);
+    const auto mac = macaroon_deserialize(decoded_token.data(), decoded_token.size(), &err);
     cout << err << endl;
 
     const size_t msize = macaroon_inspect_size_hint(mac);
-    cout << "Size of mac: " << msize << endl;
+    cout << "Size of mac: " << macaroon_num_third_party_caveats(mac) << endl;
 
     // Try to lookup a given ACO ID
 
