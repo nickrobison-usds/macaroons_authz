@@ -46,45 +46,54 @@ int main(int argc, char **argv) {
     cout << "Size of mac: " << macaroon_num_third_party_caveats(mac) << endl;
 
     // Try to lookup a given ACO ID
+//
+//    http_client nameClient(U("http://localhost:8080"));
+//    uri_builder nameBuilder(U("/api/acos/find"));
+//    nameBuilder.append_query(U("name"), U("Test ACO 1"));
+//
+//    string acoID;
+//
+//
+//
+//    http_request req(methods::GET)
+//    req.headers().add(U("Cookie"), U("macaroons-1:test1"));
+//    req.set_request_uri(nameBuilder.to_uri());
+//
+//
+//    auto nameTask = nameClient.request(req)
+//            .then([](http_response resp) {
+//                if (resp.status_code() == status_codes::OK) {
+//                    return resp.extract_string();
+//                }
+//                throw invalid_argument(resp.extract_string().get());
+//            });
+//
+//    try {
+//        acoID = nameTask.get();
+//    } catch (const exception &e) {
+//        cout << termcolor::red << e.what() << termcolor::reset << endl;
+//    }
+//
+//    cout << "ACO ID: " << acoID << endl;
 
-    http_client nameClient(U("http://localhost:8080"));
-    uri_builder nameBuilder(U("/api/acos/find"));
-    nameBuilder.append_query(U("name"), U("Test ACO 1"));
+    cout << "Making request" << endl;
 
-    string acoID;
-
-
-    auto nameTask = nameClient.request(methods::GET, nameBuilder.to_string())
-            .then([](http_response resp) {
-                if (resp.status_code() == status_codes::OK) {
-                    return resp.extract_string();
-                }
-                throw invalid_argument(resp.extract_string().get());
-            });
-
-    try {
-        acoID = nameTask.get();
-    } catch (const exception &e) {
-        cout << termcolor::red << e.what() << termcolor::reset << endl;
-    }
-
-    cout << "ACO ID: " << acoID << endl;
-
-
-
-    /*
 
     http_client client(U("http://localhost:3002"));
+    uri_builder builder(U("/test-aco"));
 
-    uri_builder builder(U("/api/aco/show/") << aocID);
+    const string mac_string = "macaroon-1=" + token + ";";
+    cout << mac_string << endl;
+    http_request req(methods::GET);
+    req.headers().add(U("Cookie"), U(mac_string));
+    req.set_request_uri(builder.to_uri());
 
-    auto task = client.request(methods::GET, builder.to_string())
+    auto task = client.request(req)
             .then([](http_response response) {
                 printf("Received response status code:%u\n", response.status_code());
             });
 
     task.wait();
-     */
 
     return 0;
 }
