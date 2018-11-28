@@ -1,5 +1,6 @@
 #include <iostream>
 #include <CLI11.hpp>
+#include <termcolor/termcolor.hpp>
 
 int main(int argc, char **argv) {
     CLI::App app {"CLI client for CMS AuthZ Demo"};
@@ -13,4 +14,6 @@ int main(int argc, char **argv) {
     } catch(const CLI::ParseError &e) {
         return app.exit(e);
     }
+    std::cout << termcolor::yellow << "Works!" << std::endl;
+    return 0;
 }

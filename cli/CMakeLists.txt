@@ -21,11 +21,12 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/../.git")
     endif()
 endif()
 
-if(NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/cliutils/CMakeLists.txt")
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/termcolor/CMakeLists.txt")
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif()
 
 add_subdirectory(extern/cli11)
+add_subdirectory(extern/termcolor)
 #add_subdirectory(extern/cliutils)
 
 #set(CLI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include CACHE PATH "CLIUtils include dir")
@@ -42,6 +43,7 @@ add_subdirectory(extern/cli11)
 
 add_executable(cli main.cpp)
 target_link_libraries(cli cli11)
+target_link_libraries(cli termcolor::termcolor)
 #target_include_directories(cli PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/cli11/include)
 #target_include_directories(cli PUBLIC ${CLI11_headers})
 #target_include_directories(cli PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include)
