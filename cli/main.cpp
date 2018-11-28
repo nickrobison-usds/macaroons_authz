@@ -1,9 +1,7 @@
 #include <iostream>
-#include <CLI/Error.hpp>
-#include <CLI/App.hpp>
+#include <CLI11.hpp>
 
 int main(int argc, char **argv) {
-//    std::cout << "Works." << std::endl;
     CLI::App app {"CLI client for CMS AuthZ Demo"};
 
     std::string filename = "default";

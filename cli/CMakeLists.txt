@@ -25,19 +25,27 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/cliutils/CMakeLists.txt")
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif()
 
+add_subdirectory(extern/cli11)
+#add_subdirectory(extern/cliutils)
+
+#set(CLI_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include CACHE PATH "CLIUtils include dir")
+#
+#install(DIRECTORY ${CLI_INCLUDE_DIR}/CLI DESTINATION install)
+
 # Add the dependencies
 #if (NOT TARGET CLI11::CLI11)
-add_subdirectory(extern/cliutils)
+#add_subdirectory(extern/cliutils)
 #endif()
 
 # Should I do this?
 #file(GLOB CLI11_headers ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include/CLI/*)
 
 add_executable(cli main.cpp)
-target_link_libraries(cli INTERFACE CLI11::CLI11)
+target_link_libraries(cli cli11)
+#target_include_directories(cli PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/cli11/include)
 #target_include_directories(cli PUBLIC ${CLI11_headers})
 #target_include_directories(cli PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include)
-#target_include_directories(cli PRIVATE
-#        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include/>
-#        $<INSTALL_INTERFACE:include/CLI/>)
-target_include_directories(cli PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include)
+#target_include_directories(cli PUBLIC
+#        $<BUILD_INTERFACE:${CLI_INCLUDE_DIR}>
+#        $<INSTALL_INTERFACE:install>)
+#target_include_directories(cli PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/extern/cliutils/include)
