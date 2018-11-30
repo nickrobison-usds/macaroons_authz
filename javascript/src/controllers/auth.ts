@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { base64ToBytes, importMacaroons, Macaroon } from "macaroon";
+import { base64ToBytes, importMacaroon, Macaroon, importMacaroons } from "macaroon";
 
 
 interface IKeyPair {
@@ -24,17 +24,7 @@ export class AuthController {
 
         // Decode the macaroons from base64 encoding
         const b = base64ToBytes(token);
-        // Parse it as JSON and add the missing version key.
-        // Not sure why it's missing, it might be an issue with the go library, or my code.
-        let decoded: Array<any> = JSON.parse(this.decoder.decode(b));
-        decoded = decoded.map((mac: any) => {
-            mac["v"] = 2;
-            return mac;
-        })
-        console.log(decoded);
-
-        const mac = importMacaroons(decoded);
-
+        const mac = this.importMacaroon(token);
         console.log(mac);
 
         // Verify the macaroon and any discharges
@@ -56,6 +46,19 @@ export class AuthController {
         }
         console.log("Verified");
         res.status(200).send("Successfully accessed data.");
+    }
+
+    /** Imports a macaroon, or a slice of macaroons, from a base64 encoded string
+        */
+    private importMacaroon(token: string): Macaroon | Macaroon[] {
+        const b = base64ToBytes(token);
+        const decoded = this.decoder.decode(b);
+        if (decoded[0] == "[") {
+            console.log("Importing array of macaroons");
+            return importMacaroons(b);
+        } else {
+            return importMacaroon(b);
+        }
     }
 
     private static isSingleton(mac: Macaroon | Macaroon[]): mac is Macaroon {
