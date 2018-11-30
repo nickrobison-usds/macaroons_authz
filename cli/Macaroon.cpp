@@ -26,7 +26,7 @@ Macaroon::Macaroon(const macaroon *mac) : m(mac) {
 }
 
 const macaroon *Macaroon::M() {
-    return this->m;
+    return m;
 }
 
 /**
@@ -42,4 +42,16 @@ void Macaroon::inspect() {
 
     // Print it
     std::cout << "Inspected macaroon: " << output.get() << std::endl;
+}
+
+const std::string Macaroon::location() {
+
+    // Get the size;
+    size_t id_sz;
+    std::unique_ptr<char[]> te(new char[100]);
+    const char* token = te.get();
+
+    macaroon_location(m, reinterpret_cast<const unsigned char **>(&token), &id_sz);
+    // This feels redundant, but ok, I guess.
+    return std::string(token, id_sz);
 }

@@ -12,12 +12,13 @@
 class Macaroon {
 
 private:
-    const macaroon *m;
+    const struct macaroon* m;
     Macaroon(const macaroon *m);
 
 
 public:
     void inspect();
+    const std::string location();
     const macaroon* M();
 
     const static Macaroon importMacaroons(const std::string &string);
