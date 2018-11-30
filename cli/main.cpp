@@ -4,6 +4,7 @@
 #include <cpprest/http_client.h>
 #include <macaroons.h>
 #include "extern/cppcodec/cppcodec/base64_url.hpp"
+#include "Macaroon.hpp"
 
 using namespace std;
 using namespace utility;                    // Common utilities like string conversions
@@ -33,17 +34,8 @@ int main(int argc, char **argv) {
     const string token = getenv("TOKEN");
     cout << token << endl;
 
-    // Decode input from base64
-    // It looks like the macaroons library should do this automatically, but it doesn't seem to work.
-    const auto decoded_token = base64::decode(token);
-
-    enum macaroon_returncode err;
-//    const auto mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(decoded_token.c_str()), decoded_token.size(), &err);
-    const auto mac = macaroon_deserialize(decoded_token.data(), decoded_token.size(), &err);
-    cout << err << endl;
-
-    const size_t msize = macaroon_inspect_size_hint(mac);
-    cout << "Size of mac: " << macaroon_num_third_party_caveats(mac) << endl;
+    auto mac = Macaroon::importMacaroons(token);
+    mac.inspect();
 
     // Try to lookup a given ACO ID
 //
