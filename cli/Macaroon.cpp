@@ -44,14 +44,45 @@ void Macaroon::inspect() {
     std::cout << "Inspected macaroon: " << output.get() << std::endl;
 }
 
+std::vector<MacaroonCaveat> Macaroon::get_third_party_caveats() {
+
+    const auto num_caveats = macaroon_num_third_party_caveats(m);
+    std::vector<MacaroonCaveat> caveats;
+
+    for (int i = 0; i < num_caveats; i ++) {
+        // ID string
+        size_t id_sz;
+        std::string id_str;
+        const char* id_token = id_str.data();
+
+        // Location
+        size_t loc_sz;
+        std::string loc_string;
+        const char* loc_token = loc_string.data();
+
+        macaroon_third_party_caveat(this->m, i,
+                                    reinterpret_cast<const unsigned char **>(&loc_token),
+                                    &loc_sz,
+                                    reinterpret_cast<const unsigned char **>(&id_token),
+                                    &id_sz);
+
+        caveats.emplace_back(std::string(loc_token, loc_sz),
+                std::string(id_token, id_sz));
+    }
+
+    return caveats;
+}
+
 const std::string Macaroon::location() {
 
     // Get the size;
     size_t id_sz;
     std::unique_ptr<char[]> te(new char[100]);
-    const char* token = te.get();
+    const char *token = te.get();
 
     macaroon_location(m, reinterpret_cast<const unsigned char **>(&token), &id_sz);
     // This feels redundant, but ok, I guess.
     return std::string(token, id_sz);
 }
+
+

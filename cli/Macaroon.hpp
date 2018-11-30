@@ -9,15 +9,26 @@
 #include <string>
 #include <macaroons.h>
 
+struct MacaroonCaveat {
+    std::string location;
+    std::string identifier;
+
+    MacaroonCaveat(std::string loc, std::string id): location(loc), identifier(id) {
+//        Not used
+    }
+};
+
 class Macaroon {
 
 private:
     const struct macaroon* m;
-    Macaroon(const macaroon *m);
+
+    explicit Macaroon(const macaroon *m);
 
 
 public:
     void inspect();
+    std::vector<MacaroonCaveat> get_third_party_caveats();
     const std::string location();
     const macaroon* M();
 
