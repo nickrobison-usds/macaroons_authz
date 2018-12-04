@@ -40,7 +40,7 @@ if (NOT libmacaroons_FOUND)
     ExternalProject_Add(project_libmacaroons
             PREFIX ${CMAKE_CURRENT_BINARY_DIR}/extern
             GIT_REPOSITORY https://github.com/rescrv/libmacaroons.git
-            CONFIGURE_COMMAND autoreconf --install > /dev/null 2>&1 || autoreconf && ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/extern --enable-shared=false
+            CONFIGURE_COMMAND autoreconf --install > /dev/null 2>&1 || autoreconf && ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/extern --enable-shared=false --enable-json-support-that-is-not-production-ready
             BUILD_COMMAND make -j
             BUILD_IN_SOURCE 1
             INSTALL_COMMAND make -j install
@@ -67,6 +67,4 @@ target_link_libraries(cli PRIVATE
         Boost::thread
         libmacaroons
         cppcodec)
-message(${libmacaroons_INCLUDE_DIR})
-message(${libmacaroons_LIBRARY})
 target_include_directories(cli PRIVATE ${libmacaroons_INCLUDE_DIR})

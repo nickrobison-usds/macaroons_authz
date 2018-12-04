@@ -245,18 +245,15 @@ func VendorsTest(c buffalo.Context) error {
 
 // VendorsVerify verifies that a given user is a member of the Vendor
 func VendorsVerify(c buffalo.Context) error {
+	log.Debug("Test:", c.Request())
 	token := c.Param("id64")
 
 	log.Debug("Token: ", token)
-
 	log.Debug("Checking user association for vendor: ", c.Param("vendorID"))
-
 	// Set the vendor_id
-
 	ctx := context.WithValue(c.Request().Context(), "vendor_id", c.Param("vendorID"))
 
 	// Decode the caveat, and keep going
-
 	mac, err := us.DischargeCaveatByID(ctx, token, vendorUserIDCaveatChecker(c.Value("tx").(*pop.Connection)))
 	if err != nil {
 		return errors.WithStack(err)

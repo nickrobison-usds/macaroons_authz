@@ -1,5 +1,6 @@
 app_root: .
 ignored_folders:
+- cli
 - cmd
 - vendor
 - log

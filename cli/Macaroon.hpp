@@ -7,14 +7,19 @@
 
 
 #include <string>
+#include <utility>
 #include <macaroons.h>
 
 struct MacaroonCaveat {
     std::string location;
     std::string identifier;
 
-    MacaroonCaveat(std::string loc, std::string id): location(loc), identifier(id) {
+    MacaroonCaveat(std::string loc, std::string id): location(std::move(loc)), identifier(std::move(id)) {
 //        Not used
+    }
+
+    bool isLocal() const {
+        return this->location.empty();
     }
 };
 
@@ -24,13 +29,17 @@ private:
     const struct macaroon* m;
 
     explicit Macaroon(const macaroon *m);
+    pplx::task<Macaroon> static dischargeCaveat(const MacaroonCaveat &cav);
 
 
 public:
+    Macaroon();
+    const Macaroon discharge_all_caveats();
     void inspect();
-    std::vector<MacaroonCaveat> get_third_party_caveats();
+    const std::vector<const MacaroonCaveat> get_third_party_caveats();
     const std::string location();
-    const macaroon* M();
+    const macaroon * M() const;
+    const std::string base64_string();
 
     const static Macaroon importMacaroons(const std::string &string);
 };
