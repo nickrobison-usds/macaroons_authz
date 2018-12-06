@@ -4,3 +4,7 @@
 [submodule "cli/extern/cppcodec"]
 	path = cli/extern/cppcodec
 	url = https://github.com/tplgy/cppcodec.git
+[submodule "cli/extern/libmacaroons"]
+	path = cli/extern/libmacaroons
+	url = git@github.com:nickrobison-usds/libmacaroons.git
+	branch = json

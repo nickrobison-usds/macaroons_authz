@@ -5,12 +5,8 @@ project(CMSAuthZCLI
         LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
-# Use this for importing the custom cmake finders
-#set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}} "${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_PREFIX_PATH ${CMAKE_MODULE_PATH} "${CMAKE_BINARY_DIR}/extern")
 
 find_package(cpprestsdk REQUIRED)
-find_package(macaroons REQUIRED 0.4)
 # We need to manually link Boost::System and thread. For some reason it's not being pulled in via REST SDK
 find_package(Boost REQUIRED COMPONENTS system thread)
 
@@ -33,32 +29,10 @@ if (NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/termcolor/CMakeLists.txt")
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif ()
 
-# Static build libmacaroons, if not found
-if (NOT macaroons_FOUND)
-    message("Did not find system macaroons, building static")
-    include(ExternalProject)
-    ExternalProject_Add(project_macaroons
-            PREFIX ${CMAKE_CURRENT_BINARY_DIR}/extern
-            GIT_REPOSITORY https://github.com/rescrv/libmacaroons.git
-            CONFIGURE_COMMAND autoreconf --install > /dev/null 2>&1 || autoreconf && ./configure --prefix=${CMAKE_CURRENT_BINARY_DIR}/extern --enable-shared=false --enable-json-support-that-is-not-production-ready
-            BUILD_COMMAND make -j
-            BUILD_IN_SOURCE 1
-            INSTALL_COMMAND make -j install
-            PREFIX=${CMAKE_CURRENT_BINARY_DIR}/extern)
-
-    ExternalProject_Get_Property(project_macaroons install_dir)
-    add_library(macaroons STATIC IMPORTED)
-    set_property(TARGET macaroons PROPERTY IMPORTED_LOCATION ${install_dir}/lib/libmacaroons.a)
-    add_dependencies(macaroons project_libmacaroons)
-    target_include_directories(macaroons INTERFACE
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-            $<INSTALL_INTERFACE:include>)
-    add_executable(test_cmake main.cpp)
-endif ()
-
 add_subdirectory(extern/cli11)
 add_subdirectory(extern/termcolor)
 add_subdirectory(extern/cppcodec)
+add_subdirectory(extern/libmacaroons)
 
 add_executable(cli main.cpp Macaroon.cpp Macaroon.hpp)
 target_link_libraries(cli PRIVATE
@@ -69,5 +43,3 @@ target_link_libraries(cli PRIVATE
         Boost::thread
         macaroons
         cppcodec)
-#message(${libmacaroons_INCLUDE_DIR})
-#target_include_directories(cli PRIVATE ${libmacaroons_INCLUDE_DIR})
