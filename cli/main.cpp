@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
 
     // Try to bind macaroons
     auto bound_mac = mac.discharge_all_caveats();
-    const std::string bound_string = bound_mac.base64_string();
+//    const std::string bound_string = bound_mac.base64_string();
 
     // Now make the actual request for the ACO data
 
@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
     uri_builder builder(U("/" + acoID));
 
 //    Attach the macaroon as a cookie
-    const string mac_string = "macaroon-1=" + bound_string + ";";
+    const string mac_string = "macaroon-1=" + bound_mac + ";";
     cout << mac_string << endl;
     http_request req(methods::GET);
     name_req.headers().add(U("Cookie"), U(mac_string));

@@ -34,12 +34,13 @@ private:
 
 public:
     Macaroon();
-    const Macaroon discharge_all_caveats();
+    const std::string discharge_all_caveats();
     void inspect();
     const std::vector<const MacaroonCaveat> get_third_party_caveats();
     const std::string location();
     const macaroon * M() const;
-    const std::string base64_string();
+    web::json::value as_json() const;
+    const std::string base64_string() const;
 
     const static Macaroon importMacaroons(const std::string &string);
 };

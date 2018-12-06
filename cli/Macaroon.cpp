@@ -16,7 +16,7 @@ using namespace concurrency;                // Asynchronous streams
 using base64 = cppcodec::base64_url_unpadded;
 using base64enc = cppcodec::base64_url ;
 
-const std::string Macaroon::base64_string() {
+const std::string Macaroon::base64_string() const {
     const macaroon_format format = MACAROON_V2;
     const size_t sz = macaroon_serialize_size_hint(this->M(), format);
 
@@ -57,7 +57,7 @@ Macaroon::Macaroon() : m(nullptr) {
 //    Not used
 }
 
-const Macaroon Macaroon::discharge_all_caveats() {
+const std::string Macaroon::discharge_all_caveats() {
     // Get all the caveats
     const auto caveats = this->get_third_party_caveats();
 /*
@@ -81,12 +81,30 @@ const Macaroon Macaroon::discharge_all_caveats() {
     // Bind it all
     const auto discharged = pplx::when_all(discharges.begin(), discharges.end()).get();
 
-    const auto bound = std::accumulate(discharged.begin(), discharged.end(), this->M(),
-                                       [](const macaroon *acc, const Macaroon &val) {
-                                           macaroon_returncode err;
-                                           return macaroon_prepare_for_request(acc, val.M(), &err);
-                                       });
-    return Macaroon(bound);
+    std::for_each(discharged.begin(), discharged.end(), [this](const Macaroon &val) {
+        macaroon_returncode err;
+        macaroon_prepare_for_request(val.M(), this->M(), &err);
+    });
+
+//    const auto bound = std::accumulate(discharged.begin(), discharged.end(), discharged_macaroons,
+//                                       [this](std::vector<const Macaroon> acc, const Macaroon &val) {
+//                                           macaroon_returncode err;
+//                                           // The values get copied into B (the second parm)
+//                                           macaroon_prepare_for_request(val.M(), this->M(), &err);
+//                                           // Add the new macaroon to the vector
+//                                           acc.emplace_back(val);
+//                                       });
+    // Create the json value
+    std::vector<json::value> json_values;
+    json_values.emplace_back(this->as_json());
+//    std::for_each(discharged.begin(), discharged.end(), [&json_values](const Macaroon &mac) {
+//        const auto mac_j = mac.base64_string();
+//        json_values.emplace_back(mac_j);
+//    });
+
+    json::value val_array = json::value::array(json_values);
+    const std::string serialized = val_array.serialize();
+    return base64enc::encode(serialized);
 }
 
 
@@ -187,6 +205,16 @@ const std::vector<const MacaroonCaveat> Macaroon::get_third_party_caveats() {
     }
 
     return std::as_const(caveats);
+}
+
+json::value Macaroon::as_json() const {
+    macaroon_returncode err;
+    macaroon_format format = MACAROON_V2J;
+    const size_t sz = macaroon_serialize_size_hint(this->M(), format);
+    const std::unique_ptr<char[]> output(new char[sz]);
+    macaroon_serialize(this->M(), format, reinterpret_cast<unsigned char *>(output.get()), sz, &err);
+//    return std::string(output.get());
+    return json::value::parse(std::string(output.get()));
 }
 
 const std::string Macaroon::location() {

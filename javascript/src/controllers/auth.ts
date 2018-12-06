@@ -54,6 +54,7 @@ export class AuthController {
         const b = base64ToBytes(token);
         const decoded = this.decoder.decode(b);
         if (decoded[0] == "[") {
+            console.log("Decoded:", decoded);
             console.log("Importing array of macaroons");
             return importMacaroons(b);
         } else {
