@@ -36,12 +36,6 @@ func init() {
 
 // AcosFind looks up an ACO ID via the given parameter
 func AcosFind(c buffalo.Context) error {
-	/*
-		nameString, err := url.QueryUnescape(c.Param("name"))
-		if err != nil {
-			return errors.WithStack(err)
-		}
-	*/
 	nameString := c.Param("name")
 	if nameString == "" {
 		return c.Render(http.StatusBadRequest, r.String("Cannot have a blank query name."))

@@ -81,7 +81,9 @@ func App() *buffalo.App {
 			AcosFind,
 			AcoVerifyUser,
 			AcoTest,
+			UsersFind,
 			UsersVerify,
+			UsersTokenGet,
 			VendorsVerify)
 
 		// ACO Endpoints
@@ -96,12 +98,14 @@ func App() *buffalo.App {
 		api.GET("/acos/test/{id}", AcoTest)
 
 		// User Endpoints
+		api.GET("/users/find", UsersFind)
 		api.GET("/users/index", UsersIndex)
 		api.GET("/users/show/{id}", UsersShow)
 		api.POST("/users/create", UsersCreate)
 		api.GET("/users/delete/{id}", UsersDelete)
 		api.POST("/users/assign", UsersAssign)
 		api.POST("/users/verify/discharge", UsersVerify)
+		api.GET("/users/token/{user_id}/{entity_type}/{entity_id}", UsersTokenGet)
 
 		// Vendor endpoints
 		api.GET("/vendors/show/{id}", VendorsShow)

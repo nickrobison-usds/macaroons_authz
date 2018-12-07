@@ -33,6 +33,7 @@ add_subdirectory(extern/cli11)
 add_subdirectory(extern/termcolor)
 add_subdirectory(extern/cppcodec)
 add_subdirectory(extern/libmacaroons)
+add_subdirectory(extern/fmt)
 
 add_executable(cli main.cpp Macaroon.cpp Macaroon.hpp)
 target_link_libraries(cli PRIVATE
@@ -42,4 +43,5 @@ target_link_libraries(cli PRIVATE
         Boost::system
         Boost::thread
         macaroons
-        cppcodec)
+        cppcodec
+        fmt)

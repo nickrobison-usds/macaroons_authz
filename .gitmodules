@@ -8,3 +8,6 @@
 	path = cli/extern/libmacaroons
 	url = git@github.com:nickrobison-usds/libmacaroons.git
 	branch = json
+[submodule "cli/extern/fmt"]
+	path = cli/extern/fmt
+	url = https://github.com/fmtlib/fmt.git

@@ -58,6 +58,24 @@ func init() {
 	us = s
 }
 
+// UsersFind looks up a userid for a given user name
+func UsersFind(c buffalo.Context) error {
+	nameString := c.Param("name")
+	if nameString == "" {
+		return c.Render(http.StatusBadRequest, r.String("Cannot have blank query name."))
+	}
+
+	user := models.User{}
+
+	tx := c.Value("tx").(*pop.Connection)
+	err := tx.Where("name = ?", nameString).First(&user)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return c.Render(http.StatusOK, r.String(user.ID.String()))
+}
+
 // UsersIndex default implementation.
 func UsersIndex(c buffalo.Context) error {
 
@@ -90,6 +108,45 @@ func UsersShow(c buffalo.Context) error {
 
 	c.Set("user", user)
 	return c.Render(200, r.HTML("api/users/show.html"))
+}
+
+// UsersTokenGet retrieves the entity token associated with the given user
+func UsersTokenGet(c buffalo.Context) error {
+	userID := c.Param("user_id")
+	entity_type := c.Param("entity_type")
+	entity_id := c.Param("entity_id")
+
+	tx := c.Value("tx").(*pop.Connection)
+
+	var mac_bytes []byte
+
+	// Get the model type
+	switch entity_type {
+	case "ACO":
+		{
+			user := models.AcoUser{}
+			err := tx.Select("macaroon").Where("aco_id = ? AND entity_id = ?", entity_id, userID).First(&user)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			mac_bytes = user.Macaroon
+		}
+	case "Vendor":
+		{
+			user := models.VendorUser{}
+			err := tx.Select("macaroon").Where("vendor_id = ? AND user_id = ?").First(&user)
+			if err != nil {
+				return errors.WithStack(err)
+			}
+			mac_bytes = user.Macaroon
+
+		}
+	default:
+		return errors.WithStack(fmt.Errorf("Cannot get token for entity type %s", entity_type))
+	}
+
+	// return it
+	return c.Render(200, r.String(macaroons.EncodeMacaroon(mac_bytes)))
 }
 
 // UsersCreate default implementation.

@@ -2,6 +2,7 @@
 #include <CLI11.hpp>
 #include <termcolor/termcolor.hpp>
 #include <cpprest/http_client.h>
+#include <fmt/format.h>
 #include "Macaroon.hpp"
 
 using namespace std;
@@ -27,15 +28,6 @@ int main(int argc, char **argv) {
     // Make sure to reset the terminal color, otherwise the remaining text output is this way.
     cout << termcolor::reset << endl;
 
-    //    Fetch the user token from the environment and convert it to a macaroon.
-    const string token = getenv("TOKEN");
-    cout << token << endl;
-
-    auto mac = Macaroon::importMacaroons(token);
-    mac.inspect();
-    // Debug
-    cout << mac.location() << endl;
-
     // Try to lookup a given ACO ID
 
     http_client nameClient(U("http://localhost:8080"));
@@ -60,9 +52,55 @@ int main(int argc, char **argv) {
         cout << termcolor::red << e.what() << termcolor::reset << endl;
     }
 
+    // And a User ID
+    string userID;
+
+    uri_builder userBuilder(U("/api/users/find"));
+    userBuilder.append_query(U("name"), U("Test User 1"));
+    http_request user_req(methods::GET);
+    user_req.set_request_uri(userBuilder.to_uri());
+
+    auto userTask = nameClient.request(user_req)
+            .then([](http_response resp) {
+                if (resp.status_code() == status_codes::OK) {
+                    return resp.extract_string();
+                }
+                throw invalid_argument(resp.extract_string().get());
+            });
+    try {
+        userID = userTask.get();
+    } catch (const exception &e) {
+        cout << termcolor::red << e.what() << termcolor::reset << endl;
+    }
+
+    // Try to find the ACO token associated with the user
+    string token;
+    std::string token_query = fmt::format("api/users/token/{}/ACO/{}", userID, acoID);
+    uri_builder tokenBuilder(U(token_query));
+    http_request token_req(methods::GET);
+    token_req.set_request_uri(tokenBuilder.to_uri());
+
+    auto tokenTask = nameClient.request(token_req)
+            .then([](http_response resp) {
+                if (resp.status_code() == status_codes::OK) {
+                    return resp.extract_string();
+                }
+                throw invalid_argument(resp.extract_string().get());
+            });
+    try {
+        token = tokenTask.get();
+    } catch (const exception &e) {
+        cout << termcolor::red << e.what() << termcolor::reset << endl;
+    }
+
+    auto mac = Macaroon::importMacaroons(token);
+    mac.inspect();
+    // Debug
+    cout << mac.location() << endl;
+
+
     // Try to bind macaroons
     auto bound_mac = mac.discharge_all_caveats();
-//    const std::string bound_string = bound_mac.base64_string();
 
     // Now make the actual request for the ACO data
 
