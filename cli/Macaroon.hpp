@@ -27,13 +27,12 @@ class Macaroon {
 
 private:
     const struct macaroon* m;
-
-    explicit Macaroon(const macaroon *m);
     pplx::task<Macaroon> static dischargeCaveat(const MacaroonCaveat &cav);
 
 
 public:
     Macaroon();
+    explicit Macaroon(const macaroon *m);
     const std::string discharge_all_caveats();
     void inspect();
     const std::vector<const MacaroonCaveat> get_third_party_caveats();

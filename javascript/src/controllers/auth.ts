@@ -8,7 +8,7 @@ interface IKeyPair {
 }
 
 export class AuthController {
-    private rootKey = "eeyiIuD5a2yrXjj6BlKctUC7k6qF/H6B";
+    private rootKey = "kCHbBNpt5/3Jtbzoe/eFEz6ysG+aB3Lh";
     private decoder: TextDecoder;
 
     constructor(privateKeyPath = "../user_keys.json") {
@@ -30,13 +30,6 @@ export class AuthController {
         // Verify the macaroon and any discharges
         const macaroons = AuthController.getMacaroonAndDischarges(mac);
 
-        // Print the caveats
-        console.log("Caveats:")
-        macaroons[0].caveats.forEach((cav) => {
-            console.log(cav);
-            console.log("Caveat: ", this.decoder.decode(cav.identifier));
-        })
-
         try {
             macaroons[0].verify(base64ToBytes(this.rootKey), ((cond) => AuthController.verifyACOID(cond, acoID)), macaroons[1]);
         } catch (err) {
@@ -54,9 +47,10 @@ export class AuthController {
         const b = base64ToBytes(token);
         const decoded = this.decoder.decode(b);
         if (decoded[0] == "[") {
-            console.log("Decoded:", decoded);
             console.log("Importing array of macaroons");
-            return importMacaroons(b);
+            const parsed = JSON.parse(decoded);
+            console.log("Parsed:", parsed);
+            return importMacaroons(parsed);
         } else {
             return importMacaroon(b);
         }

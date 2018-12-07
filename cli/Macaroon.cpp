@@ -14,7 +14,7 @@ using namespace web::http;                  // Common HTTP functionality
 using namespace web::http::client;          // HTTP client features
 using namespace concurrency;                // Asynchronous streams
 using base64 = cppcodec::base64_url_unpadded;
-using base64enc = cppcodec::base64_url ;
+using base64enc = cppcodec::base64_url;
 
 const std::string Macaroon::base64_string() const {
     const macaroon_format format = MACAROON_V2;
@@ -38,7 +38,8 @@ const Macaroon Macaroon::importMacaroons(const std::string &token) {
 
     // If it's JSON, just import it, otherwise assume base64 and decode
     if (token[0] == '{') {
-        const auto mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(token.data()), token.size(), &err);
+        const auto mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(token.data()), token.size(),
+                                              &err);
         return Macaroon(mac);
     }
 
@@ -60,15 +61,6 @@ Macaroon::Macaroon() : m(nullptr) {
 const std::string Macaroon::discharge_all_caveats() {
     // Get all the caveats
     const auto caveats = this->get_third_party_caveats();
-/*
-    auto test = [](const MacaroonCaveat &m) { std::cout << m.location << std::endl; };
-
-    auto t2 = std::transform(std::remove_if(caveats,
-                                            [](const MacaroonCaveat &m) {
-                                                return m.isLocal();
-                                            }),
-                             test);
-/*/
 
     std::vector<pplx::task<Macaroon>> discharges;
     discharges.reserve(caveats.size());
@@ -77,30 +69,18 @@ const std::string Macaroon::discharge_all_caveats() {
         auto test = Macaroon::dischargeCaveat(cav);
         discharges.push_back(test);
     });
-
-    // Bind it all
     const auto discharged = pplx::when_all(discharges.begin(), discharges.end()).get();
 
-    std::for_each(discharged.begin(), discharged.end(), [this](const Macaroon &val) {
-        macaroon_returncode err;
-        macaroon_prepare_for_request(val.M(), this->M(), &err);
-    });
-
-//    const auto bound = std::accumulate(discharged.begin(), discharged.end(), discharged_macaroons,
-//                                       [this](std::vector<const Macaroon> acc, const Macaroon &val) {
-//                                           macaroon_returncode err;
-//                                           // The values get copied into B (the second parm)
-//                                           macaroon_prepare_for_request(val.M(), this->M(), &err);
-//                                           // Add the new macaroon to the vector
-//                                           acc.emplace_back(val);
-//                                       });
+    // Bind everything
     // Create the json value
     std::vector<json::value> json_values;
     json_values.emplace_back(this->as_json());
-//    std::for_each(discharged.begin(), discharged.end(), [&json_values](const Macaroon &mac) {
-//        const auto mac_j = mac.base64_string();
-//        json_values.emplace_back(mac_j);
-//    });
+    std::for_each(discharged.begin(), discharged.end(), [&json_values, this](const Macaroon &mac) {
+        macaroon_returncode err;
+        const macaroon *mm = macaroon_prepare_for_request(this->M(), mac.M(), &err);
+        const Macaroon m2 = Macaroon(mm);
+        json_values.emplace_back(m2.as_json());
+    });
 
     json::value val_array = json::value::array(json_values);
     const std::string serialized = val_array.serialize();
@@ -212,9 +192,11 @@ json::value Macaroon::as_json() const {
     macaroon_format format = MACAROON_V2J;
     const size_t sz = macaroon_serialize_size_hint(this->M(), format);
     const std::unique_ptr<char[]> output(new char[sz]);
-    macaroon_serialize(this->M(), format, reinterpret_cast<unsigned char *>(output.get()), sz, &err);
+    std::string ts;
+    const size_t total_size = macaroon_serialize(this->M(), format, reinterpret_cast<unsigned char *>(output.get()), sz,
+                                                 &err);
 //    return std::string(output.get());
-    return json::value::parse(std::string(output.get()));
+    return json::value::parse(std::string(output.get(), total_size));
 }
 
 const std::string Macaroon::location() {
