@@ -13,6 +13,15 @@ clean:
 		-rm -rf bin
 		-rm -r javascript/src/*.js
 
+# Deploy builds
+
+deploy: deploy-server
+
+deploy-server: linux/amd64
+		packer build packer/cms_authz.json
+
+# Local client builds
+
 build: client server endpoint
 
 # CLI client
@@ -26,13 +35,10 @@ cli/build/cli:
 
 # Go Server
 
-server: go-dep darwin/amd64
-
-go-dep:
-	dep ensure
+server: darwin/amd64
 
 $(PLATFORMS):
-		GOOS=$(os) GOARCH=$(arch) buffalo build bin/$(NAME)_$(os)
+		GOOS=$(os) GOARCH=$(arch) buffalo build -o bin/$(NAME)_$(os)
 
 # Javascript endpoint
 
@@ -41,5 +47,5 @@ endpoint: javascript/src/app.js
 javascript/src/app.js:
 		tsc --build javascript/tsconfig.json
 
-.PHONY: build client clean deploy $(PLATFORMS) go-dep endpoint
+.PHONY: build client server clean deploy $(PLATFORMS) endpoint deploy deploy-server
 

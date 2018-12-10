@@ -1,0 +1,28 @@
+---
+- name: Setup Ansible
+  hosts: all
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: ../roles/ansible
+
+- name: Setup CFSSL
+  hosts: all
+  tasks:
+    - name: Copy binary
+      copy:
+        src: ../bin/cms_authz_linux
+        dest: /usr/bin
+        mode: o+x
+    - name: Copy entryscript
+      copy:
+        src: ./authz-entrypoint.sh
+        dest: /usr/bin
+        mode: o+x
+
+- name: Cleanup
+  hosts: all
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: ../roles/cleanup

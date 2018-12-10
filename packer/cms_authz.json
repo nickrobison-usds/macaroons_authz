@@ -1,0 +1,23 @@
+{
+    "builders": [{
+        "type": "docker",
+        "image": "debian:stretch-slim",
+        "commit": true,
+        "changes": [
+            "ENTRYPOINT [\"/usr/bin/authz-entrypoint.sh\"]",
+            "CMD [\"/usr/bin/cms_authz_linux\"]"
+        ]
+    }],
+
+    "provisioners": [{
+        "type": "ansible",
+        "user": "root",
+        "playbook_file": "playbooks/cms_authz.yml"
+    }],
+
+    "post-processors": [{
+        "type": "docker-tag",
+        "repository": "nickrobison.com/cms_authz",
+        "tag": "latest"
+    }]
+}
