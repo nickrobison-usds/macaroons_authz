@@ -39,7 +39,7 @@ public:
     const std::string location();
     const macaroon * M() const;
     web::json::value as_json() const;
-    const std::string base64_string() const;
+    const std::string base64_string(macaroon_format format = MACAROON_V2J) const;
 
     const static Macaroon importMacaroons(const std::string &string);
 };

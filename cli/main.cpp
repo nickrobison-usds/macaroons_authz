@@ -19,9 +19,17 @@ int main(int argc, char **argv) {
 
     CLI::App app{"CLI client for CMS AuthZ Demo"};
 
-    string filename = "default";
+    std::optional<string> aco_name_opt;
+    std::optional<string> user_name_opt;
+    bool gather_discharges = true;
 
-    app.add_option("-f,--file", filename, "Config file.");
+    app.add_flag("--no-discharge", [&gather_discharges](size_t count) {
+        if (count >0) {
+            gather_discharges = false;
+        }
+    }, "Disable gathering required discharges");
+    app.add_option("user", user_name_opt, "User to perform queries as");
+    app.add_option("aco", aco_name_opt, "ACO to query against");
 
     try {
         app.parse(argc, argv);
@@ -29,9 +37,26 @@ int main(int argc, char **argv) {
         return app.exit(e);
     }
 
-    console->info("Starting up demo client");
+    // Validate args
+    string user_name;
+    string aco_name;
+    // std::optional doesn't work on MacOS <10.14, so we'll need to come up with a workaround.
+    // This is fine for now, but clunky.
+    if (!user_name_opt) {
+        console->critical("Must provide a username to query as.");
+    } else {
+        user_name = *user_name_opt;
+        return 1;
+    }
 
-    const auto aco_name = "Test ACO 1";
+    if (!aco_name_opt) {
+        console->critical("Must provide an ACO Name to query against.");
+    } else {
+        aco_name = *aco_name_opt;
+        return 1;
+    }
+
+    console->info("Starting up demo client");
 
     // Try to lookup a given ACO ID
 
@@ -62,7 +87,6 @@ int main(int argc, char **argv) {
 
     // And a User ID
     string userID;
-    const string user_name = "Test User 1";
 
     console->info("Looking up ID for user '{:s}'", user_name);
 
@@ -111,10 +135,17 @@ int main(int argc, char **argv) {
     // Debug
     console->debug("Inspected macaroon: {:s}", mac.inspect());
 
+    string bound_mac;
+
 
     // Try to bind macaroons
-    console->info("Discharging third party caveats");
-    auto bound_mac = mac.discharge_all_caveats();
+    if (gather_discharges) {
+        console->info("Discharging third party caveats");
+        bound_mac = mac.discharge_all_caveats();
+    } else {
+        console->info("Not discharging caveats");
+        bound_mac = mac.base64_string();
+    }
 
     // Now make the actual request for the ACO data
 

@@ -16,8 +16,7 @@ using namespace concurrency;                // Asynchronous streams
 using base64 = cppcodec::base64_url_unpadded;
 using base64enc = cppcodec::base64_url;
 
-const std::string Macaroon::base64_string() const {
-    const macaroon_format format = MACAROON_V2;
+const std::string Macaroon::base64_string(const macaroon_format format) const {
     const size_t sz = macaroon_serialize_size_hint(this->M(), format);
 
     const std::unique_ptr<char[]> output(new char[sz]);
