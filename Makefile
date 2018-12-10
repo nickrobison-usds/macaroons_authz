@@ -15,10 +15,20 @@ clean:
 
 # Deploy builds
 
-deploy: deploy-server
+deploy: deploy-server deploy-cfssl
 
 deploy-server: linux/amd64
 		packer build packer/cms_authz.json
+
+deploy-cfssl:
+		packer build packer/cfssl.json
+
+.PHONY: deploy deploy-server deploy-cfssl run
+
+run:
+		-cd terraform/dev; terraform apply
+stop:
+		-cd terraform/dev; terraform destroy
 
 # Local client builds
 
@@ -47,5 +57,5 @@ endpoint: javascript/src/app.js
 javascript/src/app.js:
 		tsc --build javascript/tsconfig.json
 
-.PHONY: build client server clean deploy $(PLATFORMS) endpoint deploy deploy-server
+.PHONY: build client server clean deploy $(PLATFORMS) endpoint
 

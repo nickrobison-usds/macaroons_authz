@@ -19,6 +19,10 @@
         src: ./authz-entrypoint.sh
         dest: /usr/bin
         mode: o+x
+    - name: Copy test keys
+      copy:
+        src: ../user_keys.json
+        dest: /
 
 - name: Cleanup
   hosts: all
