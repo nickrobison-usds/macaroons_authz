@@ -10,6 +10,9 @@ find_package(cpprestsdk REQUIRED)
 # We need to manually link Boost::System and thread. For some reason it's not being pulled in via REST SDK
 find_package(Boost REQUIRED COMPONENTS system thread)
 
+# We have to manually handle OpenSSL, for some reason.
+find_package(OpenSSL REQUIRED)
+
 # Handle the submodules
 find_package(Git QUIET)
 if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/../.git")
