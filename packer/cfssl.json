@@ -6,7 +6,8 @@
         "changes": [
             "VOLUME /cfssl",
             "WORKDIR /cfssl",
-            "EXPOSE 8080"
+            "EXPOSE 8080",
+            "ENTRYPOINT [\"/usr/bin/cfssl-entrypoint.sh\"]"
         ]
     }],
 

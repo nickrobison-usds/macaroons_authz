@@ -12,6 +12,8 @@
     GOPATH: /usr/local/gopath
   vars:
     version: "master"
+    goroot: /usr/local/goroot
+    cfssl_root: /cfssl
   tasks:
     - name: install packages
       package:
@@ -21,24 +23,26 @@
         - git
         - gcc
 
-    - name: create go directories
+    - name: create directories directories
       file:
         path: "{{ item }}"
         state: directory
         mode: 0755
       with_items:
-        - /usr/local/gopath
-        - /usr/local/goroot
+        - "{{ goroot }}"
+        - "{{ ansible_env.GOPATH }}"
+        - "{{ cfssl_root }}/config"
+        - "{{ cfssl_root }}/keys"
 
     - name: install go
       unarchive:
         remote_src: yes
         src: https://dl.google.com/go/go1.11.2.linux-amd64.tar.gz
-        dest: /usr/local/goroot
+        dest: "{{ goroot }}"
 
     - name: symlink go
       file:
-        src: /usr/local/goroot/go/bin/go
+        src: "{{ goroot }}/go/bin/go"
         dest: /usr/bin/go
         state: link
 
@@ -47,40 +51,30 @@
 
     - name: symlink cfssl
       file:
-        src: /usr/local/goroot/go/bin/cfssl
+        src: "{{ ansible_env.GOPATH }}/bin/cfssl"
         dest: /usr/bin/cfssl
         state: link
-
-    - name: remove packages
-      package:
-        name: "{{ item }}"
-        state: absent
-      with_items:
-        - gcc
-        - git
 
 - name: Copy required data
   hosts: all
   tasks:
-    - name: copy entrypoint
+    - name: Copy Entrypoint
       copy:
-        src: ../packer/docker-entrypoint.sh
+        src: ./cfssl-entrypoint.sh
         dest: /usr/bin
+        mode: o+x
 
-    - name: list cfssl config files
-      find:
-        paths: ../cfssl/
-        hidden: no
-      delegate_to: localhost
-      register: target_files
-
-    - name: copy cfssl config files
+    - name: Copy CFSSL config file
       copy:
-        src: "{{ item.path }} "
-        dest: /cfssl/
-        with_items: "{{ target_files.files }}"
+        src: ../cfssl/config/config_ca.json
+        dest: /cfssl/config
 
-
+    - name: Copy CFSSL keys
+      copy:
+        src: "{{ item }}"
+        dest: /cfssl/keys
+      with_fileglob:
+        - ../cfssl/keys/*
 
 - name: Cleanup
   hosts: all
@@ -88,5 +82,11 @@
   tasks:
     - include_role:
         name: ../roles/cleanup
-
-  
+    - name: remove packages
+      package:
+        name: "{{ item }}"
+        state: absent
+      with_items:
+        - gcc
+        - git
+        
