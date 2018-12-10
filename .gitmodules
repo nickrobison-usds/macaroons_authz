@@ -11,3 +11,6 @@
 [submodule "cli/extern/fmt"]
 	path = cli/extern/fmt
 	url = https://github.com/fmtlib/fmt.git
+[submodule "cli/extern/spdlog"]
+	path = cli/extern/spdlog
+	url = https://github.com/gabime/spdlog.git

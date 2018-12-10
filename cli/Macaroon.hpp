@@ -34,7 +34,7 @@ public:
     Macaroon();
     explicit Macaroon(const macaroon *m);
     const std::string discharge_all_caveats();
-    void inspect();
+    std::string inspect();
     const std::vector<const MacaroonCaveat> get_third_party_caveats();
     const std::string location();
     const macaroon * M() const;

@@ -94,7 +94,6 @@ pplx::task<Macaroon> Macaroon::dischargeCaveat(const MacaroonCaveat &cav) {
     const auto encoded = base64::encode(cav.identifier);
 
     // Create the URL client
-    std::cout << "Location: " << cav.location << std::endl;
     http_client client(U(cav.location));
     uri_builder builder(U("/discharge"));
     builder.append_query(U("id64"), U(encoded));
@@ -115,7 +114,6 @@ pplx::task<Macaroon> Macaroon::dischargeCaveat(const MacaroonCaveat &cav) {
             })
 //            Build the macaroons
             .then([](json::value json) {
-                std::cout << json << std::endl;
                 auto j_mac = json[U("Macaroon")];
                 // Add v2
                 // De-url encode
@@ -145,7 +143,7 @@ pplx::task<Macaroon> Macaroon::dischargeCaveat(const MacaroonCaveat &cav) {
 /**
  * Inspect the macaroon and print out location, id, and caveats
  */
-void Macaroon::inspect() {
+std::string Macaroon::inspect() {
     // Get the size of the macaroon
     const auto sz = macaroon_inspect_size_hint(this->m);
     // Create a buffer to read into
@@ -154,7 +152,7 @@ void Macaroon::inspect() {
     macaroon_inspect(this->m, &output[0], sz, &err);
 
     // Print it
-    std::cout << "Inspected macaroon: " << output.get() << std::endl;
+    return std::string(output.get());
 }
 
 const std::vector<const MacaroonCaveat> Macaroon::get_third_party_caveats() {

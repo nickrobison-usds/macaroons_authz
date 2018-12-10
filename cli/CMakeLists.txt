@@ -30,18 +30,18 @@ if (NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/termcolor/CMakeLists.txt")
 endif ()
 
 add_subdirectory(extern/cli11)
-add_subdirectory(extern/termcolor)
 add_subdirectory(extern/cppcodec)
 add_subdirectory(extern/libmacaroons)
 add_subdirectory(extern/fmt)
+add_subdirectory(extern/spdlog)
 
 add_executable(cli main.cpp Macaroon.cpp Macaroon.hpp)
 target_link_libraries(cli PRIVATE
         cli11
-        termcolor::termcolor
         cpprestsdk::cpprest
         Boost::system
         Boost::thread
         macaroons
         cppcodec
-        fmt)
+        fmt
+        spdlog::spdlog)
