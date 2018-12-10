@@ -21,9 +21,9 @@ const std::string Macaroon::base64_string(const macaroon_format format) const {
 
     const std::unique_ptr<char[]> output(new char[sz]);
     macaroon_returncode err;
-    macaroon_serialize(this->M(), format, reinterpret_cast<unsigned char *>(output.get()), sz, &err);
+    const size_t buffer_size = macaroon_serialize(this->M(), format, reinterpret_cast<unsigned char *>(output.get()), sz, &err);
 
-    return base64enc::encode(output.get(), sz);
+    return base64enc::encode(output.get(), buffer_size);
 }
 
 /**

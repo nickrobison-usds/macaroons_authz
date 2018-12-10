@@ -44,16 +44,16 @@ int main(int argc, char **argv) {
     // This is fine for now, but clunky.
     if (!user_name_opt) {
         console->critical("Must provide a username to query as.");
+        return 1;
     } else {
         user_name = *user_name_opt;
-        return 1;
     }
 
     if (!aco_name_opt) {
         console->critical("Must provide an ACO Name to query against.");
+        return 1;
     } else {
         aco_name = *aco_name_opt;
-        return 1;
     }
 
     console->info("Starting up demo client");
@@ -161,14 +161,10 @@ int main(int argc, char **argv) {
 
     auto task = client.request(name_req)
             .then([](http_response response) {
-                    if (response.status_code() == status_codes::OK) {
                         return response.extract_string();
-                    }
             });
 
     const string resp = task.get();
-
     console->info(resp);
-
     return 0;
 }

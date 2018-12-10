@@ -34,7 +34,7 @@ export class AuthController {
             macaroons[0].verify(base64ToBytes(this.rootKey), ((cond) => AuthController.verifyACOID(cond, acoID)), macaroons[1]);
         } catch (err) {
             console.error(err);
-            res.status(404).send(err.message);
+            res.status(401).send(err.message);
             return;
         }
         console.log("Verified");
@@ -46,13 +46,29 @@ export class AuthController {
     private importMacaroon(token: string): Macaroon | Macaroon[] {
         const b = base64ToBytes(token);
         const decoded = this.decoder.decode(b);
+        console.log("Decoded:", decoded);
         if (decoded[0] == "[") {
             console.log("Importing array of macaroons");
-            const parsed = JSON.parse(decoded);
-            console.log("Parsed:", parsed);
-            return importMacaroons(parsed);
+            // Check for JSON
+            var toImport: string;
+            if (decoded[1] == "{") {
+                const parsed = JSON.parse(decoded);
+                console.log("Parsed:", parsed);
+                toImport = parsed;
+            } else {
+                toImport = decoded;
+            }
+            return importMacaroons(toImport);
+
         } else {
-            return importMacaroon(b);
+            // Check for JSON
+            var toImport: string;
+            if (decoded[0] == "{") {
+                toImport = JSON.parse(decoded);
+            } else {
+                toImport = decoded;
+            }
+            return importMacaroon(toImport);
         }
     }
 
