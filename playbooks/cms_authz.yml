@@ -9,6 +9,10 @@
 - name: Setup CMS AuthZ
   hosts: all
   tasks:
+    - name: Install curl
+      package:
+        name: curl
+        state: present
     - name: Copy binary
       copy:
         src: ../bin/cms_authz_linux
