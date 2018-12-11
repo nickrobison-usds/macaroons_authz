@@ -4,6 +4,7 @@
         "image": "debian:stretch-slim",
         "commit": true,
         "changes": [
+            "WORKDIR /authz",
             "ENTRYPOINT [\"/usr/bin/authz-entrypoint.sh\"]",
             "CMD [\"/usr/bin/cms_authz_linux\"]"
         ]

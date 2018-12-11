@@ -9,6 +9,13 @@
 - name: Setup CMS AuthZ
   hosts: all
   tasks:
+    - name: Create directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0755
+      with_items:
+        - /authz/db
     - name: Install curl
       package:
         name: curl
@@ -26,7 +33,13 @@
     - name: Copy test keys
       copy:
         src: ../user_keys.json
-        dest: /
+        dest: /authz
+    - name: Copy DB Seeds
+      copy:
+        src: "{{ item }}"
+        dest: /authz/db
+      with_fileglob:
+        - ../db/seeds_*
 
 - name: Cleanup
   hosts: all
