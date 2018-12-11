@@ -18,6 +18,7 @@ cms_authz
 **/*.tfstate*
 **/.terraform
 javascript/src/**/*.js
+javascript/dist
 
 build/
 cmake-*/
