@@ -49,6 +49,21 @@ resource "docker_container" "authz" {
   }
 }
 
+/* ----- Setup the AuthZ resources ----- */
+
+resource "docker_container" "target-service" {
+  name = "target-service"
+  image = "nickrobison.com/target_service:latest"
+  hostname = "target"
+  ports {
+    internal = 3002
+    external = 3002
+  }
+  networks_advanced {
+    name = "${docker_network.public.name}"
+  }
+}
+
 resource "docker_network" "public" {
   name = "cms_authz-public"
 }

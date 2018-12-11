@@ -31,6 +31,7 @@ deploy-target-service: javascript/dist/target_service.js
 
 run:
 		-cd terraform/dev; terraform apply
+
 stop:
 		-cd terraform/dev; terraform destroy
 
