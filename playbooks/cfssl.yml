@@ -15,7 +15,7 @@
     goroot: /usr/local/goroot
     cfssl_root: /cfssl
   tasks:
-    - name: install packages
+    - name: Install packages
       package:
         name: "{{ item }}"
         state: present
@@ -23,7 +23,7 @@
         - git
         - gcc
 
-    - name: create directories directories
+    - name: Create directories
       file:
         path: "{{ item }}"
         state: directory
@@ -34,22 +34,22 @@
         - "{{ cfssl_root }}/config"
         - "{{ cfssl_root }}/keys"
 
-    - name: install go
+    - name: Install GO
       unarchive:
         remote_src: yes
         src: https://dl.google.com/go/go1.11.2.linux-amd64.tar.gz
         dest: "{{ goroot }}"
 
-    - name: symlink go
+    - name: Symlink GO
       file:
         src: "{{ goroot }}/go/bin/go"
         dest: /usr/bin/go
         state: link
 
-    - name: install cfssl
+    - name: Build and install CFSSL
       command: go get -u github.com/cloudflare/cfssl/cmd/cfssl
 
-    - name: symlink cfssl
+    - name: Symlink CFSSL
       file:
         src: "{{ ansible_env.GOPATH }}/bin/cfssl"
         dest: /usr/bin/cfssl
@@ -58,7 +58,7 @@
 - name: Copy required data
   hosts: all
   tasks:
-    - name: Copy Entrypoint
+    - name: Copy entrypoint
       copy:
         src: ./cfssl-entrypoint.sh
         dest: /usr/bin
@@ -82,7 +82,7 @@
   tasks:
     - include_role:
         name: ../roles/cleanup
-    - name: remove packages
+    - name: Remove packages
       package:
         name: "{{ item }}"
         state: absent

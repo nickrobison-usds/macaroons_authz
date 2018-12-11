@@ -1,0 +1,22 @@
+{
+    "builders": [{
+        "type": "docker",
+        "image": "debian:stretch-slim",
+        "commit": true,
+        "changes": [
+            "ENTRYPOINT [\"/usr/bin/dumb-init\", \"--\"]",
+            "CMD [\"node\", \"/opt/target_service.js\"]"
+        ]
+    }],
+    "provisioners": [{
+        "type": "ansible",
+        "user": "root",
+        "playbook_file": "playbooks/target_service.yml"
+    }],
+
+    "post-processors": [{
+        "type": "docker-tag",
+        "repository": "nickrobison.com/target_service",
+        "tag": "latest"
+    }]
+}

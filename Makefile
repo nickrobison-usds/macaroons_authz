@@ -12,10 +12,11 @@ clean:
 		-rm -rf cli/build
 		-rm -rf bin
 		-rm -r javascript/src/*.js
+		-rm -rf javascript/dist
 
 # Deploy builds
 
-deploy: deploy-server deploy-cfssl
+deploy: deploy-server deploy-cfssl deploy-target-service
 
 deploy-server: linux/amd64
 		packer build packer/cms_authz.json
@@ -23,7 +24,10 @@ deploy-server: linux/amd64
 deploy-cfssl:
 		packer build packer/cfssl.json
 
-.PHONY: deploy deploy-server deploy-cfssl run
+deploy-target-service: javascript/dist/target_service.js
+		packer build packer/target_service.json
+
+.PHONY: deploy deploy-server deploy-cfssl deploy-target-service run
 
 run:
 		-cd terraform/dev; terraform apply
@@ -54,8 +58,8 @@ $(PLATFORMS):
 
 endpoint: javascript/src/app.js
 
-javascript/src/app.js:
-		tsc --build javascript/tsconfig.json
+javascript/dist/target_service.js:
+		npm run --prefix javascript build
 
 .PHONY: build client server clean deploy $(PLATFORMS) endpoint
 

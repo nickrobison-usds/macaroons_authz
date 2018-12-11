@@ -1,0 +1,49 @@
+---
+- name: Setup Ansible
+  hosts: all
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: ../roles/ansible
+
+- name: Install node
+  hosts: all
+  tasks:
+    - name: Install initial packages
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - apt-transport-https
+        - gnupg
+        - dumb-init
+    - name: Import GPG key
+      apt_key:
+        url: https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280
+        id: "68576280"
+        state: present
+    - name: Add NodeSource deb repository
+      apt_repository:
+        repo: 'deb https://deb.nodesource.com/node_11.x {{ ansible_distribution_release }} main'
+        state: present
+    - name: Install Node
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - nodejs
+
+- name: Install Target Service
+  hosts: all
+  tasks:
+    - name: Copy target service
+      copy:
+        src: ../javascript/dist/target_service.js
+        dest: /opt
+
+- name: Cleanup
+  hosts: all
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: ../roles/cleanup

@@ -6,7 +6,7 @@
     - include_role:
         name: ../roles/ansible
 
-- name: Setup CFSSL
+- name: Setup CMS AuthZ
   hosts: all
   tasks:
     - name: Copy binary
