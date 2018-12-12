@@ -39,10 +39,6 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/gobuffalo/mw-csrf"
-
-[[constraint]]
-  branch = "master"
   name = "github.com/gobuffalo/mw-forcessl"
 
 [[constraint]]
@@ -96,10 +92,6 @@
 [[constraint]]
   branch = "master"
   name = "github.com/logrusorgru/aurora"
-
-[[constraint]]
-  branch = "v1"
-  name = "gopkg.in/macaroon-bakery.v1"
 
 [[constraint]]
   name = "gopkg.in/macaroon-bakery.v2"
