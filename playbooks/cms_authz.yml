@@ -6,9 +6,15 @@
     - include_role:
         name: ../roles/ansible
 
-- name: Setup CMS AuthZ
+- name: Setup system
   hosts: all
   tasks:
+    - name: Install system dependencies
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - curl
     - name: Create directories
       file:
         path: "{{ item }}"
@@ -16,10 +22,22 @@
         mode: 0755
       with_items:
         - /authz/db
-    - name: Install curl
-      package:
-        name: curl
-        state: present
+    - name: Download Buffalo
+      get_url:
+        url: https://github.com/gobuffalo/buffalo/releases/download/v0.13.10/buffalo_0.13.10_linux_amd64.tar.gz
+        dest: /authz
+        checksum: sha256:7af64129190a44fbac6fcfc2cd3521abc0e081ec404b10febabac822e6a4d4f3
+    - name: Install Buffalo
+      unarchive:
+        remote_src: yes
+        src: /authz/buffalo_0.13.10_linux_amd64.tar.gz
+        dest: /usr/local/bin
+
+- name: Setup CMS AuthZ
+  hosts: all
+  vars:
+    authz_root: /authz
+  tasks:
     - name: Copy binary
       copy:
         src: ../bin/cms_authz_linux
@@ -33,13 +51,17 @@
     - name: Copy test keys
       copy:
         src: ../user_keys.json
-        dest: /authz
+        dest: "{{ authz_root }}"
     - name: Copy DB Seeds
       copy:
         src: "{{ item }}"
-        dest: /authz/db
+        dest: "{{ authz_root }}/db"
       with_fileglob:
         - ../db/seeds_*
+    - name: Copy Env file
+      copy:
+        src: ../.env
+        dest: "{{ authz_root }}"
 
 - name: Cleanup
   hosts: all
