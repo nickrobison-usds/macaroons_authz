@@ -54,7 +54,7 @@ resource "docker_container" "authz" {
   }
   env = [
     "DATABASE_URL=postgres://postgres@${module.db.hostname}:5432/cms_authz?sslmode=disable",
-    "CFSSL_URL=http://${module.cfssl.hostname}",
+    "CFSSL_URL=http://${module.cfssl.hostname}:8888",
     "PROVIDER_URL=http://localhost:3000",
     "PORT=8080",
     "SEED=true",

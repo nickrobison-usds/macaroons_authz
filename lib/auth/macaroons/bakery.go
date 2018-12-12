@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/logger"
 	"github.com/gobuffalo/pop"
 	"gopkg.in/macaroon-bakery.v2/bakery"
@@ -29,9 +30,15 @@ type Bakery struct {
 
 func init() {
 	log = logger.NewLogger("BAKERY")
+
+	// Get the Database URL from the ENV, or use a default
+	url := envy.Get("DATABASE_URL", "")
+	if url == "" {
+		url = "host=localhost user=postgres password=postgres database=cms_authz_development sslmode=disable"
+	}
 	// Create store
 	// This is bad, but it seems to work
-	db, err := sql.Open("postgres", "host=localhost user=postgres password=postgres database=cms_authz_development sslmode=disable")
+	db, err := sql.Open("postgres", url)
 	if err != nil {
 		log.Fatal(err)
 	}

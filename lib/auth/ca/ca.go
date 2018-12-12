@@ -121,10 +121,7 @@ var (
 )
 
 func init() {
-	url, err := envy.MustGet("CFSSL_URL")
-	if err != nil {
-		panic(err)
-	}
+	url := envy.Get("CFSSL_URL", "http://localhost:8080")
 
 	cfsslURL = url
 	client = &http.Client{}
