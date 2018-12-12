@@ -31,7 +31,12 @@
       unarchive:
         remote_src: yes
         src: /authz/buffalo_0.13.10_linux_amd64.tar.gz
-        dest: /usr/local/bin
+        dest: /authz
+    - name: Symlink Buffalo
+      file:
+        src: /authz/buffalo-no-sqlite
+        dest: /usr/bin/buffalo
+        state: link
 
 - name: Setup CMS AuthZ
   hosts: all
@@ -58,10 +63,13 @@
         dest: "{{ authz_root }}/db"
       with_fileglob:
         - ../db/seeds_*
-    - name: Copy Env file
+    - name: Copy config files
       copy:
-        src: ../.env
+        src: "{{ item }}"
         dest: "{{ authz_root }}"
+      with_items:
+        - ../database.yml
+        - ../.env
 
 - name: Cleanup
   hosts: all

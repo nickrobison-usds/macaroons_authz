@@ -19,6 +19,9 @@ resource "docker_container" "postgres" {
     host_path = "${var.host_path}"
     container_path ="/var/lib/postgresql/data"
   }
+  env = [
+    "POSTGRES_DB=${var.db_name}"
+  ]
 }
 
 resource "docker_network" "db_private" {

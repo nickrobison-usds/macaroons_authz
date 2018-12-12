@@ -5,6 +5,7 @@ module "db" {
   name = "cmsauthz"
   host_path = "/Users/usds/Development/identity-idp/db_data"
   use_local = false
+  db_name = "cms_authz"
 }
 /*
 module "idp" {
@@ -25,7 +26,23 @@ module "cfssl" {
   public_network = "${docker_network.public.name}"
 }
 
-/* ----- Setup the AuthZ resources ----- */
+/* ----- Setup the AuthZ resource ----- */
+
+// Create the database
+/*
+provider "postgresql" {
+  alias = "pg1"
+  host = "${module.db.hostname}"
+  username = "postgres"
+  password = "postgres"
+  sslmode = "disable"
+}
+
+resource "postgresql_database" "authz_db" {
+  provider = "postgresql.pg1"
+  name = "cmsauthz-db"
+}
+*/
 
 resource "docker_container" "authz" {
   name = "authz_server"
@@ -36,10 +53,12 @@ resource "docker_container" "authz" {
     external = 8080
   }
   env = [
-    "DATABASE_URL=postgres://postgres@${module.db.hostname}?sslmode=disable",
+    "DATABASE_URL=postgres://postgres@${module.db.hostname}:5432/cms_authz?sslmode=disable",
     "CFSSL_URL=http://${module.cfssl.hostname}",
     "PROVIDER_URL=http://localhost:3000",
-    "PORT=8080"
+    "PORT=8080",
+    "SEED=true",
+    "GO_ENV=production"
   ]
   networks_advanced {
     name = "${docker_network.public.name}"
@@ -49,7 +68,7 @@ resource "docker_container" "authz" {
   }
 }
 
-/* ----- Setup the AuthZ resources ----- */
+/* ----- Setup the Target Service resource ----- */
 
 resource "docker_container" "target-service" {
   name = "target-service"
@@ -63,6 +82,8 @@ resource "docker_container" "target-service" {
     name = "${docker_network.public.name}"
   }
 }
+
+/* ----- Public networking ----- */
 
 resource "docker_network" "public" {
   name = "cms_authz-public"
