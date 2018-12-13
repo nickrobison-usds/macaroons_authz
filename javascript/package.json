@@ -29,6 +29,9 @@
         "webpack-merge": "^4.1.5"
     },
     "scripts": {
+        "serve-debug": "nodemon --inspect dist/target_service.js",
+        "watch-ts": "webpack --progress --watch --config ./webpack/webpack.dev.js",
+        "watch-debug": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run serve-debug\"",
         "build": "webpack --config ./webpack/webpack.prod.js",
         "start": "webpack-dev-server --open --config ./webpack/webpack.dev.js"
     }
