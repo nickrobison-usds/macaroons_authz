@@ -1,27 +1,30 @@
 import express from "express";
-import { AuthController } from "./controllers/auth";
+import { AuthController, CreateAuthController } from "./controllers/auth";
 import cookieParser = require("cookie-parser");
 
 console.log("Starting API Service");
 
-const app = express();
+(async () => {
 
-app.use(cookieParser());
+    const app = express();
 
-// Express config
+    app.use(cookieParser());
 
-app.set("port", process.env.Port || 3002);
+    // Express config
 
-// Add the controllers and routes
-const ac = new AuthController();
+    app.set("port", process.env.Port || 3002);
 
-app.get("/:acoID", (req, res) => ac.dischargeMacaroon(req, res));
-// Start it up
+    // Add the controllers and routes
+    const ac = await CreateAuthController();
 
-app.listen(app.get("port"), () => {
-    console.log("App is running at http://localhost:%s in %s mode",
-        app.get("port"),
-        app.get("env"));
+    app.get("/:acoID", (req, res) => ac.dischargeMacaroon(req, res));
+    // Start it up
 
-    console.log("Press CTRL-C to stop");
-})
+    app.listen(app.get("port"), () => {
+        console.log("App is running at http://localhost:%s in %s mode",
+            app.get("port"),
+            app.get("env"));
+
+        console.log("Press CTRL-C to stop");
+    })
+})();

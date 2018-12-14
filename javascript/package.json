@@ -8,10 +8,13 @@
     "private": true,
     "dependencies": {
         "@types/cookie-parser": "^1.4.1",
+        "@types/pg": "^7.4.11",
         "cookie-parser": "^1.4.3",
         "express": "^4.16.4",
         "macaroon": "^3.0.3",
         "nacl-fast": "^0.1.0",
+        "pg": "^7.7.1",
+        "retryer": "^1.1.2",
         "sjcl": "^1.0.8",
         "tweetnacl": "^1.0.0"
     },

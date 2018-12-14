@@ -1,21 +1,39 @@
 import { Request, Response } from "express";
 import { base64ToBytes, importMacaroon, Macaroon, importMacaroons } from "macaroon";
-
+import { Client, ClientConfig } from "pg";
+import retry from "retryer";
 
 interface IKeyPair {
     pub: string;
     priv: string;
 }
 
+interface IVaultKeyResponse {
+    keys: { [id: string]: string };
+    name: string;
+}
+
+interface IVaultResponse {
+    request_id: string;
+    lease_id?: string;
+    renewable: boolean;
+    lease_duration: number;
+    data: IVaultKeyResponse;
+    wrap_info?: string;
+    warnings?: string;
+    auth?: string;
+}
+
 export class AuthController {
-    private rootKey = "kCHbBNpt5/3Jtbzoe/eFEz6ysG+aB3Lh";
+    private rootKey: string;
     private decoder: TextDecoder;
 
-    constructor(privateKeyPath = "../user_keys.json") {
-        console.debug("Creating controller");
+    constructor(key: string, privateKeyPath = "../user_keys.json") {
+        console.debug("Creating controller with key: ", key);
         this.decoder = new TextDecoder("utf-8");
-
+        this.rootKey = key;
     }
+
     public dischargeMacaroon(req: Request, res: Response): void {
         const acoID = req.params["acoID"];
         // Get the macaroon from the reuest and import it.
@@ -30,7 +48,10 @@ export class AuthController {
         // Verify the macaroon and any discharges
         const macaroons = AuthController.getMacaroonAndDischarges(mac);
 
+
+
         try {
+            console.log("Decrypting with key:", this.rootKey);
             macaroons[0].verify(base64ToBytes(this.rootKey), ((cond) => AuthController.verifyACOID(cond, acoID)), macaroons[1]);
         } catch (err) {
             console.error(err);
@@ -112,4 +133,27 @@ export class AuthController {
         const discharges = mac.filter((m) => m.location === null);
         return [m, discharges];
     }
+}
+
+export async function CreateAuthController(): Promise<AuthController> {
+
+    const connectionString = process.env.DATABASE_URL ? process.env.DATABASE_URL : "postgres://postgres:postgres@127.0.0.1:5432/cms_authz_development?sslmode=disable";
+    const client = await retry(() => connectToDB({
+        connectionString: connectionString,
+    }), {
+            timeout: 10000,
+        });
+
+    // We cheat and just grab the first key
+    const res = await client.query("SELECT encode(rootkey::bytea, 'base64') as key FROM public.root_keys ORDER BY id ASC LIMIT 1");
+    console.log("Result: ", res);
+    await client.end();
+
+    return new AuthController(res.rows[0]["key"]);
+}
+
+async function connectToDB(options: ClientConfig): Promise<Client> {
+    const client = new Client(options);
+    await client.connect();
+    return client;
 }
