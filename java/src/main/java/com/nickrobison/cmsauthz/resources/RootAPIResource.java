@@ -15,9 +15,22 @@ import java.util.Optional;
 @Produces(MediaType.APPLICATION_JSON)
 public class RootAPIResource {
 
+    private static final String TEST_KEY = "test key";
+
     public RootAPIResource() {
 //        Not used
     }
+
+    @GET
+    @Path("/token")
+    public Response getToken() {
+        final Macaroon macaroon = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "test-token-1")
+                .add_first_party_caveat("aco_id = 1")
+                .getMacaroon();
+
+        return Response.ok().entity(macaroon.serialize()).build();
+    }
+
 
     @GET
     @Path("/{aco_id}")
@@ -30,11 +43,15 @@ public class RootAPIResource {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Must have Macaroon").build();
         }
 
-        final MacaroonsVerifier verifier = new MacaroonsVerifier(macaroon.get());
-        final String key = "test key";
-        final boolean valid = verifier.isValid(key);
+        final MacaroonsVerifier verifier = new MacaroonsVerifier(macaroon.get())
+                .satisfyExcact("aco_id = 1");
+        final boolean valid = verifier.isValid(TEST_KEY);
 
-        return Response.ok("Hello there!").build();
+        if (valid) {
+            return Response.ok("Hello there!").build();
+        }
+
+        return Response.status(Response.Status.UNAUTHORIZED).entity("Incorrect macaroon").build();
     }
 
 
