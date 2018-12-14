@@ -7,6 +7,12 @@ locals = {
   local_network = ""
 }
 
+
+resource "docker_volume" "db-volume" {
+  name = "db-volume"
+}
+
+
 resource "docker_container" "postgres" {
   name = "${var.name}-db"
   count = "${1 - var.use_local}"
@@ -16,7 +22,7 @@ resource "docker_container" "postgres" {
     name = "${docker_network.db_private.name}"
   }
   volumes {
-    host_path = "${var.host_path}"
+    volume_name = "${docker_volume.db-volume.name}"
     container_path ="/var/lib/postgresql/data"
   }
   env = [

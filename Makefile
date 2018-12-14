@@ -30,10 +30,10 @@ deploy-target-service: javascript/dist/target_service.js
 .PHONY: deploy deploy-server deploy-cfssl deploy-target-service run
 
 run:
-		-cd terraform/dev; terraform apply
+		-cd terraform/sbx; terraform apply
 
 stop:
-		-cd terraform/dev; terraform destroy
+		-cd terraform/sbx; terraform destroy
 
 # Local client builds
 

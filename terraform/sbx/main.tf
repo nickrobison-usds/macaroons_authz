@@ -78,8 +78,14 @@ resource "docker_container" "target-service" {
     internal = 3002
     external = 3002
   }
+  env = [
+    "DATABASE_URL=postgres://postgres@${module.db.hostname}:5432/cms_authz?sslmode=disable",
+  ]
   networks_advanced {
     name = "${docker_network.public.name}"
+  }
+  networks_advanced {
+    name = "${module.db.network}"
   }
 }
 
