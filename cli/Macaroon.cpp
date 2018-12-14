@@ -23,7 +23,15 @@ const std::string Macaroon::base64_string(const macaroon_format format) const {
     macaroon_returncode err;
     const size_t buffer_size = macaroon_serialize(this->M(), format, reinterpret_cast<unsigned char *>(output.get()), sz, &err);
 
-    return base64enc::encode(output.get(), buffer_size);
+    // Binary formats are already base64 encoded
+    switch (format) {
+        case MACAROON_V2J: {
+            return base64enc::encode(output.get(), buffer_size);
+        }
+        default: {
+            return std::string(output.get(), buffer_size);
+        }
+    }
 }
 
 /**

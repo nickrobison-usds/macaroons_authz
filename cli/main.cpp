@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
         bound_mac = mac.discharge_all_caveats();
     } else {
         console->info("Not discharging caveats");
-        bound_mac = mac.base64_string();
+        bound_mac = mac.base64_string(MACAROON_V1);
     }
 
     // Now make the actual request for the ACO data

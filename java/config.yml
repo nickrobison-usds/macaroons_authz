@@ -2,3 +2,7 @@ logging:
   level: INFO
   loggers:
     com.nickrobison.cmsauthz: DEBUG
+server:
+  applicationConnectors:
+    - type: http
+      port: 3002
