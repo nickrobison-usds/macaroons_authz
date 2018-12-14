@@ -22,12 +22,18 @@ int main(int argc, char **argv) {
     std::optional<string> aco_name_opt;
     std::optional<string> user_name_opt;
     bool gather_discharges = true;
+    bool java_service = false;
 
     app.add_flag("--no-discharge", [&gather_discharges](size_t count) {
-        if (count >0) {
+        if (count > 0) {
             gather_discharges = false;
         }
     }, "Disable gathering required discharges");
+    app.add_flag("--java", [&java_service](size_t count) {
+        if (count > 0) {
+            java_service = true;
+        }
+    });
     app.add_option("user", user_name_opt, "User to perform queries as");
     app.add_option("aco", aco_name_opt, "ACO to query against");
 
@@ -57,6 +63,8 @@ int main(int argc, char **argv) {
     }
 
     console->info("Starting up demo client");
+
+    // Should we get a token from the standalone Java service?
 
     // Try to lookup a given ACO ID
 
@@ -109,26 +117,56 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    console->info("Looking up Macaroon for '{:s}' associated with '{:s}'", aco_name, user_name);
-
-    // Try to find the ACO token associated with the user
     string token;
-    std::string token_query = fmt::format("api/users/token/{}/ACO/{}", userID, acoID);
-    uri_builder tokenBuilder(U(token_query));
-    http_request token_req(methods::GET);
-    token_req.set_request_uri(tokenBuilder.to_uri());
 
-    auto tokenTask = nameClient.request(token_req)
-            .then([](http_response resp) {
-                if (resp.status_code() == status_codes::OK) {
-                    return resp.extract_string();
-                }
-                throw invalid_argument(resp.extract_string().get());
-            });
-    try {
-        token = tokenTask.get();
-    } catch (const exception &e) {
-        console->critical("Unable to get user token; {:s}", e.what());
+    if (java_service) {
+        console->info("Making request to Java service");
+
+        http_client standaloneClient(U("http://localhost:3002"));
+        uri_builder standaloneBuilder(U("/token"));
+
+        http_request standalone_req(methods::GET);
+        standalone_req.set_request_uri(standaloneBuilder.to_uri());
+
+        const auto client_task = standaloneClient.request(standalone_req)
+        .then([](http_response resp) {
+            if (resp.status_code() == status_codes::OK) {
+                return resp.extract_string();
+            }
+            throw invalid_argument(resp.extract_string().get());
+        });
+
+        try {
+            token = client_task.get();
+        } catch (const exception &e) {
+            console->critical("Error getting aco ID: {:s}", e.what());
+            return 1;
+        }
+    }
+    else {
+        console->info("Getting token from ACO manager");
+
+
+        console->info("Looking up Macaroon for '{:s}' associated with '{:s}'", aco_name, user_name);
+
+        // Try to find the ACO token associated with the user
+        std::string token_query = fmt::format("api/users/token/{}/ACO/{}", userID, acoID);
+        uri_builder tokenBuilder(U(token_query));
+        http_request token_req(methods::GET);
+        token_req.set_request_uri(tokenBuilder.to_uri());
+
+        auto tokenTask = nameClient.request(token_req)
+                .then([](http_response resp) {
+                    if (resp.status_code() == status_codes::OK) {
+                        return resp.extract_string();
+                    }
+                    throw invalid_argument(resp.extract_string().get());
+                });
+        try {
+            token = tokenTask.get();
+        } catch (const exception &e) {
+            console->critical("Unable to get user token; {:s}", e.what());
+        }
     }
 
     auto mac = Macaroon::importMacaroons(token);
@@ -161,7 +199,7 @@ int main(int argc, char **argv) {
 
     auto task = client.request(name_req)
             .then([](http_response response) {
-                        return response.extract_string();
+                return response.extract_string();
             });
 
     const string resp = task.get();

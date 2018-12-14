@@ -15,6 +15,7 @@ using namespace web::http::client;          // HTTP client features
 using namespace concurrency;                // Asynchronous streams
 using base64 = cppcodec::base64_url_unpadded;
 using base64enc = cppcodec::base64_url;
+using base64rfc = cppcodec::base64_rfc4648;
 
 const std::string Macaroon::base64_string(const macaroon_format format) const {
     const size_t sz = macaroon_serialize_size_hint(this->M(), format);
@@ -52,8 +53,10 @@ const Macaroon Macaroon::importMacaroons(const std::string &token) {
 
     // Decode the macaroon from base64 string
     const auto decoded = base64::decode(token);
+    // And reencoded it as non-url safe
+    const auto encoded = base64rfc::encode(decoded);
     // Create the macaroon
-    const auto mac = macaroon_deserialize(decoded.data(), decoded.size(), &err);
+    const auto mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(encoded.data()), encoded.size(), &err);
     return Macaroon(mac);
 }
 
