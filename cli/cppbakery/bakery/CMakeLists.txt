@@ -31,3 +31,4 @@ target_include_directories(bakery
 add_library(Bakery::bakery ALIAS bakery)
 
 add_subdirectory(extern/libmacaroons)
+add_dependencies(bakery cppcodec)

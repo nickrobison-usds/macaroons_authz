@@ -14,7 +14,7 @@ struct MacaroonCaveat {
     std::string location;
     std::string identifier;
 
-    MacaroonCaveat(std::string loc, std::string id): location(std::move(loc)), identifier(std::move(id)) {
+    MacaroonCaveat(std::string loc, std::string id) : location(std::move(loc)), identifier(std::move(id)) {
 //        Not used
     }
 
@@ -26,17 +26,24 @@ struct MacaroonCaveat {
 class Macaroon {
 
 private:
-    const struct macaroon* m;
+    const struct macaroon *m;
 
 
 public:
     Macaroon();
+
     explicit Macaroon(const macaroon *m);
+
     std::string inspect();
+
     const std::vector<const MacaroonCaveat> get_third_party_caveats() const;
+
     const std::string location();
-    const macaroon * M() const;
+
+    const macaroon *M() const;
+
     web::json::value as_json() const;
+
     const std::string base64_string(macaroon_format format = MACAROON_V2J) const;
 
     const static Macaroon importMacaroons(const std::string &string);

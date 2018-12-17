@@ -44,19 +44,45 @@ const std::string Macaroon::base64_string(const macaroon_format format) const {
 const Macaroon Macaroon::importMacaroons(const std::string &token) {
 
     enum macaroon_returncode err;
-    // If it's un-encoded JSON, just import it, otherwise assume base64 and decode
+    macaroon *mac;
+
+    // If it's JSON, we can directly import it
     if (token[0] == '{') {
-        const auto mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(token.data()), token.size(), &err);
-        return Macaroon(mac);
+        mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(token.data()), token.size(),
+                                   &err);
+    } else {
+
+        // Determine URL safe encoding
+        const auto result = std::find_if(token.begin(), token.end(), [](const char t) {
+            return (t == '-' || t == '_');
+        });
+
+        std::vector<uint8_t> decoded;
+        if (result == token.end()) {
+//        not URL safe encoding
+            decoded = base64enc::decode(token);
+        } else {
+            decoded = base64enc::decode(token);
+        }
+
+
+        switch (decoded[0]) {
+            // If it's un-encoded JSON, or V2 binary, import the decoded value.
+            case '\x02': {
+                mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(decoded.data()), decoded.size(),
+                                           &err);
+                break;
+            }
+            default: {
+                // If it's V1 binary format, re-encode it as non-url safe
+                const auto encoded = base64rfc::encode(decoded);
+                // Create the macaroon
+                mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(encoded.data()), encoded.size(),
+                                           &err);
+            }
+        }
     }
 
-    // Decode the macaroon from base64 string
-    const auto decoded = base64::decode(token);
-    // And re-encode it as non-url safe
-    const auto encoded = base64rfc::encode(decoded);
-    // Create the macaroon
-    const auto mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(encoded.data()), encoded.size(),
-                                          &err);
     return Macaroon(mac);
 }
 
