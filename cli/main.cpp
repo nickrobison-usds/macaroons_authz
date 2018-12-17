@@ -183,7 +183,7 @@ int main(int argc, char **argv) {
         const Client mac_client;
         bound_mac = mac_client.dischargeMacaroon(mac);
 //        bound_mac = mac.discharge_all_caveats();
-bound_mac = "REMOVE ME!!!";
+//bound_mac = "REMOVE ME!!!";
     } else {
         console->info("Not discharging caveats");
         bound_mac = mac.base64_string(MACAROON_V1);

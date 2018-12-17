@@ -12,7 +12,7 @@ class Client {
 public:
     Client();
 
-    const std::string dischargeMacaroon(const Macaroon m) const;
+    const std::string dischargeMacaroon(const Macaroon m, const macaroon_format format = MACAROON_V1) const;
 
 private:
     pplx::task<Macaroon> dischargeCaveat(const MacaroonCaveat &cav) const;

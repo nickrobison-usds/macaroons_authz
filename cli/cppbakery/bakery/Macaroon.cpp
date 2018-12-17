@@ -60,9 +60,9 @@ const Macaroon Macaroon::importMacaroons(const std::string &token) {
         std::vector<uint8_t> decoded;
         if (result == token.end()) {
 //        not URL safe encoding
-            decoded = base64enc::decode(token);
+            decoded = base64rfc::decode(token);
         } else {
-            decoded = base64enc::decode(token);
+            decoded = base64::decode(token);
         }
 
 

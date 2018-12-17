@@ -20,7 +20,7 @@ Client::Client() {
 //        not used, yet
 }
 
-const std::string Client::dischargeMacaroon(const Macaroon m) const {
+const std::string Client::dischargeMacaroon(const Macaroon m, const macaroon_format format) const {
     // Get all the caveats
     const auto caveats = m.get_third_party_caveats();
 
@@ -35,16 +35,16 @@ const std::string Client::dischargeMacaroon(const Macaroon m) const {
 
     // Bind everything
     // Create the json value
-    std::vector<json::value> json_values;
-    json_values.emplace_back(m.as_json());
-    std::for_each(discharged.begin(), discharged.end(), [&json_values, this](const Macaroon &mac) {
+    std::vector<json::value> discharged_macs;
+    discharged_macs.emplace_back(m.base64_string(format));
+    std::for_each(discharged.begin(), discharged.end(), [&discharged_macs, this, format](const Macaroon &mac) {
         macaroon_returncode err;
         const macaroon *mm = macaroon_prepare_for_request(mac.M(), mac.M(), &err);
         const Macaroon m2 = Macaroon(mm);
-        json_values.emplace_back(m2.as_json());
+        discharged_macs.emplace_back(json::value::string(m2.base64_string(format)));
     });
 
-    json::value val_array = json::value::array(json_values);
+    json::value val_array = json::value::array(discharged_macs);
     const std::string serialized = val_array.serialize();
     return base64enc::encode(serialized);
 }
