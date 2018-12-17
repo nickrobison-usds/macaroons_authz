@@ -4,7 +4,8 @@
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
-#include "Macaroon.hpp"
+#include <httpbakery/client.hpp>
+#include "bakery/Macaroon.hpp"
 
 using namespace std;
 using namespace utility;                    // Common utilities like string conversions
@@ -179,7 +180,10 @@ int main(int argc, char **argv) {
     // Try to bind macaroons
     if (gather_discharges) {
         console->info("Discharging third party caveats");
-        bound_mac = mac.discharge_all_caveats();
+        const Client mac_client;
+        bound_mac = mac_client.dischargeMacaroon(mac);
+//        bound_mac = mac.discharge_all_caveats();
+bound_mac = "REMOVE ME!!!";
     } else {
         console->info("Not discharging caveats");
         bound_mac = mac.base64_string(MACAROON_V1);

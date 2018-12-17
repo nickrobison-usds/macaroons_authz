@@ -27,15 +27,13 @@ class Macaroon {
 
 private:
     const struct macaroon* m;
-    pplx::task<Macaroon> static dischargeCaveat(const MacaroonCaveat &cav);
 
 
 public:
     Macaroon();
     explicit Macaroon(const macaroon *m);
-    const std::string discharge_all_caveats();
     std::string inspect();
-    const std::vector<const MacaroonCaveat> get_third_party_caveats();
+    const std::vector<const MacaroonCaveat> get_third_party_caveats() const;
     const std::string location();
     const macaroon * M() const;
     web::json::value as_json() const;
