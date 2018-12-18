@@ -26,6 +26,7 @@ type Bakery struct {
 	b        *bakery.Bakery
 	oven     *bakery.Oven
 	location string
+	key      *bakery.PrivateKey
 }
 
 func init() {
@@ -80,7 +81,16 @@ func NewBakery(location string, checker *checkers.Checker, db *pop.Connection, k
 		b:        b,
 		oven:     b.Oven,
 		location: location,
+		key:      &keys.Private,
 	}, nil
+}
+
+func (b Bakery) GetPrivateKey() []byte {
+	key, err := b.key.MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
+	return key
 }
 
 func (b Bakery) NewFirstPartyMacaroon(conditions []string) (*bakery.Macaroon, error) {

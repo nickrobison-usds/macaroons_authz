@@ -96,3 +96,7 @@
 [[constraint]]
   name = "gopkg.in/macaroon-bakery.v2"
   version = "2.1.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/rakutentech/jwk-go"

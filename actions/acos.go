@@ -13,6 +13,7 @@ import (
 	"github.com/nickrobison/cms_authz/lib/helpers"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
+	"github.com/rakutentech/jwk-go/jwk"
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 	"gopkg.in/macaroon-bakery.v2/httpbakery"
 )
@@ -88,6 +89,25 @@ func RenderCreatePage(c buffalo.Context) error {
 
 	c.Set("aco", aco)
 	return c.Render(http.StatusOK, r.HTML("api/acos/create.html"))
+}
+
+// AcoJWKS returns the jwks.json for the given third-party
+func AcoJWKS(c buffalo.Context) error {
+	priv := as.GetPrivateKey()
+	spec := jwk.NewSpec(priv)
+
+	spec.KeyID = "1"
+	spec.Algorithm = "ES256"
+	spec.Use = "enc"
+
+	log.Debug("Spec: ", spec)
+
+	json, err := spec.MarshalJSON()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	log.Debug(json)
+	return c.Render(http.StatusOK, r.JSON(spec))
 }
 
 func AcoShow(c buffalo.Context) error {

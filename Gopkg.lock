@@ -90,13 +90,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:c670c5cdbbcf7dfd74bea27376410e9b12b558820b52154fc17b17adca5e3c81"
+  digest = "1:728ac603ced9bb410289c97821f823fcb9ed7a2b79dc9f617c2cd960e6c1ee8b"
   name = "github.com/gobuffalo/buffalo"
   packages = [
     ".",
     "binding",
     "render",
-    "runtime",
     "servers",
     "worker",
   ]
@@ -712,6 +711,18 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:944b71e7dcab107e8c044dcd6af9e7f4744d1d4f91ebadd365cbac036cdaa3fa"
+  name = "github.com/rakutentech/jwk-go"
+  packages = [
+    "jwk",
+    "jwktypes",
+    "okp",
+  ]
+  pruneopts = "UT"
+  revision = "7ad36ad66c06a29ac341d3561dcb555ccf353701"
+
+[[projects]]
+  branch = "master"
   digest = "1:d673e95129a1107bfd04e093751a5e1267faabc27d218d824fb013f57ac08f55"
   name = "github.com/rogpeppe/fastuuid"
   packages = ["."]
@@ -825,12 +836,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:cb1860433296706dc659bf923ac93b46c49ba125693edc2a83e060eb11d6106b"
+  digest = "1:149e3ed79bfcc75d225244f723b0b642adf903e1c72e7959b4ab33c04a6c89fd"
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
     "blowfish",
     "curve25519",
+    "ed25519",
+    "ed25519/internal/edwards25519",
     "internal/subtle",
     "nacl/box",
     "nacl/secretbox",
@@ -989,7 +1002,6 @@
     "github.com/gobuffalo/buffalo",
     "github.com/gobuffalo/buffalo-pop/pop/popmw",
     "github.com/gobuffalo/buffalo/render",
-    "github.com/gobuffalo/buffalo/runtime",
     "github.com/gobuffalo/envy",
     "github.com/gobuffalo/logger",
     "github.com/gobuffalo/mw-forcessl",
@@ -1009,9 +1021,9 @@
     "github.com/markbates/goth/providers/github",
     "github.com/markbates/goth/providers/openidConnect",
     "github.com/markbates/grift/grift",
-    "github.com/markbates/inflect",
     "github.com/mitchellh/mapstructure",
     "github.com/pkg/errors",
+    "github.com/rakutentech/jwk-go/jwk",
     "github.com/unrolled/secure",
     "gopkg.in/check.v1",
     "gopkg.in/macaroon-bakery.v2/bakery",

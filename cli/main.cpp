@@ -120,6 +120,8 @@ int main(int argc, char **argv) {
 
     string token;
 
+    // Java service request
+
     if (java_service) {
         console->info("Making request to Java service");
 

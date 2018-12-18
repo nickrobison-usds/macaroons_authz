@@ -7,15 +7,18 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.github.nitram509.jmacaroons.Macaroon;
 import com.github.nitram509.jmacaroons.MacaroonsBuilder;
 import com.github.nitram509.jmacaroons.MacaroonsVerifier;
+import com.nickrobison.cmsauthz.api.JWKResponse;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
+import javax.ws.rs.client.Client;
 import javax.ws.rs.core.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Path("/")
@@ -24,18 +27,35 @@ public class RootAPIResource {
 
     private static final String TEST_KEY = "test key";
 
-    public RootAPIResource() {
-//        Not used
+    private final Map<String, String> keyMap;
+    private final Client client;
+
+    public RootAPIResource(Client client) {
+        this.client = client;
+        this.keyMap = new ConcurrentHashMap<>();
     }
 
     @GET
     @Path("/token")
     public Response getToken() {
-        final Macaroon macaroon = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "test-token-1")
+
+        // Get the JWKS
+        final JWKResponse response = this.client
+                .target("http://localhost:8080/api/acos/.well-known/jwks.json")
+                .request(MediaType.APPLICATION_JSON_TYPE)
+                .get(JWKResponse.class);
+
+        // We need to add a third party caveat to have the ACO endpoint give us a public key. 
+        final Macaroon macaroon = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id")
                 .add_first_party_caveat("aco_id = 1")
                 .getMacaroon();
 
-        return Response.ok().entity(macaroon.serialize()).build();
+        final Macaroon m2 = MacaroonsBuilder
+                .modify(macaroon)
+                .add_third_party_caveat("http://localhost:8080/api/users/verify", response.getKey(), "third-party-id")
+                .getMacaroon();
+
+        return Response.ok().entity(m2.serialize()).build();
     }
 
 
