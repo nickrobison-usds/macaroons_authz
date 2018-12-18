@@ -4,3 +4,10 @@
 [submodule "cli/extern/spdlog"]
 	path = cli/extern/spdlog
 	url = https://github.com/gabime/spdlog.git
+[submodule "cli/cppbakery/bakery/extern/libmacaroons"]
+	path = cli/cppbakery/bakery/extern/libmacaroons
+	url = https://github.com/nickrobison-usds/libmacaroons.git
+	branch = json
+[submodule "cli/cppbakery/extern/cppcodec"]
+	path = cli/cppbakery/extern/cppcodec
+	url = https://github.com/tplgy/cppcodec.git
