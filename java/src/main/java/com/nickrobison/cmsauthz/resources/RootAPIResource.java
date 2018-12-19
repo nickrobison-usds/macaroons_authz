@@ -15,6 +15,8 @@ import javax.ws.rs.*;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.*;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,14 +47,18 @@ public class RootAPIResource {
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .get(JWKResponse.class);
 
+        // Decode the Key from Base64
+        final String decodedKey = new String(Base64.decodeBase64(response.getKey()), StandardCharsets.UTF_8);
+
         // We need to add a third party caveat to have the ACO endpoint give us a public key. 
         final Macaroon macaroon = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id")
                 .add_first_party_caveat("aco_id = 1")
                 .getMacaroon();
 
+
         final Macaroon m2 = MacaroonsBuilder
                 .modify(macaroon)
-                .add_third_party_caveat("http://localhost:8080/api/users/verify", response.getKey(), "third-party-id")
+                .add_third_party_caveat("http://localhost:8080/api/users/verify", decodedKey, "third-party-id")
                 .getMacaroon();
 
         return Response.ok().entity(m2.serialize()).build();
@@ -131,6 +137,11 @@ public class RootAPIResource {
                 if (decoded[1] == '{') {
                     throw new IllegalArgumentException("Cannot decode array of V2 JSON");
                 }
+            }
+            // If 0 is the first thing, we're just a single Macaroon.
+            // That means we can pass the base64 encoded string directly to the Macaroons library
+            case '0': {
+                return Collections.singletonList(macaroon);
             }
         }
 
