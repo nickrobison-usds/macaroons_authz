@@ -8,13 +8,25 @@ declare module "macaroon" {
         vid?: Uint8Array;
     }
 
+    export interface CaveatV2JSON {
+        i64: string;
+        v64: string;
+        l: string;
+    }
+
+    export interface MacaroonV2JSON {
+        v: number;
+        s64: string;
+        i64: string;
+        c?: CaveatV2JSON[];
+    }
+
 
     export interface MacaroonParams {
-        identifierBytes: Uint8Array;
-        locationStr: string;
-        caveats: MacaroonCaveat[];
-        signatureBytes: Uint8Array;
-        version: number;
+        identifier: string | Uint8Array;
+        location: string;
+        rootKey: string | Uint8Array;
+        version?: number;
     }
 
     export class Macaroon {
@@ -34,7 +46,7 @@ declare module "macaroon" {
             rootKeyBytes: Uint8Array,
             check: (condition: string) => string | null,
             discharges?: Macaroon[]): void;
-        exportJSON(): MacaroonParams;
+        exportJSON(): MacaroonV2JSON;
         exportBinary(): Uint8Array;
     }
 

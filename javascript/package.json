@@ -13,13 +13,18 @@
         "express": "^4.16.4",
         "macaroon": "^3.0.3",
         "nacl-fast": "^0.1.0",
+        "node-fetch": "^2.3.0",
         "pg": "^7.7.1",
         "retryer": "^1.1.2",
         "sjcl": "^1.0.8",
-        "tweetnacl": "^1.0.0"
+        "tweetnacl": "^1.0.0",
+        "tweetnacl-util": "^0.15.0",
+        "varint": "^5.0.0"
     },
     "devDependencies": {
         "@types/express": "^4.16.0",
+        "@types/node-fetch": "^2.1.4",
+        "@types/varint": "^5.0.0",
         "clean-webpack-plugin": "^1.0.0",
         "concurrently": "^4.1.0",
         "nodemon": "^1.18.6",
