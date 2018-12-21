@@ -18,7 +18,7 @@ import (
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/openidConnect"
-	"github.com/nickrobison/cms_authz/models"
+	"github.com/nickrobison-usds/macaroons_authz/models"
 	"github.com/pkg/errors"
 )
 

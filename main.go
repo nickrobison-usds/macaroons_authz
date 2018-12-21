@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/nickrobison/cms_authz/actions"
+	"github.com/nickrobison-usds/macaroons_authz/actions"
 )
 
 // main is the starting point for your Buffalo application.

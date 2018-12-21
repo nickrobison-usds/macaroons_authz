@@ -7,7 +7,7 @@ import (
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/uuid"
 	"github.com/gobuffalo/validate"
-	"github.com/nickrobison/cms_authz/lib/helpers"
+	"github.com/nickrobison-usds/macaroons_authz/lib/helpers"
 )
 
 type Certificate struct {

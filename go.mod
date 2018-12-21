@@ -1,1 +1,1 @@
-module github.com/nickrobison/cms_authz
+module github.com/nickrobison-usds/macaroons_authz

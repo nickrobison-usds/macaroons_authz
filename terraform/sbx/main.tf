@@ -5,7 +5,7 @@ module "db" {
   name = "cmsauthz"
   host_path = "/Users/usds/Development/identity-idp/db_data"
   use_local = false
-  db_name = "cms_authz"
+  db_name = "macaroons_authz"
 }
 /*
 module "idp" {
@@ -46,14 +46,14 @@ resource "postgresql_database" "authz_db" {
 
 resource "docker_container" "authz" {
   name = "authz_server"
-  image = "nickrobison.com/cms_authz:latest"
+  image = "nickrobison.com/macaroons_authz:latest"
   hostname = "server"
   ports {
     internal = 8080
     external = 8080
   }
   env = [
-    "DATABASE_URL=postgres://postgres@${module.db.hostname}:5432/cms_authz?sslmode=disable",
+    "DATABASE_URL=postgres://postgres@${module.db.hostname}:5432/macaroons_authz?sslmode=disable",
     "CFSSL_URL=http://${module.cfssl.hostname}:8888",
     "PROVIDER_URL=http://localhost:3000",
     "PORT=8080",
@@ -79,7 +79,7 @@ resource "docker_container" "target-service" {
     external = 3002
   }
   env = [
-    "DATABASE_URL=postgres://postgres@${module.db.hostname}:5432/cms_authz?sslmode=disable",
+    "DATABASE_URL=postgres://postgres@${module.db.hostname}:5432/macaroons_authz?sslmode=disable",
   ]
   networks_advanced {
     name = "${docker_network.public.name}"
@@ -92,5 +92,5 @@ resource "docker_container" "target-service" {
 /* ----- Public networking ----- */
 
 resource "docker_network" "public" {
-  name = "cms_authz-public"
+  name = "macaroons_authz-public"
 }

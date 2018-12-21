@@ -11,7 +11,7 @@ import (
 	"github.com/gobuffalo/buffalo-pop/pop/popmw"
 	i18n "github.com/gobuffalo/mw-i18n"
 	"github.com/gobuffalo/packr"
-	"github.com/nickrobison/cms_authz/models"
+	"github.com/nickrobison-usds/macaroons_authz/models"
 )
 
 // ENV is used to help switch settings based on where the
@@ -42,7 +42,7 @@ func App() *buffalo.App {
 	if app == nil {
 		app = buffalo.New(buffalo.Options{
 			Env:         ENV,
-			SessionName: "_cms_authz_session",
+			SessionName: "_macaroons_authz_session",
 		})
 
 		// Automatically redirect to SSL

@@ -3,7 +3,7 @@ package actions
 import (
 	"github.com/gobuffalo/buffalo/render"
 	"github.com/gobuffalo/packr"
-	"github.com/nickrobison/cms_authz/lib/helpers"
+	"github.com/nickrobison-usds/macaroons_authz/lib/helpers"
 )
 
 var r *render.Engine

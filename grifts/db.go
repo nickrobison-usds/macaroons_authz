@@ -9,9 +9,9 @@ import (
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/pop/nulls"
 	"github.com/markbates/grift/grift"
-	"github.com/nickrobison/cms_authz/actions"
-	"github.com/nickrobison/cms_authz/lib/helpers"
-	"github.com/nickrobison/cms_authz/models"
+	"github.com/nickrobison-usds/macaroons_authz/actions"
+	"github.com/nickrobison-usds/macaroons_authz/lib/helpers"
+	"github.com/nickrobison-usds/macaroons_authz/models"
 	"github.com/pkg/errors"
 )
 

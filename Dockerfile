@@ -2,8 +2,8 @@
 # https://docs.docker.com/engine/userguide/eng-image/multistage-build/
 FROM gobuffalo/buffalo:v0.13.2 as builder
 
-RUN mkdir -p $GOPATH/src/github.com/nickrobison/cms_authz
-WORKDIR $GOPATH/src/github.com/nickrobison/cms_authz
+RUN mkdir -p $GOPATH/src/github.com/nickrobison-usds/macaroons_authz
+WORKDIR $GOPATH/src/github.com/nickrobison-usds/macaroons_authz
 
 # this will cache the npm install step, unless package.json changes
 ADD package.json .

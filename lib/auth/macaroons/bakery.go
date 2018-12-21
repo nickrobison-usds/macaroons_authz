@@ -36,7 +36,7 @@ func init() {
 	// Get the Database URL from the ENV, or use a default
 	url := envy.Get("DATABASE_URL", "")
 	if url == "" {
-		url = "host=localhost user=postgres password=postgres database=cms_authz_development sslmode=disable"
+		url = "host=localhost user=postgres password=postgres database=macaroons_authz_development sslmode=disable"
 	}
 	// Create store
 	// This is bad, but it seems to work

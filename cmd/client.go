@@ -9,7 +9,7 @@ import (
 
 	"github.com/gobuffalo/envy"
 	. "github.com/logrusorgru/aurora"
-	"github.com/nickrobison/cms_authz/lib/auth/macaroons"
+	"github.com/nickrobison-usds/macaroons_authz/lib/auth/macaroons"
 	"gopkg.in/macaroon-bakery.v2/httpbakery"
 	macaroon "gopkg.in/macaroon.v2"
 )
