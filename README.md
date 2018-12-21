@@ -2,22 +2,35 @@
 
 ## Setup
 
-The project has a few requirements and dependencies that need to be configured correctly. You can do this automatically by running `make setup`. This will install all the system, javascript, and go dependencies, and initialize the terraform modules.
+The project has a few requirements and dependencies that need to be configured correctly.
+You can do this automatically by running `make setup`.
+This will install all the system, javascript, and go dependencies, and initialize the terraform modules.
 
 You can also do everything manually.
 
+### Cloning
+
+We use git submodules for a number of external dependencies (to avoid requiring system installation).
+You can initialize them all by running
+
+`git submodule init --update --recursive`.
+
+Or, the [command line client](#cli-client) will handle it automatically. 
+
 ### System dependencies
 
-We require a number of system dependencies, which are not vendored into the source tree. The `make deps/system` command will do the installation automatically (on MacOS).
+We require a number of system dependencies, which are not vendored into the source tree.
+The `make deps/system` command will do the installation automatically (on MacOS).
 
 - ansible
 - terraform
 - packer
 - cmake
-- cpprestsdk``
+- cpprestsdk
 - buffalo
 - node
 - yarn
+- openssl
 
 #### MacOS Manual installation
 ```bash
@@ -29,7 +42,8 @@ On MacOS, we cannot install Docker automatically, so you'll need to install it y
 
 ### Javascript dependencies
 
-We use [yarn](https://yarnpkg.com) to track all of our Javascript dependencies. The command is `make deps/js`, or the manual option:
+We use [yarn](https://yarnpkg.com) to track all of our Javascript dependencies.
+The command is `make deps/js`, or the manual option:
 
 ```bash
 # Install Buffalo javascript dependencies
@@ -47,6 +61,32 @@ They can be installed by running `make deps/go` or manually:
 ```bash
 dep ensure
 ```
+
+### Building
+
+#### Go server
+
+The main go server can be 
+
+
+#### CLI Client
+
+The demo client is a C++ application that is built with [cmake](https://cmake.org)
+
+You can build it via `make client` or via the manual commands.
+
+```bash
+cd cli
+# We don't allow building from within the source tree
+make build
+cd build
+cmake ..
+make -j{all the cores}
+```
+
+
+
+
 
 ### Configuration
 

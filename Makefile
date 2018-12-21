@@ -51,28 +51,9 @@ deps/go: deps/system
 
 .PHONY: setup deps/system deps/js deps/js/client deps/js/server deps/go
 
-# Deploy builds
-
-deploy: deploy-server deploy-cfssl deploy-target-service
-
-deploy-server: linux/amd64
-		packer build packer/macaroons_authz.json
-
-deploy-cfssl:
-		packer build packer/cfssl.json
-
-deploy-target-service: javascript/dist/target_service.js
-		packer build packer/target_service.json
-
-.PHONY: deploy deploy-server deploy-cfssl deploy-target-service run
-
-run:
-		-cd terraform/sbx; terraform apply
-
-stop:
-		-cd terraform/sbx; terraform destroy
-
-# Local client builds
+#
+# Local application builds
+#
 
 build: client server endpoint
 
@@ -94,10 +75,33 @@ $(PLATFORMS):
 
 # Javascript endpoint
 
-endpoint: javascript/src/app.js
+endpoint: javascript/dist/target/target_service.js
 
 javascript/dist/target_service.js:
 		npm run --prefix javascript build
 
 .PHONY: build client server clean deploy $(PLATFORMS) endpoint
+
+
+# Deploy builds
+
+deploy: deploy-server deploy-cfssl deploy-target-service
+
+deploy-server: linux/amd64
+		packer build packer/macaroons_authz.json
+
+deploy-cfssl:
+		packer build packer/cfssl.json
+
+deploy-target-service: javascript/dist/target_service.js
+		packer build packer/target_service.json
+
+.PHONY: deploy deploy-server deploy-cfssl deploy-target-service run
+
+run:
+		-cd terraform/sbx; terraform apply
+
+stop:
+		-cd terraform/sbx; terraform destroy
+
 

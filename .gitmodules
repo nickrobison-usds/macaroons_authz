@@ -6,7 +6,7 @@
 	url = ../../gabime/spdlog.git
 [submodule "cli/cppbakery/bakery/extern/libmacaroons"]
 	path = cli/cppbakery/bakery/extern/libmacaroons
-	url = ../../libmacaroons.git
+	url = ../nickrobison-usds/libmacaroons.git
 	branch = json
 [submodule "cli/cppbakery/extern/cppcodec"]
 	path = cli/cppbakery/extern/cppcodec
