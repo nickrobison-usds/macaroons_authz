@@ -27,6 +27,7 @@ type Bakery struct {
 	oven     *bakery.Oven
 	location string
 	key      *bakery.PrivateKey
+	pub      *bakery.PublicKey
 }
 
 func init() {
@@ -82,11 +83,20 @@ func NewBakery(location string, checker *checkers.Checker, db *pop.Connection, k
 		oven:     b.Oven,
 		location: location,
 		key:      &keys.Private,
+		pub:      &keys.Public,
 	}, nil
 }
 
 func (b Bakery) GetPrivateKey() []byte {
 	key, err := b.key.MarshalBinary()
+	if err != nil {
+		panic(err)
+	}
+	return key
+}
+
+func (b Bakery) GetPublicKey() []byte {
+	key, err := b.pub.MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
@@ -169,6 +179,7 @@ func (b Bakery) DischargeCaveatByID(ctx context.Context, id string, caveatChecke
 	}
 
 	log.Debug("Discharging it")
+	log.Debug("ID:", decodedID)
 
 	mac, err := bakery.Discharge(ctx, params)
 	if err != nil {

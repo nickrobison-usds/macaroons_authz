@@ -14,6 +14,7 @@ import (
 	"github.com/nickrobison/cms_authz/lib/helpers"
 	"github.com/nickrobison/cms_authz/models"
 	"github.com/pkg/errors"
+	"github.com/rakutentech/jwk-go/jwk"
 	"gopkg.in/macaroon-bakery.v2/bakery"
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 )
@@ -191,6 +192,25 @@ func UsersAssign(c buffalo.Context) error {
 	}
 
 	return c.Redirect(http.StatusTemporaryRedirect, "/api/users/index")
+}
+
+// UsersJWKS returns the jwks.json for the given third-party
+func UsersJWKS(c buffalo.Context) error {
+	priv := us.GetPublicKey()
+	spec := jwk.NewSpec(priv)
+
+	spec.KeyID = "1"
+	spec.Algorithm = "ES256"
+	spec.Use = "enc"
+
+	log.Debug("Spec: ", spec)
+
+	json, err := spec.MarshalJSON()
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	log.Debug(json)
+	return c.Render(http.StatusOK, r.JSON(spec))
 }
 
 func UsersVerify(c buffalo.Context) error {
