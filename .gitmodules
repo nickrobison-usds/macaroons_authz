@@ -1,13 +1,13 @@
 [submodule "cli/extern/fmt"]
 	path = cli/extern/fmt
-	url = https://github.com/fmtlib/fmt.git
+	url = ../../fmtlib/fmt.git
 [submodule "cli/extern/spdlog"]
 	path = cli/extern/spdlog
-	url = https://github.com/gabime/spdlog.git
+	url = ../../gabime/spdlog.git
 [submodule "cli/cppbakery/bakery/extern/libmacaroons"]
 	path = cli/cppbakery/bakery/extern/libmacaroons
-	url = https://github.com/nickrobison-usds/libmacaroons.git
+	url = ../../libmacaroons.git
 	branch = json
 [submodule "cli/cppbakery/extern/cppcodec"]
 	path = cli/cppbakery/extern/cppcodec
-	url = https://github.com/tplgy/cppcodec.git
+	url = ../../tplgy/cppcodec.git
