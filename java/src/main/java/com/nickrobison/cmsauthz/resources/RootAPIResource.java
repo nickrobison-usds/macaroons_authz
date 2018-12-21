@@ -1,7 +1,6 @@
 package com.nickrobison.cmsauthz.resources;
 
 import com.codahale.metrics.annotation.Timed;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.github.nitram509.jmacaroons.Macaroon;
@@ -11,15 +10,16 @@ import com.nickrobison.cmsauthz.api.JWKResponse;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.security.SecureRandom;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -27,14 +27,17 @@ import java.util.stream.Collectors;
 @Produces(MediaType.APPLICATION_JSON)
 public class RootAPIResource {
 
-    private static final String TEST_KEY = "test key";
-
     private final Map<String, String> keyMap;
     private final Client client;
+    private final String TEST_KEY;
 
     public RootAPIResource(Client client) {
         this.client = client;
         this.keyMap = new ConcurrentHashMap<>();
+        final SecureRandom secureRandom = new SecureRandom();
+        byte[] bytes = new byte[32];
+        secureRandom.nextBytes(bytes);
+        this.TEST_KEY = new String(bytes, StandardCharsets.UTF_8);
     }
 
     @GET
@@ -51,13 +54,12 @@ public class RootAPIResource {
         final String decodedKey = new String(Base64.decodeBase64(response.getKey()), StandardCharsets.UTF_8);
 
         // We need to add a third party caveat to have the ACO endpoint give us a public key. 
-        final Macaroon macaroon = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id")
-                .add_first_party_caveat("aco_id = 1")
-                .getMacaroon();
+//        final Macaroon macaroon = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id")
+//                .add_first_party_caveat("aco_id = 1")
+//                .getMacaroon();
 
 
-        final Macaroon m2 = MacaroonsBuilder
-                .modify(macaroon)
+        final Macaroon m2 = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id")
                 .add_third_party_caveat("http://localhost:8080/api/users/verify", decodedKey, "third-party-id")
                 .getMacaroon();
 
