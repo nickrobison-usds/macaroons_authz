@@ -31,6 +31,10 @@ The `make deps/system` command will do the installation automatically (on MacOS)
 - node
 - yarn
 - openssl
+- postgres
+
+The `make` command will not install postgres by default, because the main developer prefers to use [Postgres.app](https://postgresapp.com).
+A quick `brew install postgresql` should take care of that.
 
 #### MacOS Manual installation
 ```bash
@@ -105,13 +109,31 @@ npm run --prefix javscript build
 
 ### Configuration
 
-`.env` file in the root directory
+Developer specific configuration is handled by a `.env` in the repository root.
+This file is not commited to git, so it will need to be created manually before running for the first time.
 
-### Login.gov
+Here are the necessary contents:
+
+```bash
+CFSSL_URL={http://cfssl.application.url}
+```
+
+#### Github Authentication
+
+Application can use Github as an OAuth provider for supporting logins.
+To enable, you'll need to add your credentials to the `.env` file.
+
+```bash
+CLIENT_ID={optional ClientID for Github authentication}
+GITHUB_KEY={optional key for Github authentication}
+GITHUB_SECRET={optional secret key for Github authentication}
+```
+
+#### Login.gov
 
 This project supports a working, local installation of the Login.gov service.
 
-You can clone the repo and build the docker images, like so:
+You can clone the repo and build the their docker image, like so:
 
 ```bash
 git clone https://github.com/18F/identity-idp.git
@@ -119,9 +141,48 @@ cd identity-idp
 bin/setup --docker
 ```
 
-## Build
+You can then start the application with Login.gov enabled by adding `PROVIDER_URL={http://path.to.login.gov:local_port}` to your `.env` file.
 
-`make build`
+## Run
+
+
+### Running CFSSL
+
+The Go server requires a running instance of [CFSSL](https://github.com/cloudflare/cfssl). You can either run it via the Docker image (built with [Packer](#packer-images)), or locally.
+
+```bash
+cd cfssl
+# Initialize the CA keys (only required for the first run)
+cfssl genkey -initca keys/csr_ROOT_CA.json | cfssljson -bare keys/ca
+# Run the CFSSL server
+cfssl serve -config config/config_ca.json -ca keys/ca.pem -ca-key keys/ca-key.pem
+```
+
+### DB Seeding
+
+The initial database can be created and populated by running the following commands.
+This is done manually, to avoid destroying any existing data.
+
+```bash
+make build/database
+make build/seed
+```
+
+Note: There's currently a bug in the implementation where the seeding script does not properly remove the `root_keys` table.
+This means you'll need to manually remove it each time you want to re-run the seeding process.
+
+You can also manually run the seeding by the `buffalo task db:seed` command.
+
+### Development modes
+
+You can run both the Go server and the Javascript client in dev mode through the following commands:
+
+`PORT={go server port} buffalo dev` from the repo root will start the Go server in dev mode, which means it will automatically reload when any of its source files change.
+
+`npm run -c javascript watch-debug` performs the same actions, but for the Javascript client.
+
+
+## Deploy
 
 
 ### Packer images

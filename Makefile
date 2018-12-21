@@ -55,7 +55,7 @@ deps/go: deps/system
 # Local application builds
 #
 
-build: build/client build/server build/endpoint
+build: build/client build/server build/endpoint build/seed
 
 # CLI client
 
@@ -80,20 +80,30 @@ build/endpoint: javascript/dist/target_service.js
 javascript/dist/target_service.js:
 		npm run --prefix javascript build
 
-.PHONY: build client server clean deploy $(PLATFORMS) endpoint
+build/dependencies:
+	go get github.com/gobuffalo/buffalo-pop
+
+build/database: build/dependencies
+	buffalo db create -a
+	buffalo db migrate
+
+build/seed:
+	buffalo task db:seed
+
+.PHONY: build build/client build/server $(PLATFORMS) build/endpoint build/seed build/dependencies
 
 
 # Deploy builds
 
 deploy: deploy-server deploy-cfssl deploy-target-service
 
-deploy-server: linux/amd64
+deploy/server: linux/amd64
 		packer build packer/macaroons_authz.json
 
-deploy-cfssl:
+deploy/cfssl:
 		packer build packer/cfssl.json
 
-deploy-target-service: javascript/dist/target_service.js
+deploy/target-service: javascript/dist/target_service.js
 		packer build packer/target_service.json
 
 .PHONY: deploy deploy-server deploy-cfssl deploy-target-service run
@@ -103,5 +113,7 @@ run:
 
 stop:
 		-cd terraform/sbx; terraform destroy
+
+.PHONY: deploy deploy/server deploy/cfssl deploy/target-service run stop
 
 

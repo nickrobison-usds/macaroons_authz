@@ -35,10 +35,7 @@ func init() {
 	}
 	gothic.Store = App().SessionStore
 
-	providerURL, err := envy.MustGet("PROVIDER_URL")
-	if err != nil {
-		panic(err)
-	}
+	providerURL := envy.Get("PROVIDER_URL", "")
 
 	discoveryURL := providerURL + "/.well-known/openid-configuration"
 
