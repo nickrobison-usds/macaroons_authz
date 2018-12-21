@@ -11,9 +11,9 @@ You can also do everything manually.
 ### Cloning
 
 We use git submodules for a number of external dependencies (to avoid requiring system installation).
-You can initialize them all by running
+You can initialize them all by running:
 
-`git submodule init --update --recursive`.
+`git submodule init --update --recursive`
 
 Or, the [command line client](#cli-client) will handle it automatically. 
 
@@ -66,14 +66,19 @@ dep ensure
 
 #### Go server
 
-The main go server can be 
+The main go server is built by the `buffalo` toolkit, which means it's really easy.
+The `make build/server` command handles everything for you, but it currently only builds the MacOS application.
+
+If you need to build things manually the `darwin/amd64` and `linux/amd64` make targets will build for the appropriate platform.
+
+Also, `buffalo build` runs the default build process for the platform it's running aginst.
 
 
 #### CLI Client
 
-The demo client is a C++ application that is built with [cmake](https://cmake.org)
+The demo client is a C++ application that is built with [cmake](https://cmake.org).
 
-You can build it via `make client` or via the manual commands.
+You can build it with `make build/client` or via the manual commands.
 
 ```bash
 cd cli
@@ -84,9 +89,19 @@ cmake ..
 make -j{all the cores}
 ```
 
+There may be some issues with CMake finding `openssl`, mostly because `cpprestsdk` creates their own find module, which biases towards the default Homebrew location.
+If that happens, you can add the `OPENSSL_ROOT_DIR` parameter to CMake.
+The configure command would then become: `cmake -D OPENSSL_ROOT_DIR=/path/to/openssl ..`
 
+#### Javascript Service
 
+The javascript service is built using [webpack](https://webpack.js.org), which compiles the typescript source files into javascript and bundles them into a single file.
 
+The `make build/endpoint` target runs the commands:
+
+```bash
+npm run --prefix javscript build
+```
 
 ### Configuration
 

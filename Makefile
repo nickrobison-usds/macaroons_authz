@@ -55,11 +55,11 @@ deps/go: deps/system
 # Local application builds
 #
 
-build: client server endpoint
+build: build/client build/server build/endpoint
 
 # CLI client
 
-client: cli/build/cli
+build/client: cli/build/cli
 
 cli/build/cli:
 		-mkdir -p cli/build
@@ -68,14 +68,14 @@ cli/build/cli:
 
 # Go Server
 
-server: darwin/amd64
+build/server: darwin/amd64
 
 $(PLATFORMS):
-		GOOS=$(os) GOARCH=$(arch) buffalo build -o bin/$(NAME)_$(os)
+		GOOS=$(os) GOARCH=$(arch) buffalo build -o bin/macaroons_authz_$(os)
 
 # Javascript endpoint
 
-endpoint: javascript/dist/target/target_service.js
+build/endpoint: javascript/dist/target_service.js
 
 javascript/dist/target_service.js:
 		npm run --prefix javascript build
