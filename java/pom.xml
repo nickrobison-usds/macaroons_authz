@@ -68,6 +68,12 @@
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-client</artifactId>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/eu.neilalexander/jnacl -->
+        <dependency>
+            <groupId>eu.neilalexander</groupId>
+            <artifactId>jnacl</artifactId>
+            <version>1.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>

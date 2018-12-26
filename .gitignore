@@ -20,6 +20,7 @@ cms_authz
 javascript/src/**/*.js
 javascript/dist
 java/target
+java/*.iml
 
 build/
 cmake-*/

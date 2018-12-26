@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.github.nitram509.jmacaroons.Macaroon;
 import com.github.nitram509.jmacaroons.MacaroonsBuilder;
 import com.github.nitram509.jmacaroons.MacaroonsVerifier;
+import com.neilalexander.jnacl.NaCl;
 import com.nickrobison.cmsauthz.api.JWKResponse;
 import org.apache.commons.codec.binary.Base64;
 
@@ -18,6 +19,8 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,25 +45,45 @@ public class RootAPIResource {
 
     @GET
     @Path("/token")
-    public Response getToken() {
+    public Response getToken() throws Exception {
 
         // Get the JWKS
         final JWKResponse response = this.client
-                .target("http://localhost:8080/api/acos/.well-known/jwks.json")
+                .target("http://localhost:8080/api/users/.well-known/jwks.json")
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .get(JWKResponse.class);
 
         // Decode the Key from Base64
-        final String decodedKey = new String(Base64.decodeBase64(response.getKey()), StandardCharsets.UTF_8);
+        final byte[] decodedKey = Base64.decodeBase64(response.getKey());
 
         // We need to add a third party caveat to have the ACO endpoint give us a public key. 
 //        final Macaroon macaroon = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id")
 //                .add_first_party_caveat("aco_id = 1")
 //                .getMacaroon();
 
+        // I think this is how it works.
+
+//        Create a new keypair
+        final KeyPairGenerator generator = KeyPairGenerator.getInstance("EC");
+        final KeyPair keyPair = generator.generateKeyPair();
+
+
+        // Encrypt things
+
+        // Create a new secret box using our private key and their public key
+        final NaCl naCl = new NaCl(keyPair.getPrivate().getEncoded(), decodedKey);
+
+        // Create a 24 byte long random nonce
+        final SecureRandom secureRandom = new SecureRandom();
+        final byte[] nonce = new byte[24];
+        secureRandom.nextBytes(nonce);
+
+        // Encrypt it
+        final String msg = "This is a test message, does it work?";
+        final byte[] encrypted = naCl.encrypt(msg.getBytes(), nonce);
 
         final Macaroon m2 = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id")
-                .add_third_party_caveat("http://localhost:8080/api/users/verify", decodedKey, "third-party-id")
+                .add_third_party_caveat("http://localhost:8080/api/users/verify", TEST_KEY, new String(encrypted, StandardCharsets.UTF_8))
                 .getMacaroon();
 
         return Response.ok().entity(m2.serialize()).build();
