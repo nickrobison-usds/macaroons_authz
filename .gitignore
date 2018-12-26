@@ -21,6 +21,7 @@ javascript/src/**/*.js
 javascript/dist
 java/target
 java/*.iml
+java/dependency-reduced-pom.xml
 
 build/
 cmake-*/

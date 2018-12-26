@@ -6,7 +6,7 @@ PLATFORMS := darwin/amd64 linux/amd64
 
 # Check for required packages
 UNAME := $(shell uname)
-PKGS := cmake dep yarn buffalo cpprestsdk cfssl
+PKGS := cmake dep yarn buffalo cpprestsdk cfssl maven
 
 temp = $(subst /, ,$@)
 os = $(word 1, $(temp))
@@ -83,6 +83,10 @@ build/endpoint: javascript/dist/target_service.js
 javascript/dist/target_service.js:
 		npm run --prefix javascript build
 
+# Java client (not currently working)
+build/java:
+	mvn package -Dmaven.javadoc.skip=true -f java/pom.xml
+
 build/dependencies:
 	go get github.com/gobuffalo/buffalo-pop
 
@@ -93,7 +97,7 @@ build/database: build/dependencies
 build/seed:
 	buffalo task db:seed
 
-.PHONY: build build/client build/server $(PLATFORMS) build/endpoint build/seed build/dependencies
+.PHONY: build build/client build/server $(PLATFORMS) build/endpoint build/seed build/dependencies build/java
 
 
 # Deploy builds
