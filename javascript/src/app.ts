@@ -1,6 +1,7 @@
 import express from "express";
 import { AuthController, CreateAuthController } from "./controllers/auth";
-import cookieParser = require("cookie-parser");
+import cookieParser from "cookie-parser";
+// import cookieParser = require("cookie-parser");
 import { TokenController } from "./controllers/token";
 
 console.log("Starting API Service");

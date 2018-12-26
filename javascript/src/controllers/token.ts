@@ -4,6 +4,7 @@ import fetch from "node-fetch";
 import { box, randomBytes } from "tweetnacl";
 import { decodeUTF8, decodeBase64, encodeBase64 } from "tweetnacl-util";
 import * as varint from "varint";
+import { TextDecoder } from "util";
 
 
 interface IJWKSResponse {
@@ -23,8 +24,6 @@ export class TokenController {
             .then((key) => {
 
                 const keyPair = box.keyPair();
-
-                console.debug("KeyPair:", keyPair);
 
                 const rootKey = "this is a test key, it should be long enough.";
 

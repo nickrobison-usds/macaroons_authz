@@ -12,6 +12,14 @@ ignored_folders:
 - bin
 - node_modules
 - .sass-cache
+- bazel-bin
+- bazel-genfiles
+- bazel-macaroons_authz
+- bazel-out
+- bazel-testlogs
+- java
+- javascript
+- cli
 included_extensions:
 - .go
 - .env

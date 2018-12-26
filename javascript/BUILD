@@ -9,5 +9,15 @@ exports_files([
 
 ts_devserver(
   name = "devserver",
-  deps = ["//javascript/src:endpoint"],
-  serving_path = "./bundle.js")
+  port = 3002,
+  deps = ["//javascript/src:endpoint", "@npm//requirejs"],
+  serving_path = "/bundle.js",
+)
+
+filegroup(
+    name = "node_modules",
+    srcs = glob([
+        "node_modules/**",
+        "node_modules/react-dom/**",
+    ]),
+)

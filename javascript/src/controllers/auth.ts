@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { base64ToBytes, importMacaroon, Macaroon, importMacaroons } from "macaroon";
 import { Client, ClientConfig } from "pg";
 import retry from "retryer";
+import { TextEncoder, TextDecoder } from "util";
 
 interface IKeyPair {
     pub: string;
