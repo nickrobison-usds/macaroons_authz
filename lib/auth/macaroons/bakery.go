@@ -26,8 +26,6 @@ type Bakery struct {
 	b        *bakery.Bakery
 	oven     *bakery.Oven
 	location string
-	key      *bakery.PrivateKey
-	pub      *bakery.PublicKey
 }
 
 func init() {
@@ -36,7 +34,7 @@ func init() {
 	// Get the Database URL from the ENV, or use a default
 	url := envy.Get("DATABASE_URL", "")
 	if url == "" {
-		url = "host=localhost user=postgres password=postgres database=macaroons_authz_development sslmode=disable"
+		url = "host=localhost user=raac database=macaroons_authz_development sslmode=disable"
 	}
 	// Create store
 	// This is bad, but it seems to work
@@ -82,21 +80,22 @@ func NewBakery(location string, checker *checkers.Checker, db *pop.Connection, k
 		b:        b,
 		oven:     b.Oven,
 		location: location,
-		key:      &keys.Private,
-		pub:      &keys.Public,
 	}, nil
 }
 
+// GetPrivateKey returns the binary encoding of the Bakery private key
 func (b Bakery) GetPrivateKey() []byte {
-	key, err := b.key.MarshalBinary()
+	key, err := b.oven.Key().Private.MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
 	return key
 }
 
+// GetPublicKey returns the binary encoding of the Bakery public key
 func (b Bakery) GetPublicKey() []byte {
-	key, err := b.pub.MarshalBinary()
+	log.Debug("Getting public key from Bakery: ", b.oven.Key().Public.String())
+	key, err := b.oven.Key().Public.MarshalBinary()
 	if err != nil {
 		panic(err)
 	}
@@ -180,6 +179,9 @@ func (b Bakery) DischargeCaveatByID(ctx context.Context, id string, caveatChecke
 
 	log.Debug("Discharging it")
 	log.Debug("ID:", decodedID)
+
+	log.Debug("Pub key", b.oven.Key().Public.String())
+	log.Debug("Priv key", b.oven.Key().Private.String())
 
 	mac, err := bakery.Discharge(ctx, params)
 	if err != nil {

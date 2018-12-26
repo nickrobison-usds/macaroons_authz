@@ -196,8 +196,9 @@ func UsersAssign(c buffalo.Context) error {
 
 // UsersJWKS returns the jwks.json for the given third-party
 func UsersJWKS(c buffalo.Context) error {
-	priv := us.GetPublicKey()
-	spec := jwk.NewSpec(priv)
+	pub := us.GetPublicKey()
+	log.Debug("Public key from bakery:", string(pub))
+	spec := jwk.NewSpec(pub)
 
 	spec.KeyID = "1"
 	spec.Algorithm = "ES256"
@@ -209,7 +210,7 @@ func UsersJWKS(c buffalo.Context) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	log.Debug(json)
+	log.Debug(string(json))
 	return c.Render(http.StatusOK, r.JSON(spec))
 }
 

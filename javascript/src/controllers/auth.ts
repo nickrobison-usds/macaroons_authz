@@ -137,7 +137,7 @@ export class AuthController {
 
 export async function CreateAuthController(): Promise<AuthController> {
 
-    const connectionString = process.env.DATABASE_URL ? process.env.DATABASE_URL : "postgres://postgres:postgres@127.0.0.1:5432/cms_authz_development?sslmode=disable";
+    const connectionString = process.env.DATABASE_URL ? process.env.DATABASE_URL : "postgres://raac:@127.0.0.1:5432/macaroons_authz_development?sslmode=disable";
     const client = await retry(() => connectToDB({
         connectionString: connectionString,
     }), {

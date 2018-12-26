@@ -22,57 +22,51 @@ export class TokenController {
         this.getPublicKey()
             .then((key) => {
 
-                console.debug("Has key:", key);
-
-                console.debug("Box:", box);
-
                 const keyPair = box.keyPair();
 
                 console.debug("KeyPair:", keyPair);
 
                 const rootKey = "this is a test key, it should be long enough.";
 
+                const nonce = randomBytes(24);
+
                 const mac = newMacaroon({
                     identifier: "test identifier",
                     location: "http://localhost:8080",
-                    rootKey: rootKey,
+                    rootKey: nonce,
                     version: 2
                 });
 
                 const keyBytes = base64ToBytes(key);
-                const nonce = randomBytes(24);
-
                 console.debug("Key bytes: ", keyBytes);
 
                 console.debug("Boxing");
 
                 const msg = "This is a test message"
 
-                const keyLen = varint.encode(nonce.length);
+                const rootKeyLength = varint.encode(nonce.length);
                 const decMSG = decodeUTF8(msg)
 
 
-                // Seal it?
+                const myPub = keyPair.publicKey
 
-                // Add everything that we need
+                // Sealed part.
 
                 const fullmessage = new Uint8Array(
                     1
-                    + keyLen.length
+                    + rootKeyLength.length
                     + nonce.length
-                    + decMSG.length
-                );
-
+                    + decMSG.length);
 
                 fullmessage.set([2], 0);
-                fullmessage.set(keyLen, 1);
-                fullmessage.set(nonce, 1 + keyLen.length);
-                fullmessage.set(decMSG, 1 + keyLen.length + nonce.length);
+                fullmessage.set(rootKeyLength, 1);
+                fullmessage.set(nonce, 1 + rootKeyLength.length);
+                fullmessage.set(decMSG, 1 + rootKeyLength.length + nonce.length);
 
                 console.debug("Box parts:");
                 console.debug("Key:", [2]);
-                console.debug(keyBytes.slice(0, 4));
-                console.debug(keyBytes);
+                console.debug(myPub.slice(0, 4));
+                console.debug(myPub);
                 console.debug("Nonce: ", nonce)
                 console.debug(fullmessage);
 
@@ -80,10 +74,18 @@ export class TokenController {
 
                 // Seal the full thing?
 
+                const shared = box.before(keyBytes, keyPair.secretKey);
+                console.debug("Shared key");
+                console.debug(shared);
+
                 const sealed = box(fullmessage, nonce, keyBytes, keyPair.secretKey)
 
                 const sealedB64 = bytesToBase64(sealed);
                 const sealedBack = base64ToBytes(sealedB64);
+
+                console.debug("Sealed:", sealed);
+                console.debug("Sealed B64:", sealedB64);
+                console.debug("SealedBack", sealedBack);
 
                 // Now that we have the sealed message, we need to add more to the header?
                 const withheader = new Uint8Array(
@@ -95,7 +97,7 @@ export class TokenController {
 
                 withheader.set([2], 0);
                 withheader.set(keyBytes.slice(0, 4), 1);
-                withheader.set(keyBytes, 5);
+                withheader.set(myPub, 5);
                 withheader.set(nonce, 5 + 32);
                 withheader.set(sealedBack, 5 + 32 + 24);
 
@@ -121,6 +123,7 @@ export class TokenController {
         const jwks: IJWKSResponse = await resp.json();
         console.debug("JWKS:", jwks);
 
-        return jwks.k;
+        //return jwks.k;
+        return "+VN3lXu8QBuH561ueQcN0vo7LCDtTdH8jQWtz2VaSRs=";
     }
 }
