@@ -27,12 +27,20 @@ rules_nodejs_dependencies()
 
 load("@build_bazel_rules_nodejs//:defs.bzl", "node_repositories", "yarn_install")
 
-load("@io_bazel_rules_go//go:def.bzl", "go_register_toolchains", "go_rules_dependencies")
-
 node_repositories(
     node_version = "10.13.0",
     yarn_version = "1.12.1",
 )
+
+yarn_install(
+    name = "npm",
+    package_json = "//javascript:package.json",
+    yarn_lock = "//javascript:yarn.lock",
+)
+
+
+load("@io_bazel_rules_go//go:def.bzl", "go_register_toolchains", "go_rules_dependencies")
+
 
 go_rules_dependencies()
 
