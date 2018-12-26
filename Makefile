@@ -21,7 +21,7 @@ clean:
 #
 # Setup repository for the first time
 #
-setup: deps/js deps/go
+setup: deps/js deps/go deps/python
 
 # Install system dependencies via the OS package manager.
 deps/system:
@@ -49,7 +49,10 @@ deps/js/server: deps/system
 deps/go: deps/system
 	dep ensure
 
-.PHONY: setup deps/system deps/js deps/js/client deps/js/server deps/go
+deps/python: deps/system
+	pip install sphinx sphinx-rtd-theme
+
+.PHONY: setup deps/system deps/js deps/js/client deps/js/server deps/go deps/python
 
 #
 # Local application builds
@@ -116,4 +119,10 @@ stop:
 
 .PHONY: deploy deploy/server deploy/cfssl deploy/target-service run stop
 
+# Documentation
+
+docs:
+	sphinx-build -b html docs/ docs/_build
+
+.PHONY: docs
 

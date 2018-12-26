@@ -23,3 +23,5 @@ java/target
 
 build/
 cmake-*/
+
+docs/_build
