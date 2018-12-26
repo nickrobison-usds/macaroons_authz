@@ -27,3 +27,5 @@ build/
 cmake-*/
 
 docs/_build
+
+bazel-*
