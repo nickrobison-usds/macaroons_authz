@@ -11,7 +11,7 @@
         "@types/pg": "^7.4.11",
         "cookie-parser": "^1.4.3",
         "express": "^4.16.4",
-        "macaroon": "^3.0.3",
+        "macaroon": "https://github.com/nickrobison-usds/js-macaroon.git#v2-json",
         "nacl-fast": "^0.1.0",
         "node-fetch": "^2.3.0",
         "pg": "^7.7.1",
