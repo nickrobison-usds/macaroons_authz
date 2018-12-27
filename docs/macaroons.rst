@@ -8,7 +8,7 @@ Library support is really varied, here's what we know so far:
 ========== ============= ============ ========= =========== =========
 Language   Library       V1  (Binary) V1 (JSON) V2 (Binary) V2 (JSON)
 ========== ============= ============ ========= =========== =========
-Go         go-macaroons  No           Yes       Yes         Yes
+Go         go-macaroons  Yes          Yes       Yes         Yes
 Java       jmacaroons    Yes          No        No          No
 Javascript js-macaroons  No           No        Yes         Yes
 C/C++      libmacaroons  Yes          No        Yes         Yes
