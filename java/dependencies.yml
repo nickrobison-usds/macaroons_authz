@@ -1,0 +1,52 @@
+options:
+#  buildHeader: [ "load(\"@io_bazel_rules_scala//scala:scala_import.bzl\", \"scala_import\")" ]
+  languages: ["java"]
+  resolverType: "coursier"
+  resolvers:
+    - id: "mavencentral"
+      type: "default"
+      url: https://repo.maven.apache.org/maven2/
+  strictVisibility: false
+  transitivity: runtime_deps
+  versionConflictPolicy: highest
+#  namePrefix: "//java/3rdparty/"
+
+dependencies:
+  io.dropwizard:
+    dropwizard:
+      lang: java
+      modules: ["core", "client", "jackson", "jersey", "metrics"]
+      version: 1.3.7
+
+  io.dropwizard.metrics:
+    metrics:
+      lang: java
+      version: 4.0.3
+      modules: ["core", "annotation"]
+
+  com.fasterxml.jackson.core:
+    jackson:
+      version: 2.9.7
+      lang: java
+      modules: ["databind", "annotations", "core"]
+
+  com.github.nitram509:
+    jmacaroons:
+      lang: java
+      version: 0.3.1
+
+  eu.neilalexander:
+    jnacl:
+      lang: java
+      version: 1.0.0
+
+  javax.ws.rs:
+    javax.ws.rs:
+      lang: java
+      version: 2.1.1
+      modules: ["api"]
+
+  javax.validation:
+    validation-api:
+      lang: java
+      version: 2.0.1.Final

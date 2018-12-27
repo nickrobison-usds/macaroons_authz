@@ -45,3 +45,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_register_toolchains", "go_rules_depen
 go_rules_dependencies()
 
 go_register_toolchains()
+
+load("//3rdparty:workspace.bzl", "maven_dependencies")
+maven_dependencies()
