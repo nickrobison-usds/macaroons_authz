@@ -8,7 +8,6 @@ import com.github.nitram509.jmacaroons.MacaroonsBuilder;
 import com.github.nitram509.jmacaroons.MacaroonsVerifier;
 import com.neilalexander.jnacl.NaCl;
 import com.nickrobison.cmsauthz.api.JWKResponse;
-import org.apache.commons.codec.binary.Base64;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -54,7 +53,7 @@ public class RootAPIResource {
                 .get(JWKResponse.class);
 
         // Decode the Key from Base64
-        final byte[] decodedKey = Base64.decodeBase64(response.getKey());
+        final byte[] decodedKey = Base64.getDecoder().decode(response.getKey());
 
         // We need to add a third party caveat to have the ACO endpoint give us a public key. 
 //        final Macaroon macaroon = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id")
@@ -144,8 +143,7 @@ public class RootAPIResource {
     }
 
     private static List<String> parseMacaroons(String macaroon) {
-        final Base64 base64 = new Base64();
-        final byte[] decoded = base64.decode(macaroon);
+        final byte[] decoded = Base64.getDecoder().decode(macaroon);
 //        Figure out what we're looking at.
         switch (decoded[0]) {
 //            JSON v2
