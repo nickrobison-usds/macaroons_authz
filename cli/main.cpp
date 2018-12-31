@@ -174,7 +174,7 @@ int main(int argc, char **argv) {
 
     auto mac = Macaroon::importMacaroons(token);
     // Debug
-    console->debug("Inspected macaroon: {:s}", mac.inspect());
+//    console->debug("Inspected macaroon: {:s}", mac.inspect());
 
     string bound_mac;
 

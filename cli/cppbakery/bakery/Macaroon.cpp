@@ -53,22 +53,23 @@ const Macaroon Macaroon::importMacaroons(const std::string &token) {
     } else {
 
         // Determine URL safe encoding
-        const auto result = std::find_if(token.begin(), token.end(), [](const char t) {
-            return (t == '-' || t == '_');
+        const auto found_non_url_characters = std::find_if(token.begin(), token.end(), [](const char t) {
+            return (t == '+' || t == '/');
         });
 
         std::vector<uint8_t> decoded;
-        if (result == token.end()) {
-//        not URL safe encoding
-            decoded = base64rfc::decode(token);
-        } else {
+        if (found_non_url_characters == token.end()) {
+            // No non-URL safe characters found
             decoded = base64::decode(token);
-        }
+        } else {
+            // Has non-URL safe characters.
+            decoded = base64rfc::decode(token);
 
+        }
 
         switch (decoded[0]) {
             // If it's un-encoded JSON, or V2 binary, import the decoded value.
-            case '\x02': {
+            case '\x02': case '{': {
                 mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(decoded.data()), decoded.size(),
                                            &err);
                 break;

@@ -102,15 +102,13 @@ export class TokenController {
 
                 console.debug("Headers:", new TextDecoder("utf-8").decode(withheader));
 
-
-
                 mac.addThirdPartyCaveat(nonce, withheader, "http://localhost:8080/api/users/verify");
 
                 const macJSON = mac.exportJSON();
 
                 console.debug("Exporting as JSON: ", macJSON);
 
-                res.status(200).send(bytesToBase64(mac.exportBinary()));
+                res.status(200).send(mac.exportJSON());
             });
     }
 
