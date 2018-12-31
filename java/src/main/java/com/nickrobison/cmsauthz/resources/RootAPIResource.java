@@ -189,17 +189,17 @@ public class RootAPIResource {
         final byte[] msgBytes = message.getBytes(MSG_CHARSET);
 
         // Create Varint of root key length
-        final ByteBuffer rootKeyLength = VarInt.encodeVarInt(keyBytes.length);
+        final byte[] tBytes = VarInt.writeUnsignedVarInt(keyBytes.length);
 
         // Allocate a byte buffer that is the size of the version (1 byte), the varint length of rootKey, rootKey and message
         final ByteBuffer msgBuffer = ByteBuffer.allocate(1
-                + rootKeyLength.array().length
+                + tBytes.length
                 + keyBytes.length
                 + msgBytes.length);
 
         // Add everything
         msgBuffer.put((byte) 2);
-        msgBuffer.put(rootKeyLength.array());
+        msgBuffer.put(tBytes);
         msgBuffer.put(keyBytes);
         msgBuffer.put(msgBytes);
         // Reset it
