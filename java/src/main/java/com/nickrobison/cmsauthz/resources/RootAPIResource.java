@@ -9,6 +9,7 @@ import com.github.nitram509.jmacaroons.MacaroonVersion;
 import com.github.nitram509.jmacaroons.MacaroonsBuilder;
 import com.github.nitram509.jmacaroons.MacaroonsVerifier;
 import com.nickrobison.cmsauthz.api.JWKResponse;
+import com.nickrobison.cmsauthz.helpers.Helpers;
 import com.nickrobison.cmsauthz.helpers.VarInt;
 import org.whispersystems.curve25519.Curve25519;
 import org.whispersystems.curve25519.Curve25519KeyPair;
@@ -35,8 +36,7 @@ public class RootAPIResource {
 
     private static final Charset KEY_CHARSET = StandardCharsets.US_ASCII;
     private static final Charset MSG_CHARSET = StandardCharsets.UTF_8;
-    public static final Base64.Encoder URL_ENCODER = Base64.getUrlEncoder();
-    public static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
+    private static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
 
     private final Map<String, String> keyMap;
     private final Client client;
@@ -53,7 +53,7 @@ public class RootAPIResource {
 
     @GET
     @Path("/token")
-    public Response getToken() throws Exception {
+    public Response getToken() {
 
         // Get the JWKS
         final JWKResponse response = this.client
@@ -63,7 +63,7 @@ public class RootAPIResource {
 
         // Decode the Key from Base64
         final byte[] decodedKey = URL_DECODER.decode(response.getKey());
-        printUnsignedBytes("Their pub key:", decodedKey);
+        Helpers.printUnsignedBytes("Their pub key:", decodedKey);
 
         // We need to add a third party caveat to have the ACO endpoint give us a public key.
 
@@ -78,14 +78,14 @@ public class RootAPIResource {
         byte[] nonce = new byte[24];
         secureRandom.nextBytes(nonce);
 
-        printUnsignedBytes("Nonce", nonce);
-        printUnsignedBytes("Pub key", keyPair.getPublicKey());
+        Helpers.printUnsignedBytes("Nonce", nonce);
+        Helpers.printUnsignedBytes("Pub key", keyPair.getPublicKey());
 
         // Encrypt things
         final String tkey = "this is a test key, it should be long enough.";
         final String encrypted = encodeIdentifier(keyPair, decodedKey, tkey, nonce, "this is a test message");
 
-        printUnsignedBytes("Full ID", Base64.getDecoder().decode(encrypted));
+        Helpers.printUnsignedBytes("Full ID", Base64.getDecoder().decode(encrypted));
 
         final Macaroon m2 = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id", MacaroonVersion.VERSION_1)
                 .add_third_party_caveat("http://localhost:8080/api/users/verify", tkey, encrypted)
@@ -183,7 +183,23 @@ public class RootAPIResource {
         }
     }
 
-    private static String encodeIdentifier(Curve25519KeyPair keyPair, byte[] thirdPartyPublicKey, String rootKey, byte[] nonce, String message) throws Exception {
+    /**
+     * Encode a caveat identifier using the V2 serialization format.
+     * The message (along with the root key) is encrypted as a NaCL secret box, using the {@link SecretBox#seal(byte[], byte[])} method.
+     * The encrypted method is then appended to the end of the caveat ID, which contains the public key used to encrypt the data (the public key of this service),
+     * 4 bytes which identify the public key (of the third party service) used, and the nonce.
+     * <p>
+     * The returned string is Base64 encoded using the {@link Base64#getEncoder()} method. Libmacaroons expects caveats to have non-URL safe encoding.
+     * So we acquiesce.
+     *
+     * @param keyPair             - {@link Curve25519KeyPair} of this service, which is used to encrypt the message as a {@link SecretBox}
+     * @param thirdPartyPublicKey - {@link byte[]} 32-byte Curve-25519 public key of the third party service
+     * @param rootKey             - {@link String} root key used with the message.
+     * @param nonce               - {@link byte[]} 24-byte random nonce used in encryption
+     * @param message             - {@link String} secret message to encrypt and send to third-party
+     * @return - {@link String} Base64 encoded Caveat ID
+     */
+    private static String encodeIdentifier(Curve25519KeyPair keyPair, byte[] thirdPartyPublicKey, String rootKey, byte[] nonce, String message) {
 
         final byte[] keyBytes = rootKey.getBytes(KEY_CHARSET);
         final byte[] msgBytes = message.getBytes(MSG_CHARSET);
@@ -219,17 +235,5 @@ public class RootAPIResource {
         fullMessage.flip();
 
         return Base64.getEncoder().encodeToString(fullMessage.array());
-    }
-
-    private static void printUnsignedBytes(String name, byte[] signedBytes) {
-
-        int[] unsigned = new int[signedBytes.length];
-
-        for (int i = 0; i < signedBytes.length; i++) {
-            unsigned[i] = (signedBytes[i] & 0xFF);
-        }
-
-        System.out.printf("%s as unsigned bytes:\n", name);
-        System.out.println(Arrays.toString(unsigned));
     }
 }

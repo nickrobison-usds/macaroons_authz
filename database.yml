@@ -1,13 +1,13 @@
 development:
   dialect: postgres
   database: macaroons_authz_development
-  user: postgres
-  password: postgres
+  user: raac
+  password: 
   host: 127.0.0.1
   pool: 5
 
 test:
-  url: {{envOr "TEST_DATABASE_URL" "postgres://postgres:postgres@127.0.0.1:5432/macaroons_authz_test?sslmode=disable"}}
+  url: {{envOr "TEST_DATABASE_URL" "postgres://raac:@127.0.0.1:5432/macaroons_authz_test?sslmode=disable"}}
 
 production:
-  url: {{envOr "DATABASE_URL" "postgres://postgres:postgres@127.0.0.1:5432/macaroons_authz_production?sslmode=disable"}}
+  url: {{envOr "DATABASE_URL" "postgres://raac:@127.0.0.1:5432/macaroons_authz_production?sslmode=disable"}}
