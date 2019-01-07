@@ -6,7 +6,7 @@ PLATFORMS := darwin/amd64 linux/amd64
 
 # Check for required packages
 UNAME := $(shell uname)
-PKGS := cmake dep yarn buffalo cpprestsdk cfssl maven
+PKGS := cmake dep yarn buffalo cpprestsdk cfssl maven ansible packer terraform
 
 temp = $(subst /, ,$@)
 os = $(word 1, $(temp))
