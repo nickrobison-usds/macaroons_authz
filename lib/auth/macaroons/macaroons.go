@@ -24,8 +24,13 @@ func init() {
 	oven = bakery.NewOven(bakery.OvenParams{})
 }
 
-// DecodeMacaroon returns a bakery.Macaroon from a base64 encoded string
+// DecodeMacaroon returns a bakery.Macaroon from a given string
+// The string can either be raw JSON, or a base64 encoded string
 func DecodeMacaroon(s string) (*bakery.Macaroon, error) {
+	// Check to see if we're JSON, or not
+	if s[0] == '{' {
+		return MacaroonFromJSON(s)
+	}
 	b, err := macaroon.Base64Decode([]byte(s))
 	if err != nil {
 		return nil, err
@@ -41,6 +46,16 @@ func MacaroonFromBytes(b []byte) (*bakery.Macaroon, error) {
 		return nil, err
 	}
 
+	return bakery.NewLegacyMacaroon(&m)
+}
+
+// MacaroonFromJSON returns a bakery.Macaroon from a JSON string
+func MacaroonFromJSON(s string) (*bakery.Macaroon, error) {
+	var m macaroon.Macaroon
+	err := m.UnmarshalJSON([]byte(s))
+	if err != nil {
+		return nil, err
+	}
 	return bakery.NewLegacyMacaroon(&m)
 }
 

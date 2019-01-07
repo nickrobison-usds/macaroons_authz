@@ -3,6 +3,7 @@ import { base64ToBytes, importMacaroon, Macaroon, importMacaroons } from "macaro
 import { Client, ClientConfig } from "pg";
 import retry from "retryer";
 import { TextEncoder, TextDecoder } from "util";
+import { encodeBase64, decodeUTF8 } from "tweetnacl-util";
 
 interface IKeyPair {
     pub: string;
@@ -44,12 +45,10 @@ export class AuthController {
         // Decode the macaroons from base64 encoding
         const b = base64ToBytes(token);
         const mac = this.importMacaroon(token);
-        console.log(mac);
+        console.log("Imported: ", mac);
 
         // Verify the macaroon and any discharges
         const macaroons = AuthController.getMacaroonAndDischarges(mac);
-
-
 
         try {
             console.log("Decrypting with key:", this.rootKey);
@@ -150,7 +149,10 @@ export async function CreateAuthController(): Promise<AuthController> {
     console.log("Result: ", res);
     await client.end();
 
-    return new AuthController(res.rows[0]["key"]);
+    // return new AuthController(res.rows[0]["key"]);
+    // Encode as base64
+    const bKey = encodeBase64(decodeUTF8("this is a test key, it should be long enough."));
+    return new AuthController(bKey);
 }
 
 async function connectToDB(options: ClientConfig): Promise<Client> {
