@@ -2,12 +2,10 @@ package com.nickrobison.cmsauthz.resources;
 
 import com.codahale.metrics.annotation.Timed;
 import com.codahale.xsalsa20poly1305.SecretBox;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.github.nitram509.jmacaroons.Macaroon;
-import com.github.nitram509.jmacaroons.MacaroonVersion;
-import com.github.nitram509.jmacaroons.MacaroonsBuilder;
-import com.github.nitram509.jmacaroons.MacaroonsVerifier;
+import com.github.nitram509.jmacaroons.*;
 import com.nickrobison.cmsauthz.api.JWKResponse;
 import com.nickrobison.cmsauthz.helpers.Helpers;
 import com.nickrobison.cmsauthz.helpers.VarInt;
@@ -15,10 +13,7 @@ import org.whispersystems.curve25519.Curve25519;
 import org.whispersystems.curve25519.Curve25519KeyPair;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.*;
 import java.io.IOException;
@@ -28,7 +23,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
@@ -37,23 +33,23 @@ public class RootAPIResource {
     private static final Charset KEY_CHARSET = StandardCharsets.US_ASCII;
     private static final Charset MSG_CHARSET = StandardCharsets.UTF_8;
     private static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
+    private static final Pattern BASE_64_PATTERN = Pattern.compile("^([A-Za-z0-9+/\\-_]{4})*([A-Za-z0-9+/\\-_]{3}=|[A-Za-z0-9+/\\-_]{2}==)?$");
+    private static final String TEST_NONCE = "this is a test nonce,...";
+    private static String TEST_KEY = "this is a test key, it should be long enough.";
 
     private final Map<String, String> keyMap;
     private final Client client;
-    private final String TEST_KEY;
+
 
     public RootAPIResource(Client client) {
+        System.out.println("Created`");
         this.client = client;
         this.keyMap = new ConcurrentHashMap<>();
-        final SecureRandom secureRandom = new SecureRandom();
-        byte[] bytes = new byte[32];
-        secureRandom.nextBytes(bytes);
-        this.TEST_KEY = new String(bytes, MSG_CHARSET);
     }
 
     @GET
     @Path("/token")
-    public Response getToken() {
+    public Response getToken(@QueryParam("user_id") String userID) {
 
         // Get the JWKS
         final JWKResponse response = this.client
@@ -82,13 +78,11 @@ public class RootAPIResource {
         Helpers.printUnsignedBytes("Pub key", keyPair.getPublicKey());
 
         // Encrypt things
-        final String tkey = "this is a test key, it should be long enough.";
-        final String encrypted = encodeIdentifier(keyPair, decodedKey, tkey, nonce, "this is a test message");
+        final String caveat = String.format("user_id= %s", userID);
+        final String encrypted = encodeIdentifier(keyPair, decodedKey, TEST_KEY, nonce, caveat);
 
-        Helpers.printUnsignedBytes("Full ID", Base64.getDecoder().decode(encrypted));
-
-        final Macaroon m2 = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id", MacaroonVersion.VERSION_1)
-                .add_third_party_caveat("http://localhost:8080/api/users/verify", tkey, encrypted)
+        final Macaroon m2 = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id", MacaroonVersion.VERSION_2)
+                .add_third_party_caveat("http://localhost:8080/api/users/verify", TEST_KEY, encrypted)
                 .getMacaroon();
 
         return Response.ok().entity(m2.serialize(MacaroonVersion.SerializationVersion.V2_JSON)).build();
@@ -105,16 +99,28 @@ public class RootAPIResource {
             return Response.status(Response.Status.UNAUTHORIZED).entity("Must have Macaroon").build();
         }
 
-        final MacaroonsVerifier initialVerifier = new MacaroonsVerifier(macaroons.get().get(0));
+        MacaroonsVerifier verifier = new MacaroonsVerifier(macaroons.get().get(0));
+
+        for (Macaroon discharged : macaroons.get().subList(1, macaroons.get().size())) {
+            verifier = verifier.satisfy3rdParty(discharged);
+        }
 
 //        Add all the discharges
-        final MacaroonsVerifier verifier = macaroons.get().subList(1, macaroons.get().size())
-                .stream()
-                .reduce(initialVerifier, MacaroonsVerifier::satisfy3rdParty, (acc, mac) -> acc);
+//        final MacaroonsVerifier verifier = macaroons.get().subList(1, macaroons.get().size())
+//                .stream()
+//                .reduce(initialVerifier, MacaroonsVerifier::satisfy3rdParty, (acc, mac) -> acc);
 
-        final boolean valid = verifier
-                .satisfyExact("aco_id = 1")
-                .isValid(TEST_KEY);
+        boolean valid;
+
+        try {
+            verifier
+//                    .satisfyExact("aco_id = 1")
+                    .assertIsValid(TEST_KEY);
+            valid = true;
+        } catch (GeneralSecurityRuntimeException | MacaroonValidationException e) {
+            System.out.println(e);
+            valid = false;
+        }
 
         if (valid) {
             return Response.ok("Hello there!").build();
@@ -143,13 +149,50 @@ public class RootAPIResource {
         // Base64 decode the input
         return firstMacaroon
                 .map(Cookie::getValue)
-                .map(RootAPIResource::parseMacaroons)
-                .map(macs -> macs.stream().map(MacaroonsBuilder::deserialize).collect(Collectors.toList()));
+                .map(RootAPIResource::parseMacaroons);
+//                .map(macs -> macs.stream().map(MacaroonsBuilder::deserialize).collect(Collectors.toList()));
     }
 
-    private static List<String> parseMacaroons(String macaroon) {
+    private static List<Macaroon> parseMacaroons(String macaroon) {
+
+        //        Figure out what we're looking at.
+        switch (macaroon.charAt(0)) {
+//            JSON v2
+            case '{': {
+                throw new IllegalArgumentException("Cannot decode V2 JSON");
+            }
+            // V2 Binary
+            case 0x02: {
+                throw new IllegalArgumentException("Cannot decode V2 Binary");
+            }
+//            If we're an array, pull out everything as a string
+            case '[': {
+                if (macaroon.charAt(1) == '{') {
+
+                    // We're an array of V2 Macaroons, so we just need to split the array
+                    // Decode an array of V2 Macaroons
+                    final ObjectMapper objectMapper = new ObjectMapper();
+                    final TypeFactory typeFactory = objectMapper.getTypeFactory();
+                    try {
+                        final List<Object> read = objectMapper.readValue(macaroon, typeFactory.constructCollectionType(List.class, Object.class));
+                        return Collections.emptyList();
+                    } catch (IOException e) {
+                        throw new IllegalStateException(e);
+                    }
+                }
+                break;
+            }
+            // If 0 is the first thing, we're just a single Macaroon.
+            // That means we can pass the base64 encoded string directly to the Macaroons library
+            case '0': {
+                return Collections.singletonList(MacaroonsBuilder.deserialize(macaroon));
+            }
+        }
+
+        // Decode it, and do it all over again
         final byte[] decoded = URL_DECODER.decode(macaroon);
-//        Figure out what we're looking at.
+
+        //        Figure out what we're looking at.
         switch (decoded[0]) {
 //            JSON v2
             case '{': {
@@ -159,25 +202,40 @@ public class RootAPIResource {
             case 0x02: {
                 throw new IllegalArgumentException("Cannot decode V2 Binary");
             }
-//            If we're an array, maybe do things.
+//            If we're an array, pull out everything as a string
             case '[': {
-//                Assume we're an array of JSON, and bail
                 if (decoded[1] == '{') {
-                    throw new IllegalArgumentException("Cannot decode array of V2 JSON");
+
+                    // We're an array of V2 Macaroons, so we just need to split the array
+                    // Decode an array of V2 Macaroons
+                    final ObjectMapper objectMapper = new ObjectMapper();
+                    List<Macaroon> macaroons = new ArrayList<>();
+
+                    try {
+                        final JsonNode tree = objectMapper.readTree(decoded);
+                        for (final JsonNode node : tree) {
+                            final String nodeText = node.toString();
+                            macaroons.add(MacaroonsBuilder.deserialize(nodeText));
+                        }
+                        return macaroons;
+                    } catch (IOException e) {
+                        throw new IllegalStateException(e);
+                    }
                 }
+                break;
             }
             // If 0 is the first thing, we're just a single Macaroon.
             // That means we can pass the base64 encoded string directly to the Macaroons library
             case '0': {
-                return Collections.singletonList(macaroon);
+                return Collections.singletonList(MacaroonsBuilder.deserialize(new String(decoded)));
             }
         }
 
-        // Now we know that we're an array of V1 Macaroons, so make them a json array and split them apart.
+        // Now we know that we think we're an array of V1 Macaroons, make them a json array and split them apart.
         final ObjectMapper objectMapper = new ObjectMapper();
         final TypeFactory typeFactory = objectMapper.getTypeFactory();
         try {
-            return objectMapper.readValue(decoded, typeFactory.constructCollectionType(List.class, String.class));
+            return objectMapper.readValue(macaroon, typeFactory.constructCollectionType(List.class, String.class));
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -224,6 +282,7 @@ public class RootAPIResource {
         final SecretBox sbox = new SecretBox(thirdPartyPublicKey, keyPair.getPrivateKey());
 
         final byte[] sealed = sbox.seal(nonce, msgBuffer.array());
+//        final byte[] b64EncodedMessage = Base64.getEncoder().encode(sealed);
 
 //        Now, add the header
         final ByteBuffer fullMessage = ByteBuffer.allocate(1 + 4 + 32 + 24 + sealed.length);
@@ -234,6 +293,24 @@ public class RootAPIResource {
         fullMessage.put(sealed);
         fullMessage.flip();
 
+//        return new String(fullMessage.array());
+
         return Base64.getEncoder().encodeToString(fullMessage.array());
+    }
+
+    /**
+     * Checks to see if a String is Base64 Encoded using the {@link RootAPIResource#BASE_64_PATTERN} regex.
+     * If it is encoded, it decodes it, otherwise it simply extracts the bytes from the String
+     *
+     * @param encoded - {@link String} potentially base64 encoded string
+     * @return - {@link byte[]} of either the base64 decoded {@link String}, or the raw bytes of the original input
+     */
+    private static byte[] unWrapBase64(String encoded) {
+        final Matcher matcher = BASE_64_PATTERN.matcher(encoded);
+        if (matcher.matches()) {
+            URL_DECODER.decode(encoded);
+        }
+
+        return encoded.getBytes();
     }
 }
