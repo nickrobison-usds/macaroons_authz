@@ -26,7 +26,7 @@ export class TokenController {
         console.debug("User ID: ", id);
         // Get the JWKS
         this.getPublicKey()
-            .then((key) => {
+            .then((thirdPartyPublicKey) => {
 
                 const keyPair = box.keyPair();
 
@@ -34,6 +34,8 @@ export class TokenController {
                 const nonceStr = "this is a test nonce,...";
                 const nonce = this.encoder.encode(nonceStr);
                 const rootKey = decodeUTF8(rootKeyStr);
+
+                console.debug("Encoding with root key: ", rootKey);
 
                 //const nonce = randomBytes(24);
 
@@ -44,8 +46,8 @@ export class TokenController {
                     version: 2
                 });
 
-                const keyBytes = base64ToBytes(key);
-                console.debug("Key bytes: ", keyBytes);
+                const thirdPartyKeyBytes = base64ToBytes(thirdPartyPublicKey);
+                console.debug("Key bytes: ", thirdPartyKeyBytes);
 
                 console.debug("Boxing");
 
@@ -74,11 +76,11 @@ export class TokenController {
 
                 // Seal the full thing?
 
-                const shared = box.before(keyBytes, keyPair.secretKey);
+                const shared = box.before(thirdPartyKeyBytes, keyPair.secretKey);
                 console.debug("Shared key");
                 console.debug(shared);
 
-                const sealed = box(fullmessage, nonce, keyBytes, keyPair.secretKey)
+                const sealed = box(fullmessage, nonce, thirdPartyKeyBytes, keyPair.secretKey)
 
                 const sealedB64 = bytesToBase64(sealed);
                 const sealedBack = base64ToBytes(sealedB64);
@@ -92,14 +94,14 @@ export class TokenController {
                     + sealedBack.length);
 
                 withheader.set([2], 0);
-                withheader.set(keyBytes.slice(0, 4), 1);
+                withheader.set(thirdPartyKeyBytes.slice(0, 4), 1);
                 withheader.set(myPub, 5);
                 withheader.set(nonce, 5 + 32);
                 withheader.set(sealedBack, 5 + 32 + 24);
 
                 console.debug("Headers:", new TextDecoder("utf-8").decode(withheader));
 
-                mac.addThirdPartyCaveat(nonce, withheader, "http://localhost:8080/api/users/verify");
+                mac.addThirdPartyCaveat(rootKey, withheader, "http://localhost:8080/api/users/verify");
 
                 const macJSON = mac.exportJSON();
 

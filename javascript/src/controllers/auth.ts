@@ -3,7 +3,7 @@ import { base64ToBytes, importMacaroon, Macaroon, importMacaroons } from "macaro
 import { Client, ClientConfig } from "pg";
 import retry from "retryer";
 import { TextEncoder, TextDecoder } from "util";
-import { encodeBase64, decodeUTF8 } from "tweetnacl-util";
+import { decodeBase64, encodeBase64, decodeUTF8 } from "tweetnacl-util";
 
 interface IKeyPair {
     pub: string;
@@ -27,13 +27,19 @@ interface IVaultResponse {
 }
 
 export class AuthController {
-    private rootKey: string;
+    private rootKey: Uint8Array;
     private decoder: TextDecoder;
 
     constructor(key: string, privateKeyPath = "../user_keys.json") {
-        console.debug("Creating controller with key: ", key);
+        console.log("Creating controller with key: ", key);
+
         this.decoder = new TextDecoder("utf-8");
-        this.rootKey = key;
+        this.rootKey = base64ToBytes(key);
+
+        const b = new Buffer(key, "base64");
+        console.debug("Key", base64ToBytes(key));
+        console.debug("Decoded key: ", b.toString())
+
     }
 
     public dischargeMacaroon(req: Request, res: Response): void {
@@ -43,16 +49,16 @@ export class AuthController {
         console.log(`Verifying access for ACO ${acoID}\n`);
 
         // Decode the macaroons from base64 encoding
-        const b = base64ToBytes(token);
-        const mac = this.importMacaroon(token);
+        const mac = this.importMacaroon(base64ToBytes(token));
         console.log("Imported: ", mac);
 
         // Verify the macaroon and any discharges
         const macaroons = AuthController.getMacaroonAndDischarges(mac);
 
         try {
-            console.log("Decrypting with key:", this.rootKey);
-            macaroons[0].verify(base64ToBytes(this.rootKey), ((cond) => AuthController.verifyACOID(cond, acoID)), macaroons[1]);
+            console.log("Decrypting with key:",this.rootKey);
+            console.debug("Mac slice: ", macaroons[1].slice(0));
+            macaroons[0].verify(this.rootKey, ((cond) => AuthController.verifyACOID(cond, acoID)), macaroons[1]);
         } catch (err) {
             console.error(err);
             res.status(401).send(err.message);
@@ -64,9 +70,8 @@ export class AuthController {
 
     /** Imports a macaroon, or a slice of macaroons, from a base64 encoded string
         */
-    private importMacaroon(token: string): Macaroon | Macaroon[] {
-        const b = base64ToBytes(token);
-        const decoded = this.decoder.decode(b);
+    private importMacaroon(token: Uint8Array): Macaroon | Macaroon[] {
+        const decoded = this.decoder.decode(token);
         console.log("Decoded:", decoded);
         if (decoded[0] == "[") {
             console.log("Importing array of macaroons");
@@ -98,6 +103,7 @@ export class AuthController {
     }
 
     private static verifyACOID(condition: string, acoID: string): string | null {
+        console.debug("Verifying caveat: ", condition);
         // Split the condition based on the first space
         const splits = condition.split("= ");
         if (splits[0] == "aco_id") {

@@ -220,7 +220,7 @@ func UsersVerify(c buffalo.Context) error {
 
 	// If it comes in as id, we need to translate it to base64 encoding
 	if token == "" {
-		token = base64.URLEncoding.EncodeToString(byte(c.Param("id")))
+		token = base64.URLEncoding.EncodeToString([]byte(c.Param("id")))
 	}
 
 	log.Debugf("Token: %s", token)
