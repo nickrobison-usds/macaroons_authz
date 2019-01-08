@@ -17,7 +17,7 @@ using base64 = cppcodec::base64_url_unpadded;
 using base64enc = cppcodec::base64_url;
 using base64rfc = cppcodec::base64_rfc4648;
 
-const std::string Macaroon::base64_string(const macaroon_format format) const {
+const std::string Macaroon::serialize(macaroon_format format) const {
     const size_t sz = macaroon_serialize_size_hint(this->M(), format);
 
     const std::unique_ptr<char[]> output(new char[sz]);
@@ -25,15 +25,17 @@ const std::string Macaroon::base64_string(const macaroon_format format) const {
     const size_t buffer_size = macaroon_serialize(this->M(), format, reinterpret_cast<unsigned char *>(output.get()),
                                                   sz, &err);
 
+    return std::string(output.get(), buffer_size);
+
     // Binary formats are already base64 encoded
-    switch (format) {
-        case MACAROON_V2J: {
-            return base64enc::encode(output.get(), buffer_size);
-        }
-        default: {
-            return std::string(output.get(), buffer_size);
-        }
-    }
+//    switch (format) {
+//        case MACAROON_V2J: {
+//            return base64enc::encode(output.get(), buffer_size);
+//        }
+//        default: {
+//            return std::string(output.get(), buffer_size);
+//        }
+//    }
 }
 
 /**
