@@ -17,7 +17,7 @@ using base64 = cppcodec::base64_url_unpadded;
 using base64enc = cppcodec::base64_url;
 using base64rfc = cppcodec::base64_rfc4648;
 
-const std::string Macaroon::base64_string(const macaroon_format format) const {
+const std::string Macaroon::serialize(macaroon_format format) const {
     const size_t sz = macaroon_serialize_size_hint(this->M(), format);
 
     const std::unique_ptr<char[]> output(new char[sz]);
@@ -25,15 +25,17 @@ const std::string Macaroon::base64_string(const macaroon_format format) const {
     const size_t buffer_size = macaroon_serialize(this->M(), format, reinterpret_cast<unsigned char *>(output.get()),
                                                   sz, &err);
 
+    return std::string(output.get(), buffer_size);
+
     // Binary formats are already base64 encoded
-    switch (format) {
-        case MACAROON_V2J: {
-            return base64enc::encode(output.get(), buffer_size);
-        }
-        default: {
-            return std::string(output.get(), buffer_size);
-        }
-    }
+//    switch (format) {
+//        case MACAROON_V2J: {
+//            return base64enc::encode(output.get(), buffer_size);
+//        }
+//        default: {
+//            return std::string(output.get(), buffer_size);
+//        }
+//    }
 }
 
 /**
@@ -53,22 +55,23 @@ const Macaroon Macaroon::importMacaroons(const std::string &token) {
     } else {
 
         // Determine URL safe encoding
-        const auto result = std::find_if(token.begin(), token.end(), [](const char t) {
-            return (t == '-' || t == '_');
+        const auto found_non_url_characters = std::find_if(token.begin(), token.end(), [](const char t) {
+            return (t == '+' || t == '/');
         });
 
         std::vector<uint8_t> decoded;
-        if (result == token.end()) {
-//        not URL safe encoding
-            decoded = base64rfc::decode(token);
-        } else {
+        if (found_non_url_characters == token.end()) {
+            // No non-URL safe characters found
             decoded = base64::decode(token);
-        }
+        } else {
+            // Has non-URL safe characters.
+            decoded = base64rfc::decode(token);
 
+        }
 
         switch (decoded[0]) {
             // If it's un-encoded JSON, or V2 binary, import the decoded value.
-            case '\x02': {
+            case '\x02': case '{': {
                 mac = macaroon_deserialize(reinterpret_cast<const unsigned char *>(decoded.data()), decoded.size(),
                                            &err);
                 break;

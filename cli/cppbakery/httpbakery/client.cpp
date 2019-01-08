@@ -35,18 +35,25 @@ const std::string Client::dischargeMacaroon(const Macaroon m, const macaroon_for
 
     // Bind everything
     // Create the json value
-    std::vector<json::value> discharged_macs;
-    discharged_macs.emplace_back(m.base64_string(format));
-    std::for_each(discharged.begin(), discharged.end(), [&discharged_macs, this, format](const Macaroon &mac) {
+    std::vector<std::string> discharged_macs;
+    discharged_macs.emplace_back(m.serialize(format));
+    std::for_each(discharged.begin(), discharged.end(), [&discharged_macs, &m, format](const Macaroon &dm) {
         macaroon_returncode err;
-        const macaroon *mm = macaroon_prepare_for_request(mac.M(), mac.M(), &err);
+        const macaroon *mm = macaroon_prepare_for_request(m.M(), dm.M(), &err);
         const Macaroon m2 = Macaroon(mm);
-        discharged_macs.emplace_back(json::value::string(m2.base64_string(format)));
+        discharged_macs.emplace_back(m2.serialize(format));
     });
 
-    json::value val_array = json::value::array(discharged_macs);
-    const std::string serialized = val_array.serialize();
-    return base64enc::encode(serialized);
+    // We manually build the discharged array, to avoid double quoting everything
+    // This probably wouldn't be an issue with another JSON library, but the cpprestsdk doesn't seem to have an intuitive way of handling this.
+    std::ostringstream output;
+    output << "[";
+    // Copy the all but the last discharge into the array
+    std::copy(discharged_macs.begin(), discharged_macs.end()-1, std::ostream_iterator<std::string>(output, ", "));
+    // Copy the last value and the ending array block
+    output << discharged_macs.back() << "]";
+
+    return base64enc::encode(output.str());
 }
 
 pplx::task<Macaroon> Client::dischargeCaveat(const MacaroonCaveat &cav) const {

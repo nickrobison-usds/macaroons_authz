@@ -127,6 +127,7 @@ int main(int argc, char **argv) {
 
         http_client standaloneClient(U("http://localhost:3002"));
         uri_builder standaloneBuilder(U("/token"));
+        standaloneBuilder.append_query(U("user_id"), userID);
 
         http_request standalone_req(methods::GET);
         standalone_req.set_request_uri(standaloneBuilder.to_uri());
@@ -174,7 +175,7 @@ int main(int argc, char **argv) {
 
     auto mac = Macaroon::importMacaroons(token);
     // Debug
-    console->debug("Inspected macaroon: {:s}", mac.inspect());
+//    console->debug("Inspected macaroon: {:s}", mac.inspect());
 
     string bound_mac;
 
@@ -188,7 +189,7 @@ int main(int argc, char **argv) {
 //bound_mac = "REMOVE ME!!!";
     } else {
         console->info("Not discharging caveats");
-        bound_mac = mac.base64_string(MACAROON_V1);
+        bound_mac = mac.serialize(MACAROON_V2J);
     }
 
     // Now make the actual request for the ACO data

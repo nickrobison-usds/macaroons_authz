@@ -17,6 +17,7 @@ clean:
 		-rm -rf bin
 		-rm -r javascript/src/*.js
 		-rm -rf javascript/dist
+		-rm -rf java/target
 
 #
 # Setup repository for the first time
@@ -85,7 +86,7 @@ javascript/dist/target_service.js:
 		npm run --prefix javascript build
 
 # Java client (not currently working)
-build/java:
+java/target/javaservice-%.jar:
 	mvn package -Dmaven.javadoc.skip=true -f java/pom.xml
 
 build/dependencies:
@@ -113,6 +114,9 @@ deploy/cfssl:
 
 deploy/target-service: javascript/dist/target_service.js
 		packer build packer/target_service.json
+
+deploy/java-service: java/target/javaservice-%.jar
+		packer build packer/java_service.json
 
 run:
 		-cd terraform/sbx; terraform apply

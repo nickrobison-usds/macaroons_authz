@@ -1,0 +1,22 @@
+---
+- name: Setup Ansible
+  hosts: all
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: ../roles/ansible
+
+- name: Install Java Service
+  hosts: all
+  tasks:
+    - name: Copy java service
+      copy:
+        src: ../java/target/javaservice-1.0-SNAPSHOT.jar
+        dest: /opt
+
+- name: Cleanup
+  hosts: all
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: ../roles/cleanup

@@ -7,42 +7,70 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/gobuffalo/envy"
 	. "github.com/logrusorgru/aurora"
 	"github.com/nickrobison-usds/macaroons_authz/lib/auth/macaroons"
 	"gopkg.in/macaroon-bakery.v2/httpbakery"
-	macaroon "gopkg.in/macaroon.v2"
 )
 
 var acoID = "4d24935c-a5bb-4ab1-a4ba-0ac7e730e4a9"
+var userID = "97952122-60cb-4d04-8d00-a3fbca8b53e4"
 
 func main() {
-	token, err := envy.MustGet("TOKEN")
+	/*
+		token, err := envy.MustGet("TOKEN")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(Green("Starting up"))
+
+		// Decode it?
+
+		var m macaroon.Macaroon
+		bin, err := macaroon.Base64Decode([]byte(token))
+		if err != nil {
+			panic(err)
+		}
+		err = m.UnmarshalBinary(bin)
+		if err != nil {
+			panic(err)
+		}
+
+		cavs := m.Caveats()
+
+		fmt.Println(Blue("Printing Caveats:"))
+
+		for _, cav := range cavs {
+			fmt.Println(string(cav.Id))
+			fmt.Println(cav.Location)
+		}
+	*/
+
+	// Get the token
+
+	req1, err := http.NewRequest("GET", "http://localhost:3002/token", nil)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(Green("Starting up"))
 
-	// Decode it?
+	q := req1.URL.Query()
+	q.Add("user_id", userID)
+	req1.URL.RawQuery = q.Encode()
 
-	var m macaroon.Macaroon
-	bin, err := macaroon.Base64Decode([]byte(token))
+	c1 := &http.Client{}
+
+	resp1, err := c1.Do(req1)
 	if err != nil {
 		panic(err)
 	}
-	err = m.UnmarshalBinary(bin)
+	defer resp1.Body.Close()
+
+	body1, err := ioutil.ReadAll(resp1.Body)
 	if err != nil {
 		panic(err)
 	}
 
-	cavs := m.Caveats()
-
-	fmt.Println(Blue("Printing Caveats:"))
-
-	for _, cav := range cavs {
-		fmt.Println(string(cav.Id))
-		fmt.Println(cav.Location)
-	}
+	token := string(body1)
+	fmt.Println("Token: ", token)
 
 	// Try to make a request to read the data
 	fmt.Println(Green("Trying to fetch the data"))

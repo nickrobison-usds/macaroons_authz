@@ -49,7 +49,7 @@
         <dependency>
             <groupId>com.github.nitram509</groupId>
             <artifactId>jmacaroons</artifactId>
-            <version>0.3.1</version>
+            <version>0.4.0-SNAPSHOT</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
         <dependency>
@@ -68,11 +68,15 @@
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-client</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/eu.neilalexander/jnacl -->
         <dependency>
-            <groupId>eu.neilalexander</groupId>
-            <artifactId>jnacl</artifactId>
-            <version>1.0.0</version>
+            <groupId>org.whispersystems</groupId>
+            <artifactId>curve25519-java</artifactId>
+            <version>0.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.codahale</groupId>
+            <artifactId>xsalsa20poly1305</artifactId>
+            <version>0.11.0</version>
         </dependency>
     </dependencies>
 

@@ -2,6 +2,7 @@ package actions
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -217,6 +218,11 @@ func UsersJWKS(c buffalo.Context) error {
 func UsersVerify(c buffalo.Context) error {
 	token := c.Param("id64")
 
+	// If it comes in as id, we need to translate it to base64 encoding
+	if token == "" {
+		token = base64.URLEncoding.EncodeToString([]byte(c.Param("id")))
+	}
+
 	log.Debugf("Token: %s", token)
 
 	log.Debug("Discharging")
@@ -248,6 +254,7 @@ func userIDCaveatChecker(db *pop.Connection) bakery.ThirdPartyCaveatCheckerFunc 
 		if err != nil {
 			return caveats, err
 		}
+		log.Debug("UUID: ", arg)
 
 		var user models.User
 
