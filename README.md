@@ -23,15 +23,16 @@ We require a number of system dependencies, which are not vendored into the sour
 The `make deps/system` command will do the installation automatically (on MacOS).
 
 - ansible
-- terraform
-- packer
+- buffalo
 - cmake
 - cpprestsdk
-- buffalo
+- maven
 - node
-- yarn
 - openssl
+- packer
 - postgres
+- terraform
+- yarn
 
 The `make` command will not install postgres by default, because the main developer prefers to use [Postgres.app](https://postgresapp.com).
 A quick `brew install postgresql` should take care of that.
@@ -106,6 +107,19 @@ The `make build/endpoint` target runs the commands:
 ```bash
 npm run --prefix javscript build
 ```
+
+#### Java Service
+
+The Java service emulates a standalone Web service, which uses Macaroons to provide authentication, but without privilaged access the services.
+
+It will be built automatically via the `make deploy/java-service` command, or manually with maven:
+
+```bash
+mvn package -Dmaven.javadoc.skip=true -f java/pom.xml
+```
+
+Note, Javadoc generation must be disabled under JDK 11, due to a NullPointerException that gets thrown.
+
 
 ### Configuration
 
@@ -184,11 +198,19 @@ You can run both the Go server and the Javascript client in dev mode through the
 
 ## Deploy
 
+Each service can be run directly on the developer's machine, or within an isolated Docker environment, provided by [Terraform](https://www.terraform.io). 
+The Docker environment is the recommended way of standing everything up.
+We currently support an `sbx` (sandbox) environment which doesn't persist any data to disk.
 
-### Packer images
 
-Must be built from the root directory!
+### Build Packer images
 
-## Deploy
+The Docker images are built using [Packer](https://www.packer.io) with the setup scripts making use of [Ansible](https://www.ansible.com).
+Each service can be built by calling `packer build` on each file in the `packer/` directory.
 
-`make deploy`
+Of course, the Makefile will handle it all for you, via the `build/deploy` target, which rebuilds all of the services.
+It also handles generating the required binaries, which are then copied into the Docker images.
+
+## Launching Docker/Terraform
+
+Running everything can be done via the `run` target in the Makefile, likewise `stop` shuts everything down and removes the temporary data.
