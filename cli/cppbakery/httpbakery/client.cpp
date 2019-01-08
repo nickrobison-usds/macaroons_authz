@@ -37,9 +37,9 @@ const std::string Client::dischargeMacaroon(const Macaroon m, const macaroon_for
     // Create the json value
     std::vector<std::string> discharged_macs;
     discharged_macs.emplace_back(m.serialize(format));
-    std::for_each(discharged.begin(), discharged.end(), [&discharged_macs, this, format](const Macaroon &mac) {
+    std::for_each(discharged.begin(), discharged.end(), [&discharged_macs, &m, format](const Macaroon &dm) {
         macaroon_returncode err;
-        const macaroon *mm = macaroon_prepare_for_request(mac.M(), mac.M(), &err);
+        const macaroon *mm = macaroon_prepare_for_request(m.M(), dm.M(), &err);
         const Macaroon m2 = Macaroon(mm);
         discharged_macs.emplace_back(m2.serialize(format));
     });
