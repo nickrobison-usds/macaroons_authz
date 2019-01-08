@@ -32,6 +32,7 @@ public class RootAPIResource {
 
     private static final Charset KEY_CHARSET = StandardCharsets.US_ASCII;
     private static final Charset MSG_CHARSET = StandardCharsets.UTF_8;
+    private static final Charset BYTE_CHARSET = StandardCharsets.ISO_8859_1;
     private static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
     private static final Pattern BASE_64_PATTERN = Pattern.compile("^([A-Za-z0-9+/\\-_]{4})*([A-Za-z0-9+/\\-_]{3}=|[A-Za-z0-9+/\\-_]{2}==)?$");
     private static final String TEST_NONCE = "this is a test nonce,...";
@@ -74,12 +75,12 @@ public class RootAPIResource {
         byte[] nonce = new byte[24];
         secureRandom.nextBytes(nonce);
 
-        Helpers.printUnsignedBytes("Nonce", nonce);
+        Helpers.printUnsignedBytes("Nonce", TEST_NONCE.getBytes());
         Helpers.printUnsignedBytes("Pub key", keyPair.getPublicKey());
 
         // Encrypt things
         final String caveat = String.format("user_id= %s", userID);
-        final String encrypted = encodeIdentifier(keyPair, decodedKey, TEST_KEY, nonce, caveat);
+        final byte[] encrypted = encodeIdentifier(keyPair, decodedKey, TEST_KEY, TEST_NONCE.getBytes(), caveat);
 
         final Macaroon m2 = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id", MacaroonVersion.VERSION_2)
                 .add_third_party_caveat("http://localhost:8080/api/users/verify", TEST_KEY, encrypted)
@@ -257,7 +258,7 @@ public class RootAPIResource {
      * @param message             - {@link String} secret message to encrypt and send to third-party
      * @return - {@link String} Base64 encoded Caveat ID
      */
-    private static String encodeIdentifier(Curve25519KeyPair keyPair, byte[] thirdPartyPublicKey, String rootKey, byte[] nonce, String message) {
+    private static byte[] encodeIdentifier(Curve25519KeyPair keyPair, byte[] thirdPartyPublicKey, String rootKey, byte[] nonce, String message) {
 
         final byte[] keyBytes = rootKey.getBytes(KEY_CHARSET);
         final byte[] msgBytes = message.getBytes(MSG_CHARSET);
@@ -282,7 +283,6 @@ public class RootAPIResource {
         final SecretBox sbox = new SecretBox(thirdPartyPublicKey, keyPair.getPrivateKey());
 
         final byte[] sealed = sbox.seal(nonce, msgBuffer.array());
-//        final byte[] b64EncodedMessage = Base64.getEncoder().encode(sealed);
 
 //        Now, add the header
         final ByteBuffer fullMessage = ByteBuffer.allocate(1 + 4 + 32 + 24 + sealed.length);
@@ -293,9 +293,11 @@ public class RootAPIResource {
         fullMessage.put(sealed);
         fullMessage.flip();
 
-//        return new String(fullMessage.array());
+        // We need to use the ISO 8859 charset in order to keep the byte values the same.
+        // See: https://stackoverflow.com/a/17575008
+        return fullMessage.array();
 
-        return Base64.getEncoder().encodeToString(fullMessage.array());
+//        return Base64.getEncoder().encodeToString(fullMessage.array());
     }
 
     /**
