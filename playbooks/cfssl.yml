@@ -40,6 +40,8 @@
         url: "https://dl.google.com/go/{{ go_binary }}"
         dest: "{{ goroot }}/{{ go_binary }}"
         checksum: sha256:1dfe664fa3d8ad714bbd15a36627992effd150ddabd7523931f077b3926d736d
+        # This is a hack to work around some networks, it needs to be removed.
+        validate_certs: no
 
     - name: Install GO
       unarchive:

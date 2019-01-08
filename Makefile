@@ -33,6 +33,7 @@ ifeq ($(UNAME),Darwin)
 	brew tap gobuffalo/tap
 	brew install $(PKGS)
 endif
+	-cd terraform/sbx; terraform init
 
 # Install the required Javascript dependencies via Yarn
 deps/js: deps/js/client deps/js/server
