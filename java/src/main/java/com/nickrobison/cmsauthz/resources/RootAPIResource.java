@@ -22,7 +22,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,20 +31,17 @@ public class RootAPIResource {
 
     private static final Charset KEY_CHARSET = StandardCharsets.US_ASCII;
     private static final Charset MSG_CHARSET = StandardCharsets.UTF_8;
-    private static final Charset BYTE_CHARSET = StandardCharsets.ISO_8859_1;
     private static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
     private static final Pattern BASE_64_PATTERN = Pattern.compile("^([A-Za-z0-9+/\\-_]{4})*([A-Za-z0-9+/\\-_]{3}=|[A-Za-z0-9+/\\-_]{2}==)?$");
     private static final String TEST_NONCE = "this is a test nonce,...";
     private static String TEST_KEY = "this is a test key, it should be long enough.";
 
-    private final Map<String, String> keyMap;
     private final Client client;
 
 
     public RootAPIResource(Client client) {
         System.out.println("Created`");
         this.client = client;
-        this.keyMap = new ConcurrentHashMap<>();
     }
 
     @GET
@@ -124,7 +120,7 @@ public class RootAPIResource {
         }
 
         if (valid) {
-            return Response.ok("Hello there!").build();
+            return Response.ok(String.format("Successfully accessed data for ACO %s", aco_id)).build();
         }
 
         return Response.status(Response.Status.UNAUTHORIZED).entity("Incorrect macaroon").build();

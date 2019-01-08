@@ -64,8 +64,8 @@ export class AuthController {
             res.status(401).send(err.message);
             return;
         }
-        console.log("Verified");
-        res.status(200).send("Successfully accessed data.");
+        console.log("Successfully access data for ACO: " + acoID);
+        res.status(200).send("Successfully access data for ACO: " + acoID);
     }
 
     /** Imports a macaroon, or a slice of macaroons, from a base64 encoded string
