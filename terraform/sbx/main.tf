@@ -89,6 +89,24 @@ resource "docker_container" "target-service" {
   }
 }
 
+/* ---- Add the Java service ---- */
+
+resource "docker_container" "java-service" {
+  name = "java-service"
+  image = "nickrobison.com/java_service:latest"
+  hostname = "java"
+  ports {
+    internal = 3002
+    external = 3003
+  }
+  env = [
+    "HOST=http://${docker_container.authz.hostname}:8080"
+  ]
+  networks_advanced {
+    name = "${docker_network.public.name}"
+  }
+}
+
 /* ----- Public networking ----- */
 
 resource "docker_network" "public" {

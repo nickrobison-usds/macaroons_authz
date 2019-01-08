@@ -37,11 +37,18 @@ public class RootAPIResource {
     private static String TEST_KEY = "this is a test key, it should be long enough.";
 
     private final Client client;
+    private final String dischargeHost;
 
 
     public RootAPIResource(Client client) {
         System.out.println("Created`");
         this.client = client;
+        final String host = System.getenv("HOST");
+        if (host == null) {
+            this.dischargeHost = "http://localhost:8080";
+        } else {
+            this.dischargeHost = host;
+        }
     }
 
     @GET
@@ -50,7 +57,7 @@ public class RootAPIResource {
 
         // Get the JWKS
         final JWKResponse response = this.client
-                .target("http://localhost:8080/api/users/.well-known/jwks.json")
+                .target(this.dischargeHost + "/api/users/.well-known/jwks.json")
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .get(JWKResponse.class);
 
@@ -79,7 +86,7 @@ public class RootAPIResource {
         final byte[] encrypted = encodeIdentifier(keyPair, decodedKey, TEST_KEY, TEST_NONCE.getBytes(), caveat);
 
         final Macaroon m2 = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id", MacaroonVersion.VERSION_2)
-                .add_third_party_caveat("http://localhost:8080/api/users/verify", TEST_KEY, encrypted)
+                .add_third_party_caveat(this.dischargeHost + "/api/users/verify", TEST_KEY, encrypted)
                 .getMacaroon();
 
         return Response.ok().entity(m2.serialize(MacaroonVersion.SerializationVersion.V2_JSON)).build();
