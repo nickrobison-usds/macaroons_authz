@@ -1,0 +1,21 @@
+{
+    "builders": [{
+        "type": "docker",
+        "image": "openjdk:jdk-slim",
+        "commit": "true",
+        "changes": [
+            "CMD [\"java\", \"-jar\", \"/opt/javaservice-1.0-SNAPSHOT.jar\", \"server\"]"
+        ]
+    }],
+    "provisioners": [{
+        "type": "ansible",
+        "user": "root",
+        "playbook_file": "playbooks/java_service.yml"
+    }],
+
+    "post-processors": [{
+        "type": "docker-tag",
+        "repository": "nickrobison.com/java_service",
+        "tag": "latest"
+    }]
+}
