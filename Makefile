@@ -102,7 +102,7 @@ build/seed:
 
 # Deploy builds
 
-deploy: deploy-server deploy-cfssl deploy-target-service
+deploy: deploy/server deploy/cfssl deploy/target-service
 
 deploy/server: linux/amd64
 		packer build packer/macaroons_authz.json
@@ -112,8 +112,6 @@ deploy/cfssl:
 
 deploy/target-service: javascript/dist/target_service.js
 		packer build packer/target_service.json
-
-.PHONY: deploy deploy-server deploy-cfssl deploy-target-service run
 
 run:
 		-cd terraform/sbx; terraform apply

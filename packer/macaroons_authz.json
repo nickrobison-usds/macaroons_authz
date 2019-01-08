@@ -13,12 +13,12 @@
     "provisioners": [{
         "type": "ansible",
         "user": "root",
-        "playbook_file": "playbooks/cms_authz.yml"
+        "playbook_file": "playbooks/macaroons_authz.yml"
     }],
 
     "post-processors": [{
         "type": "docker-tag",
-        "repository": "nickrobison.com/cms_authz",
+        "repository": "nickrobison.com/macaroons_authz",
         "tag": "latest"
     }]
 }
