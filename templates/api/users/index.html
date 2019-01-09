@@ -22,11 +22,11 @@
             <td>
                 <%= user.Provider %>
             </td>
-            <td><button type="button" class="open-AssignUserModal" data-toggle="modal" data-id="<%=user.ID%>" data-target="#userAssignModal">
+            <td><button type="button" class="btn btn-default no-outline open-AssignUserModal" data-toggle="modal" data-id="<%=user.ID%>" data-target="#userAssignModal">
                     <i class="fa fa-user-plus fa-lg"></i>
                 </button>
             </td>
-            <td><a href="delete/<%=user.ID%>"><i class="fa fa-minus-circle fa-lg"></i></a></td>
+            <td><button type="button" class="btn btn-default no-outline" href="delete/<%=user.ID%>"><i class="fa fa-minus-circle fa-lg"></i></button></td>
         </tr>
         <% } %>
     </tbody>

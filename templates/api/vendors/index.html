@@ -1,9 +1,9 @@
 <div class="row">
-    <div class="col-sm-3">
+    <div class="col-sm-5">
         <h1>Vendor Index</h1>
     </div>
     <div class="mr-md-3">
-        <a href="create" class="btn btn-outline-dark text-dark">Create Vendor</a>
+        <a href="create" class="btn btn-outline-primary">Create Vendor</a>
     </div>
 </div>
 
@@ -12,7 +12,8 @@
         <thead>
             <tr>
                 <th scope="col">Name</th>
-                <th scope="col">Actions</th>
+                <th scope="col">Assign</th>
+                <th scope="col">Delete</th>
             </tr>
         </thead>
         <tbody>
@@ -22,11 +23,13 @@
                     <a href="show/<%=vendor.ID%>"> <%= vendor.Name %></a>
                 </td>
                 <td>
-                    <a href="delete/<%=vendor.ID%>">
+                    <button class="btn btn-default no-outline open-AssignVendorModal" data-toggle="modal" data-id="<%=vendor.ID%>" data-target="#vendorAssignModal">
+                        <i class="fa fa-user-plus fa-lg"></i>
+                    </button>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-default no-outline" href="delete/<%=vendor.ID%>">
                         <i class="fa fa-minus-circle fa-lg"></i>
-                    </a>
-                    <button class="open-AssignVendorModal" data-toggle="modal" data-id="<%=vendor.ID%>" data-target="#vendorAssignModal">
-                        <i class="fa fa-user-plus"></i>
                     </button>
                 </td>
             </tr>

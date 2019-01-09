@@ -1,4 +1,17 @@
 @import "~bootstrap/scss/bootstrap.scss";
 @import "~font-awesome/css/font-awesome.css";
 
-@import "buffalo"
+@import "buffalo";
+
+.no-underline {
+        &:hover {
+            text-decoration: none;
+        }
+}
+
+.no-outline {
+    &:focus {
+        outline: none;
+        box-shadow: none;
+    }
+}

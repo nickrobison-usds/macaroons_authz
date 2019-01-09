@@ -105,6 +105,8 @@ func App() *buffalo.App {
 		// User Endpoints
 		api.GET("/users/find", UsersFind)
 		api.GET("/users/index", UsersIndex)
+		// We need the POST option, in order to return from the assignment form.
+		api.POST("/users/index", UsersIndex)
 		api.GET("/users/show/{id}", UsersShow)
 		api.POST("/users/create", UsersCreate)
 		api.GET("/users/delete/{id}", UsersDelete)
@@ -116,6 +118,8 @@ func App() *buffalo.App {
 		// Vendor endpoints
 		api.GET("/vendors/show/{id}", VendorsShow)
 		api.GET("/vendors/index", VendorsIndex)
+		// We need the POST option, in order to return from the assignment form.
+		api.POST("/vendors/index", VendorsIndex)
 		api.GET("/vendors/list", VendorsList)
 		api.GET("/vendors/create", VendorsCreate)
 		api.POST("/vendors/assign", VendorsAssign)
