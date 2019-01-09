@@ -67,6 +67,36 @@ cd javascript
 yarn install
 ```
 
+The javascript application relies on a custom fork of the `js-macaroons` dependency, which can be installed via the `npm link` command.
+
+```bash
+git clone https://github.com/nickrobison-usds/js-macaroon.git
+cd js-macaroon
+yarn link
+```
+
+In order for Yarn to make use of the linked package, you need to manually link the local dependency.
+
+```bash
+cd javascript
+yarn link macaroon
+```
+
+
+### Java dependencies
+
+Dependencies for the Java application is handled automatically by Maven.
+The one caveat is that we currently require installing a custom fork of the `jmacaroons` dependency.
+
+```bash
+git clone https://github.com/nickrobison-usds/jmacaroons.git
+cd jmacaroons
+git checkout origin/v2-json
+mvn install
+```
+
+From there, everything proceeds as normal.
+
 
 ### Go dependencies
 
@@ -116,14 +146,6 @@ The *External Service* emulates a standalone API endpoint, which uses Macaroons 
 It relies on public key cryptography to discharge third-party caveats between the services.
 The emulates a fully decoupled system where the endpoint only knows a fraction of the information required to authorize a given request.
 
-Currently, the external service requires installing a custom fork of the `jmacaroons` dependency.
-
-```bash
-git clone https://github.com/nickrobison-usds/jmacaroons.git
-cd jmacaroons
-git checkout origin/v2-json
-mvn install
-```
 
 The external service is written in Java, using the [Dropwizard](https://www.dropwizard.io) framework.
 It can be built automatically via the `make deploy/external-service` command, or manually with maven:
