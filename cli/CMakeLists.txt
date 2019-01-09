@@ -42,7 +42,11 @@ if (NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/spdlog/CMakeLists.txt")
 endif ()
 
 add_subdirectory(extern/cli11)
-add_subdirectory(extern/fmt)
+
+if (NOT TARGET fmt)
+    add_subdirectory(extern/fmt)
+endif()
+
 add_subdirectory(extern/spdlog)
 add_subdirectory(cppbakery)
 

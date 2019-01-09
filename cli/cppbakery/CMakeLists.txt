@@ -25,4 +25,3 @@ endif ()
 
 add_subdirectory(bakery)
 add_subdirectory(httpbakery)
-add_subdirectory(extern/cppcodec)

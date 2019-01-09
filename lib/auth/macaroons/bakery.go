@@ -57,6 +57,7 @@ func NewBakery(location string, checker *checkers.Checker, db *pop.Connection, k
 
 	// Do something dumb for public keys
 	if keys == nil {
+		log.Debug("Generating pub/priv key pair")
 		keys = bakery.MustGenerateKey()
 	}
 	log.Debugf("Private: %s, Public: %s", keys.Private, keys.Public)
@@ -94,7 +95,7 @@ func (b Bakery) GetPrivateKey() []byte {
 
 // GetPublicKey returns the binary encoding of the Bakery public key
 func (b Bakery) GetPublicKey() []byte {
-	log.Debug("Getting public key from Bakery: ", b.oven.Key().Public.String())
+	log.Debug("Getting public key from Bakery: ", []byte(b.oven.Key().Public.String()))
 	key, err := b.oven.Key().Public.MarshalBinary()
 	if err != nil {
 		panic(err)
@@ -178,10 +179,11 @@ func (b Bakery) DischargeCaveatByID(ctx context.Context, id string, caveatChecke
 	}
 
 	log.Debug("Discharging it")
-	log.Debug("ID:", decodedID)
+	log.Debug("ID: ", string(decodedID))
+	log.Debug("ID Bytes: ", decodedID)
 
-	log.Debug("Pub key", b.oven.Key().Public.String())
-	log.Debug("Priv key", b.oven.Key().Private.String())
+	log.Debug("Pub key: ", []byte(b.oven.Key().Public.String()))
+	log.Debug("Priv key: ", b.oven.Key().Private.String())
 
 	mac, err := bakery.Discharge(ctx, params)
 	if err != nil {

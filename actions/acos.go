@@ -2,7 +2,11 @@ package actions
 
 import (
 	"context"
+	"database/sql"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gobuffalo/buffalo"
@@ -14,11 +18,12 @@ import (
 	"github.com/nickrobison-usds/macaroons_authz/models"
 	"github.com/pkg/errors"
 	"github.com/rakutentech/jwk-go/jwk"
+	"gopkg.in/macaroon-bakery.v2/bakery"
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 	"gopkg.in/macaroon-bakery.v2/httpbakery"
 )
 
-var acoURI = "http://localhost:8080/api/acos"
+var acoURI = "http://localhost:8080/api/acos/verify"
 
 type idNamePair struct {
 	ID   string
@@ -28,11 +33,94 @@ type idNamePair struct {
 var as *macaroons.Bakery
 
 func init() {
-	s, err := macaroons.NewBakery(acoURI, createACOCheckers(), models.DB, nil)
+	// Read in the demo file
+	f, err := ioutil.ReadFile("./user_keys.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	key := &bakery.KeyPair{}
+	err = json.Unmarshal(f, key)
+	if err != nil {
+		log.Fatal(err)
+	}
+	s, err := macaroons.NewBakery(acoURI, createACOCheckers(), models.DB, key)
 	if err != nil {
 		log.Fatal(err)
 	}
 	as = s
+}
+
+func AcosCreateACO(c buffalo.Context) error {
+
+	fmt.Println(c.Request())
+
+	aco := models.ACO{}
+
+	aco.ID = helpers.MustGenerateID()
+
+	err := c.Bind(&aco)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	err = CreateACOCertificates(&aco)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	fmt.Printf("\n\n\nACO: %v\n\n\n", aco)
+
+	tx := c.Value("tx").(*pop.Connection)
+	if err := tx.Create(aco); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return c.Redirect(302, "/api/acos/index")
+}
+
+func AcosDelete(c buffalo.Context) error {
+
+	acoID := c.Param("id")
+	uuidString, err := uuid.FromString(acoID)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	user := models.ACO{
+		ID: uuidString,
+	}
+	tx := c.Value("tx").(*pop.Connection)
+	err = tx.Destroy(&user)
+	if err != nil {
+		c.Flash().Add("danger", fmt.Sprintf("Cannot delete ACO: %s", acoID))
+		return errors.WithStack(err)
+	}
+
+	c.Flash().Add("success", "Deleted")
+	return c.Redirect(302, "/api/acos/index")
+
+}
+
+func AcoDischargeMacaroon(c buffalo.Context) error {
+	// Retrieve the token from the request
+	token := c.Param("id64")
+
+	// If it comes in as id, we need to translate it to base64 encoding
+	if token == "" {
+		token = base64.URLEncoding.EncodeToString([]byte(c.Param("id")))
+	}
+
+	log.Debug("Token: ", token)
+
+	// Get the ACO ID from the path
+	acoID := c.Param("id")
+
+	mac, err := us.DischargeCaveatByID(c.Request().Context(), token, userAssociatedChecker(c.Value("tx").(*pop.Connection), helpers.UUIDOfString(acoID)))
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	return c.Render(200, r.JSON(&dischargeResponse{mac}))
 }
 
 // AcosFind looks up an ACO ID via the given parameter
@@ -84,29 +172,15 @@ func AcosHeadIndex(c buffalo.Context) error {
 
 }
 
-func RenderCreatePage(c buffalo.Context) error {
-	aco := models.ACO{}
-
-	c.Set("aco", aco)
-	return c.Render(http.StatusOK, r.HTML("api/acos/create.html"))
-}
-
 // AcoJWKS returns the jwks.json for the given third-party
 func AcoJWKS(c buffalo.Context) error {
-	priv := as.GetPrivateKey()
-	spec := jwk.NewSpec(priv)
+	pub := as.GetPublicKey()
+	spec := jwk.NewSpec(pub)
 
 	spec.KeyID = "1"
 	spec.Algorithm = "ES256"
 	spec.Use = "enc"
 
-	log.Debug("Spec: ", spec)
-
-	json, err := spec.MarshalJSON()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	log.Debug(json)
 	return c.Render(http.StatusOK, r.JSON(spec))
 }
 
@@ -123,56 +197,6 @@ func AcoShow(c buffalo.Context) error {
 	c.Set("aco", aco)
 
 	return c.Render(http.StatusOK, r.HTML("/api/acos/show.html"))
-}
-
-func AcosDelete(c buffalo.Context) error {
-
-	acoID := c.Param("id")
-	uuidString, err := uuid.FromString(acoID)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	user := models.ACO{
-		ID: uuidString,
-	}
-	tx := c.Value("tx").(*pop.Connection)
-	err = tx.Destroy(&user)
-	if err != nil {
-		c.Flash().Add("danger", fmt.Sprintf("Cannot delete ACO: %s", acoID))
-		return errors.WithStack(err)
-	}
-
-	c.Flash().Add("success", "Deleted")
-	return c.Redirect(302, "/api/acos/index")
-
-}
-
-func AcosCreateACO(c buffalo.Context) error {
-
-	fmt.Println(c.Request())
-
-	aco := models.ACO{}
-
-	aco.ID = helpers.MustGenerateID()
-
-	err := c.Bind(&aco)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	err = CreateACOCertificates(&aco)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	fmt.Printf("\n\n\nACO: %v\n\n\n", aco)
-
-	tx := c.Value("tx").(*pop.Connection)
-	if err := tx.Create(aco); err != nil {
-		return errors.WithStack(err)
-	}
-
-	return c.Redirect(302, "/api/acos/index")
 }
 
 // CreateACOCertificates sets up the certs, keys and macaroons for the given ACO
@@ -271,14 +295,14 @@ func AcoVerifyUser(c buffalo.Context) error {
 	err = tx.Where("aco_id = ?", requestData.ACOID).Where("user_id = ?", requestData.EntityID).First(&acoUser)
 	if err != nil {
 		log.Error(err)
-		return c.Render(http.StatusInternalServerError, r.String("Something wen't wrong: %s", err.Error()))
+		return c.Render(http.StatusInternalServerError, r.String("Something went wrong: %s", err.Error()))
 	}
 
 	// If it exists, discharge it
 	_, err = macaroons.MacaroonFromBytes(requestData.Macaroon)
 	if err != nil {
 		log.Error(err)
-		return c.Render(http.StatusInternalServerError, r.String("Something wen't wrong: %s", err.Error()))
+		return c.Render(http.StatusInternalServerError, r.String("Something went wrong: %s", err.Error()))
 	}
 
 	// Validate  it?
@@ -409,4 +433,33 @@ func AssignVendorToACO(acoID, vendorID uuid.UUID, tx *pop.Connection) error {
 	link.Macaroon = mBinary
 
 	return tx.Save(&link)
+}
+
+func RenderCreatePage(c buffalo.Context) error {
+	aco := models.ACO{}
+
+	c.Set("aco", aco)
+	return c.Render(http.StatusOK, r.HTML("api/acos/create.html"))
+}
+
+func userAssociatedChecker(db *pop.Connection, acoID uuid.UUID) bakery.ThirdPartyCaveatCheckerFunc {
+	return func(ctx context.Context, cav *bakery.ThirdPartyCaveatInfo) ([]checkers.Caveat, error) {
+		_, userID, err := checkers.ParseCaveat(string(cav.Condition))
+		if err != nil {
+			return nil, err
+		}
+		log.Debugf("Checking that %s is associated with ACO %s", userID, acoID)
+
+		var user models.AcoUser
+
+		err = db.Select("id").Where("entity_id = ? AND aco_id = ?", helpers.UUIDOfString(userID), acoID).First(&user)
+		if err != nil {
+			if errors.Cause(err) == sql.ErrNoRows {
+				return nil, fmt.Errorf("No authorized to retrieve data for ACO %s", acoID)
+			}
+			return nil, err
+		}
+
+		return nil, nil
+	}
 }

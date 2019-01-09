@@ -22,8 +22,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
@@ -32,7 +30,6 @@ public class RootAPIResource {
     private static final Charset KEY_CHARSET = StandardCharsets.US_ASCII;
     private static final Charset MSG_CHARSET = StandardCharsets.UTF_8;
     private static final Base64.Decoder URL_DECODER = Base64.getUrlDecoder();
-    private static final Pattern BASE_64_PATTERN = Pattern.compile("^([A-Za-z0-9+/\\-_]{4})*([A-Za-z0-9+/\\-_]{3}=|[A-Za-z0-9+/\\-_]{2}==)?$");
     private static final String TEST_NONCE = "this is a test nonce,...";
     private static String TEST_KEY = "this is a test key, it should be long enough.";
 
@@ -52,12 +49,12 @@ public class RootAPIResource {
     }
 
     @GET
-    @Path("/token")
-    public Response getToken(@QueryParam("user_id") String userID) {
+    @Path("/{aco_id}/token")
+    public Response getToken(@QueryParam("user_id") String userID, @PathParam("aco_id") String acoID) {
 
         // Get the JWKS
         final JWKResponse response = this.client
-                .target(this.dischargeHost + "/api/users/.well-known/jwks.json")
+                .target(String.format("%s/api/acos/%s/.well-known/jwks.json", this.dischargeHost, acoID))
                 .request(MediaType.APPLICATION_JSON_TYPE)
                 .get(JWKResponse.class);
 
@@ -86,7 +83,8 @@ public class RootAPIResource {
         final byte[] encrypted = encodeIdentifier(keyPair, decodedKey, TEST_KEY, TEST_NONCE.getBytes(), caveat);
 
         final Macaroon m2 = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id", MacaroonVersion.VERSION_2)
-                .add_third_party_caveat(this.dischargeHost + "/api/users/verify", TEST_KEY, encrypted)
+//                .add_first_party_caveat(String.format("aco_id= %s", acoID))
+                .add_third_party_caveat(String.format("%s/api/acos/%s/verify", this.dischargeHost, acoID), TEST_KEY, encrypted)
                 .getMacaroon();
 
         return Response.ok().entity(m2.serialize(MacaroonVersion.SerializationVersion.V2_JSON)).build();
@@ -118,11 +116,11 @@ public class RootAPIResource {
 
         try {
             verifier
-//                    .satisfyExact("aco_id = 1")
+                    .satisfyExact(String.format("aco_id= test_aco"))
                     .assertIsValid(TEST_KEY);
             valid = true;
         } catch (GeneralSecurityRuntimeException | MacaroonValidationException e) {
-            System.out.println(e);
+            System.out.println(e.getMessage());
             valid = false;
         }
 
@@ -301,21 +299,5 @@ public class RootAPIResource {
         return fullMessage.array();
 
 //        return Base64.getEncoder().encodeToString(fullMessage.array());
-    }
-
-    /**
-     * Checks to see if a String is Base64 Encoded using the {@link RootAPIResource#BASE_64_PATTERN} regex.
-     * If it is encoded, it decodes it, otherwise it simply extracts the bytes from the String
-     *
-     * @param encoded - {@link String} potentially base64 encoded string
-     * @return - {@link byte[]} of either the base64 decoded {@link String}, or the raw bytes of the original input
-     */
-    private static byte[] unWrapBase64(String encoded) {
-        final Matcher matcher = BASE_64_PATTERN.matcher(encoded);
-        if (matcher.matches()) {
-            URL_DECODER.decode(encoded);
-        }
-
-        return encoded.getBytes();
     }
 }

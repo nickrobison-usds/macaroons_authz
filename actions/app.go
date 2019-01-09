@@ -80,6 +80,7 @@ func App() *buffalo.App {
 		api.Middleware.Skip(Authorize,
 			AcosFind,
 			AcoVerifyUser,
+			AcoDischargeMacaroon,
 			AcoTest,
 			AcoJWKS,
 			UsersFind,
@@ -97,8 +98,9 @@ func App() *buffalo.App {
 		api.GET("/acos/list", AcosHeadIndex)
 		api.GET("/acos/show/{id}", AcoShow)
 		api.POST("/acos/verify", AcoVerifyUser)
+		api.POST("/acos/{id}/verify/discharge", AcoDischargeMacaroon)
 		api.GET("/acos/test/{id}", AcoTest)
-		api.GET("/acos/.well-known/jwks.json", AcoJWKS)
+		api.GET("/acos/{id}/.well-known/jwks.json", AcoJWKS)
 
 		// User Endpoints
 		api.GET("/users/find", UsersFind)

@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
     if (java_service) {
         console->info("Making request to Java service");
 
-        http_client standaloneClient(U("http://localhost:3002"));
+        http_client standaloneClient(U(fmt::format("http://localhost:3002/{}", acoID)));
         uri_builder standaloneBuilder(U("/token"));
         standaloneBuilder.append_query(U("user_id"), userID);
 

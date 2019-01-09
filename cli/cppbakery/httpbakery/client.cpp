@@ -1,7 +1,9 @@
 
 #include <cpprest/http_client.h>
+#include <fmt/format.h>
 #include "include/httpbakery/client.hpp"
 #include "../extern/cppcodec/cppcodec/base64_url_unpadded.hpp"
+#include "../extern/cppcodec/cppcodec/base64_url.hpp"
 #include "../extern/cppcodec/cppcodec/base64_rfc4648.hpp"
 
 //
@@ -31,7 +33,7 @@ const std::string Client::dischargeMacaroon(const Macaroon m, const macaroon_for
         auto test = this->dischargeCaveat(cav);
         discharges.push_back(test);
     });
-    const auto discharged = pplx::when_all(discharges.begin(), discharges.end()).get();
+    const std::vector<Macaroon> discharged = pplx::when_all(discharges.begin(), discharges.end()).get();
 
     // Bind everything
     // Create the json value
@@ -76,7 +78,13 @@ pplx::task<Macaroon> Client::dischargeCaveat(const MacaroonCaveat &cav) const {
 
     // Make the call
     return client.request(req)
-            .then([](http_response resp) {
+            .then([&cav](http_response resp) {
+                if (resp.status_code() != status_codes::OK) {
+                    const auto json_error = resp.extract_json().get();
+                    const std::string error_msg = json_error.at("error").as_string();
+                    const std::string msg = fmt::format("Unable to discharge Macaroon from: {}. {}", cav.location, error_msg);
+                    throw std::runtime_error(msg);
+                }
                 return resp.extract_json();
             })
 //            Build the macaroons

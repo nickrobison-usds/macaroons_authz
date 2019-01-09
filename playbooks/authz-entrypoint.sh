@@ -8,7 +8,7 @@ then
    n=0
    while [ $n -lt 10 ]
    do
-       cms_authz_linux migrate && cms_authz_linux task db:seed && break
+       macaroons_authz_linux migrate && macaroons_authz_linux task db:seed && break
        n=`expr $n + 1`
        echo 'Retrying the migration command.'
        sleep 10
