@@ -1016,6 +1016,7 @@
     "github.com/gobuffalo/uuid",
     "github.com/gobuffalo/validate",
     "github.com/gobuffalo/validate/validators",
+    "github.com/gorilla/mux",
     "github.com/logrusorgru/aurora",
     "github.com/markbates/going/defaults",
     "github.com/markbates/goth",

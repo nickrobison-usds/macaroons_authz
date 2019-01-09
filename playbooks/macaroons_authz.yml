@@ -27,8 +27,6 @@
         url: https://github.com/gobuffalo/buffalo/releases/download/v0.13.10/buffalo_0.13.10_linux_amd64.tar.gz
         dest: /authz
         checksum: sha256:7af64129190a44fbac6fcfc2cd3521abc0e081ec404b10febabac822e6a4d4f3
-        # This needs to get removed, it's just a workaround.
-        validate_certs: no
     - name: Install Buffalo
       unarchive:
         remote_src: yes

@@ -10,12 +10,12 @@
     "provisioners": [{
         "type": "ansible",
         "user": "root",
-        "playbook_file": "playbooks/java_service.yml"
+        "playbook_file": "playbooks/external_service.yml"
     }],
 
     "post-processors": [{
         "type": "docker-tag",
-        "repository": "nickrobison.com/java_service",
+        "repository": "nickrobison.com/external_service",
         "tag": "latest"
     }]
 }

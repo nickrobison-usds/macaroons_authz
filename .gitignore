@@ -17,6 +17,7 @@ cms_authz
 *.csr
 **/*.tfstate*
 **/.terraform
+**/*.retry
 javascript/src/**/*.js
 javascript/dist
 java/target

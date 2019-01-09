@@ -68,12 +68,12 @@ resource "docker_container" "authz" {
   }
 }
 
-/* ----- Setup the Target Service resource ----- */
+/* ----- Setup the Internal Service resource ----- */
 
-resource "docker_container" "target-service" {
-  name = "target-service"
-  image = "nickrobison.com/target_service:latest"
-  hostname = "target"
+resource "docker_container" "internal-service" {
+  name = "internal-service"
+  image = "nickrobison.com/internal_service:latest"
+  hostname = "internal-service"
   ports {
     internal = 3002
     external = 3002
@@ -89,12 +89,12 @@ resource "docker_container" "target-service" {
   }
 }
 
-/* ---- Add the Java service ---- */
+/* ---- Add the External service ---- */
 
-resource "docker_container" "java-service" {
-  name = "java-service"
-  image = "nickrobison.com/java_service:latest"
-  hostname = "java"
+resource "docker_container" "external-service" {
+  name = "external-service"
+  image = "nickrobison.com/external_service:latest"
+  hostname = "external-service"
   ports {
     internal = 3002
     external = 3003

@@ -80,7 +80,7 @@ $(PLATFORMS):
 
 # Javascript endpoint
 
-build/endpoint: javascript/dist/target_service.js
+build/internal: javascript/dist/target_service.js
 
 javascript/dist/target_service.js:
 		npm run --prefix javascript build
@@ -99,12 +99,12 @@ build/database: build/dependencies
 build/seed:
 	buffalo task db:seed
 
-.PHONY: build build/client build/server $(PLATFORMS) build/endpoint build/seed build/dependencies build/java
+.PHONY: build build/client build/server $(PLATFORMS) build/internal build/seed build/dependencies build/external
 
 
 # Deploy builds
 
-deploy: deploy/server deploy/cfssl deploy/target-service
+deploy: deploy/server deploy/cfssl deploy/internal-service deploy/external-service
 
 deploy/server: linux/amd64
 		packer build packer/macaroons_authz.json
@@ -112,11 +112,11 @@ deploy/server: linux/amd64
 deploy/cfssl:
 		packer build packer/cfssl.json
 
-deploy/target-service: javascript/dist/target_service.js
-		packer build packer/target_service.json
+deploy/internal-service: javascript/dist/target_service.js
+		packer build packer/internal_service.json
 
-deploy/java-service: java/target/javaservice-%.jar
-		packer build packer/java_service.json
+deploy/external-service: java/target/javaservice-%.jar
+		packer build packer/external_service.json
 
 run:
 		-cd terraform/sbx; terraform apply
@@ -124,7 +124,7 @@ run:
 stop:
 		-cd terraform/sbx; terraform destroy
 
-.PHONY: deploy deploy/server deploy/cfssl deploy/target-service run stop
+.PHONY: deploy deploy/server deploy/cfssl deploy/internal-service deploy/external-service run stop
 
 # Documentation
 

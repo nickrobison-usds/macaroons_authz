@@ -11,12 +11,12 @@
     "provisioners": [{
         "type": "ansible",
         "user": "root",
-        "playbook_file": "playbooks/target_service.yml"
+        "playbook_file": "playbooks/internal_service.yml"
     }],
 
     "post-processors": [{
         "type": "docker-tag",
-        "repository": "nickrobison.com/target_service",
+        "repository": "nickrobison.com/internal_service",
         "tag": "latest"
     }]
 }
