@@ -1,4 +1,9 @@
-# CMS Auth Demo
+# Macaroons Auth Demo
+
+This project serves as a demonstration of using [Macaroons](http://macaroons.io) as the authentication mechanism for a decentralized system.
+
+The primary context is for applications within the *Centers for Medicare and Medicaid Services*, but the majority of the concepts should be transferable to other domains as well.
+
 
 ## Setup
 
@@ -8,6 +13,7 @@ This will install all the system, javascript, and go dependencies, and initializ
 
 You can also do everything manually.
 
+
 ### Cloning
 
 We use git submodules for a number of external dependencies (to avoid requiring system installation).
@@ -16,6 +22,7 @@ You can initialize them all by running:
 `git submodule init --update --recursive`
 
 Or, the [command line client](#cli-client) will handle it automatically. 
+
 
 ### System dependencies
 
@@ -37,6 +44,7 @@ The `make deps/system` command will do the installation automatically (on MacOS)
 The `make` command will not install postgres by default, because the main developer prefers to use [Postgres.app](https://postgresapp.com).
 A quick `brew install postgresql` should take care of that.
 
+
 #### MacOS Manual installation
 ```bash
 brew tap gobuffalo/tap
@@ -44,6 +52,7 @@ brew install ansible terraform packer cmake cpprestsdk node buffalo yarn
 ```
 
 On MacOS, we cannot install Docker automatically, so you'll need to install it yourself, following the instructions [here](https://docs.docker.com/docker-for-mac/install/).
+
 
 ### Javascript dependencies
 
@@ -58,6 +67,7 @@ cd javascript
 yarn install
 ```
 
+
 ### Go dependencies
 
 Go dependencies are handled by [dep](https://golang.github.io/dep/).
@@ -67,11 +77,18 @@ They can be installed by running `make deps/go` or manually:
 dep ensure
 ```
 
-### Building
 
-#### Go server
+### Building the Components
 
-The main go server is built by the `buffalo` toolkit, which means it's really easy.
+This project features a number of distinct components (services) which serve to demonstrate a number use cases and interaction models for Macaroons.
+This section briefly describes these components, along with their build instructions.
+
+
+#### Authorization Server
+
+The core project component, is the the Authorization service. This service provides the ability for assigning users to organizations, and establishing relationships between the various orgs.
+
+The service is written in Golang, with the the [buffalo](https://gobuffalo.io/en) toolkit, which means deployment is really simple.
 The `make build/server` command handles everything for you, but it currently only builds the MacOS application.
 
 If you need to build things manually the `darwin/amd64` and `linux/amd64` make targets will build for the appropriate platform.
@@ -79,11 +96,51 @@ If you need to build things manually the `darwin/amd64` and `linux/amd64` make t
 Also, `buffalo build` runs the default build process for the platform it's running aginst.
 
 
+#### Internal Service
+
+The *Internal Service* is an API endpoint that demonstrates an authorization flow where both the target service and the authorization service have trusted access to each other (e.g. both are on the same internal network, or managed by the same team).
+This simplifies the interaction model as each service can make use of the same shared keys, which eliminates the need for public key cryptography.
+
+This service is written in Typescript and built using [webpack](https://webpack.js.org), which compiles the source files into javascript and bundles them into a single file.
+
+The `make build/internal` target runs the commands:
+
+```bash
+npm run --prefix javscript build
+```
+
+
+#### External Service
+
+The *External Service* emulates a standalone API endpoint, which uses Macaroons to provide authentication, but without privilaged access the authorization service (e.g. a service operated by a third party, which can only communicate via the public internet).
+It relies on public key cryptography to discharge third-party caveats between the services.
+The emulates a fully decoupled system where the endpoint only knows a fraction of the information required to authorize a given request.
+
+Currently, the external service requires installing a custom fork of the `jmacaroons` dependency.
+
+```bash
+git clone https://github.com/nickrobison-usds/jmacaroons.git
+cd jmacaroons
+git checkout origin/v2-json
+mvn install
+```
+
+The external service is written in Java, using the [Dropwizard](https://www.dropwizard.io) framework.
+It can be built automatically via the `make deploy/external-service` command, or manually with maven:
+
+```bash
+mvn package -Dmaven.javadoc.skip=true -f java/pom.xml
+```
+
+Note, Javadoc generation must be disabled under JDK 11, due to a NullPointerException that gets thrown.
+
+
 #### CLI Client
 
-The demo client is a C++ application that is built with [cmake](https://cmake.org).
+The project also containts a demo command line application, written in C++, that provides some commands for interacting with the auth, internal and external services.
+It simply demonstrates whether a given user is authorized to retrieve data on behalf of the organization.
 
-You can build it with `make build/client` or via the manual commands.
+The client is built with [cmake](https://cmake.org), either via the `make build/client` target, or via the manual commands.
 
 ```bash
 cd cli
@@ -97,28 +154,6 @@ make -j{all the cores}
 There may be some issues with CMake finding `openssl`, mostly because `cpprestsdk` creates their own find module, which biases towards the default Homebrew location.
 If that happens, you can add the `OPENSSL_ROOT_DIR` parameter to CMake.
 The configure command would then become: `cmake -D OPENSSL_ROOT_DIR=/path/to/openssl ..`
-
-#### Javascript Service
-
-The javascript service is built using [webpack](https://webpack.js.org), which compiles the typescript source files into javascript and bundles them into a single file.
-
-The `make build/endpoint` target runs the commands:
-
-```bash
-npm run --prefix javscript build
-```
-
-#### Java Service
-
-The Java service emulates a standalone Web service, which uses Macaroons to provide authentication, but without privilaged access the services.
-
-It will be built automatically via the `make deploy/java-service` command, or manually with maven:
-
-```bash
-mvn package -Dmaven.javadoc.skip=true -f java/pom.xml
-```
-
-Note, Javadoc generation must be disabled under JDK 11, due to a NullPointerException that gets thrown.
 
 
 ### Configuration
@@ -162,7 +197,8 @@ You can then start the application with Login.gov enabled by adding `PROVIDER_UR
 
 ### Running CFSSL
 
-The Go server requires a running instance of [CFSSL](https://github.com/cloudflare/cfssl). You can either run it via the Docker image (built with [Packer](#packer-images)), or locally.
+The Go server requires a running instance of [CFSSL](https://github.com/cloudflare/cfssl), in order to generate and manage the required public/private keys.
+You can either run it via the Docker image (built with [Packer](#packer-images)), or locally.
 
 ```bash
 cd cfssl
@@ -186,6 +222,7 @@ Note: There's currently a bug in the implementation where the seeding script doe
 This means you'll need to manually remove it each time you want to re-run the seeding process.
 
 You can also manually run the seeding by the `buffalo task db:seed` command.
+
 
 ### Development modes
 
@@ -211,6 +248,8 @@ Each service can be built by calling `packer build` on each file in the `packer/
 Of course, the Makefile will handle it all for you, via the `build/deploy` target, which rebuilds all of the services.
 It also handles generating the required binaries, which are then copied into the Docker images.
 
+
 ## Launching Docker/Terraform
 
 Running everything can be done via the `run` target in the Makefile, likewise `stop` shuts everything down and removes the temporary data.
+
