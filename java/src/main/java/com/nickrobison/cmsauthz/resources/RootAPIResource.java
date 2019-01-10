@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 @Path("/")
 @Produces(MediaType.APPLICATION_JSON)
 public class RootAPIResource {
@@ -52,6 +53,9 @@ public class RootAPIResource {
     @Path("/{aco_id}/token")
     public Response getToken(@QueryParam("user_id") String userID, @PathParam("aco_id") String acoID, @QueryParam("vendor_id") Optional<String> vendorID) {
 
+        // If we're submitting on behalf of a vendor, then we use that as the entity ID. Otherwise, use the user ID
+        final String entityID = vendorID.orElse(userID);
+
         // Get the JWKS
         final JWKResponse response = this.client
                 .target(String.format("%s/api/acos/%s/.well-known/jwks.json", this.dischargeHost, acoID))
@@ -79,7 +83,7 @@ public class RootAPIResource {
         Helpers.printUnsignedBytes("Pub key", keyPair.getPublicKey());
 
         // Encrypt things
-        final String caveat = String.format("user_id= %s", userID);
+        final String caveat = String.format("entity_id= %s", entityID);
         final byte[] encrypted = encodeIdentifier(keyPair, decodedKey, TEST_KEY, TEST_NONCE.getBytes(), caveat);
 
         final Macaroon m2 = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id", MacaroonVersion.VERSION_2)

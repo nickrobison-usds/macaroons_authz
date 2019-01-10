@@ -444,6 +444,8 @@ func RenderCreatePage(c buffalo.Context) error {
 
 func userAssociatedChecker(db *pop.Connection, acoID uuid.UUID) bakery.ThirdPartyCaveatCheckerFunc {
 	return func(ctx context.Context, cav *bakery.ThirdPartyCaveatInfo) ([]checkers.Caveat, error) {
+
+		var caveats []checkers.Caveat
 		_, userID, err := checkers.ParseCaveat(string(cav.Condition))
 		if err != nil {
 			return nil, err
@@ -452,14 +454,25 @@ func userAssociatedChecker(db *pop.Connection, acoID uuid.UUID) bakery.ThirdPart
 
 		var user models.AcoUser
 
-		err = db.Select("id").Where("entity_id = ? AND aco_id = ?", helpers.UUIDOfString(userID), acoID).First(&user)
+		err = db.Where("entity_id = ? AND aco_id = ?", helpers.UUIDOfString(userID), acoID).First(&user)
 		if err != nil {
 			if errors.Cause(err) == sql.ErrNoRows {
 				return nil, fmt.Errorf("No authorized to retrieve data for ACO %s", acoID)
 			}
-			return nil, err
+			return caveats, err
 		}
 
-		return nil, nil
+		// If we're a vendor, add a third party caveat requiring the vendor to verify that the user is valid
+
+		if !user.IsUser {
+			log.Debug("Entity is a vendor, adding additional caveat")
+			caveats = append(caveats,
+				checkers.Caveat{
+					Location:  fmt.Sprintf("http://localhost:8080/api/vendors/%s/verify", userID),
+					Condition: fmt.Sprintf("user_id= %s", "test user"),
+				})
+		}
+
+		return caveats, nil
 	}
 }
