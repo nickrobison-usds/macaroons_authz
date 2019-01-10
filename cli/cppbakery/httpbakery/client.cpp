@@ -114,4 +114,3 @@ pplx::task<Macaroon> Client::dischargeCaveat(const MacaroonCaveat &cav) const {
                 return Macaroon::importMacaroons(mac_string);
             });
 }
-

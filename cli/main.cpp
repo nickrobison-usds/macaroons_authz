@@ -22,6 +22,7 @@ int main(int argc, char **argv) {
 
     std::optional<string> aco_name_opt;
     std::optional<string> user_name_opt;
+    std::optional<string> vendor_name_opt;
     bool gather_discharges = true;
     bool java_service = false;
 
@@ -37,6 +38,7 @@ int main(int argc, char **argv) {
     });
     app.add_option("user", user_name_opt, "User to perform queries as");
     app.add_option("aco", aco_name_opt, "ACO to query against");
+    app.add_option("--vendor", vendor_name_opt, "Vendor name to lookup");
 
     try {
         app.parse(argc, argv);
@@ -64,8 +66,6 @@ int main(int argc, char **argv) {
     }
 
     console->info("Starting up demo client");
-
-    // Should we get a token from the standalone Java service?
 
     // Try to lookup a given ACO ID
 
@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
     }
 
     // And a User ID
-    string userID;
+    string user_id;
 
     console->info("Looking up ID for user '{:s}'", user_name);
 
@@ -112,10 +112,36 @@ int main(int argc, char **argv) {
                 throw invalid_argument(resp.extract_string().get());
             });
     try {
-        userID = userTask.get();
+        user_id = userTask.get();
     } catch (const exception &e) {
         console->critical("Unable to get User ID: {:s}", e.what());
         return 1;
+    }
+
+    // And a vendor ID, if one was given
+    optional<string> vendor_id;
+
+    if (vendor_name_opt) {
+        console->info("Looking up ID for vendor '{:s}'", *vendor_name_opt);
+
+        uri_builder vendorBuilder(U("/api/vendors/find"));
+        vendorBuilder.append_query(U("name"), U(*vendor_name_opt));
+        http_request vendor_req(methods::GET);
+        vendor_req.set_request_uri(vendorBuilder.to_uri());
+
+        auto vendorTask = nameClient.request(vendor_req)
+                .then([](http_response resp) {
+                    if (resp.status_code() == status_codes::OK) {
+                        return resp.extract_string();
+                    }
+                    throw invalid_argument(resp.extract_string().get());
+                });
+        try {
+            vendor_id.emplace(vendorTask.get());
+        } catch (const exception &e) {
+            console->critical("Unable to get Vendor ID: {:s}", e.what());
+            return 1;
+        }
     }
 
     string token;
@@ -127,7 +153,12 @@ int main(int argc, char **argv) {
 
         http_client standaloneClient(U(fmt::format("http://localhost:3002/{}", acoID)));
         uri_builder standaloneBuilder(U("/token"));
-        standaloneBuilder.append_query(U("user_id"), userID);
+        standaloneBuilder.append_query(U("user_id"), user_id);
+
+        // Add the vendor id, if we're making a request on their behalf
+        if (vendor_id) {
+            standaloneBuilder.append_query(U("vendor_id"), *vendor_id);
+        }
 
         http_request standalone_req(methods::GET);
         standalone_req.set_request_uri(standaloneBuilder.to_uri());
@@ -143,7 +174,7 @@ int main(int argc, char **argv) {
         try {
             token = client_task.get();
         } catch (const exception &e) {
-            console->critical("Error getting aco ID: {:s}", e.what());
+            console->critical("Error making service Request: {:s}", e.what());
             return 1;
         }
     }
@@ -154,7 +185,7 @@ int main(int argc, char **argv) {
         console->info("Looking up Macaroon for '{:s}' associated with '{:s}'", aco_name, user_name);
 
         // Try to find the ACO token associated with the user
-        std::string token_query = fmt::format("api/users/token/{}/ACO/{}", userID, acoID);
+        std::string token_query = fmt::format("api/users/token/{}/ACO/{}", user_id, acoID);
         uri_builder tokenBuilder(U(token_query));
         http_request token_req(methods::GET);
         token_req.set_request_uri(tokenBuilder.to_uri());

@@ -50,7 +50,7 @@ public class RootAPIResource {
 
     @GET
     @Path("/{aco_id}/token")
-    public Response getToken(@QueryParam("user_id") String userID, @PathParam("aco_id") String acoID) {
+    public Response getToken(@QueryParam("user_id") String userID, @PathParam("aco_id") String acoID, @QueryParam("vendor_id") Optional<String> vendorID) {
 
         // Get the JWKS
         final JWKResponse response = this.client

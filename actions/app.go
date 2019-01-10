@@ -87,6 +87,7 @@ func App() *buffalo.App {
 			UsersVerify,
 			UsersTokenGet,
 			UsersJWKS,
+			VendorsFind,
 			VendorsVerify)
 
 		// ACO Endpoints
@@ -116,6 +117,7 @@ func App() *buffalo.App {
 		api.GET("/users/.well-known/jwks.json", UsersJWKS)
 
 		// Vendor endpoints
+		api.GET("/vendors/find/", VendorsFind)
 		api.GET("/vendors/show/{id}", VendorsShow)
 		api.GET("/vendors/index", VendorsIndex)
 		// We need the POST option, in order to return from the assignment form.

@@ -2,6 +2,7 @@ package actions
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -82,6 +83,27 @@ func VendorsAssign(c buffalo.Context) error {
 // VendorsCreate default implementation.
 func VendorsCreate(c buffalo.Context) error {
 	return c.Render(200, r.HTML("api/vendors/create.html"))
+}
+
+func VendorsFind(c buffalo.Context) error {
+	nameString := c.Param("name")
+	if nameString == "" {
+		return c.Render(http.StatusBadRequest, r.String("Cannot have blank query name"))
+	}
+
+	vendor := models.Vendor{}
+
+	tx := c.Value("tx").(*pop.Connection)
+	err := tx.Select("id").Where("name = ?", nameString).First(&vendor)
+	if err != nil {
+		log.Error(err)
+		if errors.Cause(err) == sql.ErrNoRows {
+			return c.Render(http.StatusNotFound, r.String(fmt.Sprintf("Cannot find vendor with name %s", nameString)))
+		}
+		return c.Render(http.StatusInternalServerError, r.String("Something went wrong."))
+	}
+
+	return c.Render(http.StatusOK, r.String(vendor.ID.String()))
 }
 
 func CreateVendorCertificates(vendor *models.Vendor) error {
