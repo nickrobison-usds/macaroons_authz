@@ -461,7 +461,7 @@ func userAssociatedChecker(db *pop.Connection, acoID uuid.UUID) bakery.ThirdPart
 		err = db.Where("entity_id = ? AND aco_id = ?", helpers.UUIDOfString(userID), acoID).First(&user)
 		if err != nil {
 			if errors.Cause(err) == sql.ErrNoRows {
-				return nil, fmt.Errorf("No authorized to retrieve data for ACO %s", acoID)
+				return nil, fmt.Errorf("Not authorized to retrieve data for ACO %s", acoID)
 			}
 			return caveats, err
 		}

@@ -12,8 +12,15 @@ import (
 	"gopkg.in/macaroon-bakery.v2/httpbakery"
 )
 
-var acoID = "4d24935c-a5bb-4ab1-a4ba-0ac7e730e4a9"
-var userID = "97952122-60cb-4d04-8d00-a3fbca8b53e4"
+/*
+This is a simple Macaroons client that can interact with
+
+It doesn't support automatically gathering the ACO/Vendor/User IDs, so those need to be provided manually.
+*/
+
+var acoID = "6bd432f5-5efb-470c-bf33-6f8549e78ebc"
+var userID = "c752df94-c51b-429a-a096-fe31a233afce"
+var vendorID = "8198e090-0c1d-469c-a5d2-7068a871a124"
 
 func main() {
 	/*
@@ -47,13 +54,16 @@ func main() {
 
 	// Get the token
 
-	req1, err := http.NewRequest("GET", "http://localhost:3002/token", nil)
+	reqString := fmt.Sprintf("http://localhost:3002/%s/token", acoID)
+
+	req1, err := http.NewRequest("GET", reqString, nil)
 	if err != nil {
 		panic(err)
 	}
 
 	q := req1.URL.Query()
 	q.Add("user_id", userID)
+	//	q.Add("vendor_id", vendorID)
 	req1.URL.RawQuery = q.Encode()
 
 	c1 := &http.Client{}

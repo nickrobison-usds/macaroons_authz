@@ -24,17 +24,17 @@ func main() {
 	// Creating bakery
 	loc := bakery.NewThirdPartyStore()
 	// Get the key
-	key, err := getKey("http://localhost:8080/api/users/.well-known/jwks.json")
+	key, err := getKey("http://localhost:8080/api/vendors/.well-known/jwks.json")
 	if err != nil {
 		panic(err)
 	}
-	loc.AddInfo("http://localhost:8080/api/users/verify", bakery.ThirdPartyInfo{
+	loc.AddInfo("http://localhost:8080/api/vendors/verify", bakery.ThirdPartyInfo{
 		PublicKey: *key,
 	})
 	b = newBakery("http://localhost:3002", loc, nil)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/token", TokenHandler)
+	r.HandleFunc("/{acoID}/token", TokenHandler)
 	r.HandleFunc("/{acoID}", ResponseHandler)
 
 	err = http.ListenAndServe(":3002", r)
@@ -49,9 +49,12 @@ func TokenHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the user ID
 	user_id := r.URL.Query().Get("user_id")
+	aco_id := r.URL.Query().Get("acoID")
+	fmt.Println("ACO ID: ", aco_id)
+
 	// Add the third party caveat
 	cav := checkers.Caveat{
-		Location:  "http://localhost:8080/api/users/verify",
+		Location:  "http://localhost:8080/api/vendors/verify",
 		Condition: fmt.Sprintf("user_id= %s", user_id),
 	}
 
