@@ -7,8 +7,7 @@
     </div>
 
     <div class="row">
-        ID:
-        <%= user.ID %>
+        <div id="user_id" class="col-md-7">ID: <span class="copyable"> <%= user.ID %></span><i style="display:none; padding-left: 10px;" class="fa fa-copy"></i></div>
     </div>
 
     <div class="row">
@@ -43,3 +42,5 @@
         </table>
     </div>
 </div>
+
+<%= javascriptTag("copy_handler.js") %>

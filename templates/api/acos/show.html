@@ -4,12 +4,7 @@
 
 <h5>Information</h5>
 <div class="row">
-    <div class="col-md-3">
-        ACO ID:
-    </div>
-    <div class="col-md-6">
-        <%=aco.ID%>
-    </div>
+    <div id="aco_id" class="col-md-7">ID: <span class="copyable"> <%= aco.ID %></span><i style="display:none; padding-left: 10px;" class="fa fa-copy"></i></div>
 </div>
 <div class="row">
     <div class="col-md-3">
@@ -37,3 +32,6 @@
 <div class="row">
     Users here.
 </div>
+
+<%= javascriptTag("copy_handler.js") %>
+

@@ -105,15 +105,19 @@ func AcoDischargeMacaroon(c buffalo.Context) error {
 	// Retrieve the token from the request
 	token := c.Param("id64")
 
+	// Get the ACO ID from the path
+	acoID := c.Param("id")
+
+	// Vendor?
+	vendorID := c.Param("vendor_id")
+	log.Debug("Vendor ID:", vendorID)
+
 	// If it comes in as id, we need to translate it to base64 encoding
 	if token == "" {
 		token = base64.URLEncoding.EncodeToString([]byte(c.Param("id")))
 	}
 
 	log.Debug("Token: ", token)
-
-	// Get the ACO ID from the path
-	acoID := c.Param("id")
 
 	mac, err := us.DischargeCaveatByID(c.Request().Context(), token, userAssociatedChecker(c.Value("tx").(*pop.Connection), helpers.UUIDOfString(acoID)))
 	if err != nil {
@@ -469,7 +473,7 @@ func userAssociatedChecker(db *pop.Connection, acoID uuid.UUID) bakery.ThirdPart
 			caveats = append(caveats,
 				checkers.Caveat{
 					Location:  fmt.Sprintf("http://localhost:8080/api/vendors/%s/verify", userID),
-					Condition: fmt.Sprintf("user_id= %s", "test user"),
+					Condition: fmt.Sprintf("user_id= %s", "c752df94-c51b-429a-a096-fe31a233afce"),
 				})
 		}
 

@@ -276,7 +276,7 @@ func VendorsVerify(c buffalo.Context) error {
 	ctx := context.WithValue(c.Request().Context(), "vendor_id", c.Param("vendorID"))
 
 	// Decode the caveat, and keep going
-	mac, err := us.DischargeCaveatByID(ctx, token, vendorUserIDCaveatChecker(c.Value("tx").(*pop.Connection)))
+	mac, err := vs.DischargeCaveatByID(ctx, token, vendorUserIDCaveatChecker(c.Value("tx").(*pop.Connection)))
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -306,20 +306,24 @@ func vendorUserIDCaveatChecker(db *pop.Connection) bakery.ThirdPartyCaveatChecke
 		// Getting from the DB
 		ID := helpers.UUIDOfString(arg)
 
-		err = db.Select("user_id").Where("vendor_id = ? and user_id = ?", vendorID, ID).First(&vendor)
+		err = db.Where("vendor_id = ? and user_id = ?", vendorID, ID).First(&vendor)
 		if err != nil {
-			return nil, err
+			log.Error(err)
+			if errors.Cause(err) == sql.ErrNoRows {
+				return caveats, bakery.ErrPermissionDenied
+			}
+			return caveats, err
 		}
 
-		if vendor.UserID != ID {
-			return nil, bakery.ErrPermissionDenied
-		}
+		log.Debug("Found user:", vendor)
 
 		// The user is known to us, but are they valid?
 		// Need to verify
 
+		log.Debug("Adding user login caveat")
+
 		return []checkers.Caveat{checkers.Caveat{
-			Location:  "http://localhost:3002/users/verify",
+			Location:  "http://localhost:8080/api/users/verify",
 			Condition: fmt.Sprintf("user_id= %s", vendor.UserID.String()),
 			Namespace: checkers.StdNamespace,
 		}}, nil
