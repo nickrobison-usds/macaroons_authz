@@ -5,6 +5,7 @@
 #include <iostream>
 #include <cpprest/http_client.h>
 #include "include/bakery/Macaroon.hpp"
+#include <macaroons.h>
 #include "../extern/cppcodec/cppcodec/base64_url_unpadded.hpp"
 #include "../extern/cppcodec/cppcodec/base64_rfc4648.hpp"
 
@@ -16,6 +17,16 @@ using namespace concurrency;                // Asynchronous streams
 using base64 = cppcodec::base64_url_unpadded;
 using base64enc = cppcodec::base64_url;
 using base64rfc = cppcodec::base64_rfc4648;
+
+Macaroon::Macaroon(const macaroon *mac) {
+    m = std::shared_ptr<const macaroon>(mac, [](const macaroon* m) {
+        macaroon_destroy(const_cast<macaroon*>(m));
+    });
+}
+
+Macaroon::Macaroon() : m(nullptr) {
+//    Not used
+}
 
 const std::string Macaroon::serialize(macaroon_format format) const {
     const size_t sz = macaroon_serialize_size_hint(this->M(), format);
@@ -89,15 +100,6 @@ const Macaroon Macaroon::importMacaroons(const std::string &token) {
     return Macaroon(mac);
 }
 
-Macaroon::Macaroon(const macaroon *mac) : m(mac) {
-// Not used
-}
-
-Macaroon::Macaroon() : m(nullptr) {
-//    Not used
-}
-
-
 // Static
 
 
@@ -106,11 +108,11 @@ Macaroon::Macaroon() : m(nullptr) {
  */
 std::string Macaroon::inspect() {
     // Get the size of the macaroon
-    const auto sz = macaroon_inspect_size_hint(this->m);
+    const auto sz = macaroon_inspect_size_hint(m.get());
     // Create a buffer to read into
     const std::unique_ptr<char[]> output(new char[sz]);
     enum macaroon_returncode err;
-    macaroon_inspect(this->m, &output[0], sz, &err);
+    macaroon_inspect(m.get(), &output[0], sz, &err);
 
     // Print it
     return std::string(output.get());
@@ -118,7 +120,7 @@ std::string Macaroon::inspect() {
 
 const std::vector<const MacaroonCaveat> Macaroon::get_third_party_caveats() const {
 
-    const auto num_caveats = macaroon_num_third_party_caveats(m);
+    const auto num_caveats = macaroon_num_third_party_caveats(m.get());
     std::vector<const MacaroonCaveat> caveats;
 
     // Interate through the caveats and build a vector of them.
@@ -133,7 +135,7 @@ const std::vector<const MacaroonCaveat> Macaroon::get_third_party_caveats() cons
         std::string loc_string;
         const char *loc_token = loc_string.data();
 
-        macaroon_third_party_caveat(this->m, i,
+        macaroon_third_party_caveat(m.get(), i,
                                     reinterpret_cast<const unsigned char **>(&loc_token),
                                     &loc_sz,
                                     reinterpret_cast<const unsigned char **>(&id_token),
@@ -165,11 +167,11 @@ const std::string Macaroon::location() {
     std::unique_ptr<char[]> te(new char[100]);
     const char *token = te.get();
 
-    macaroon_location(m, reinterpret_cast<const unsigned char **>(&token), &id_sz);
+    macaroon_location(m.get(), reinterpret_cast<const unsigned char **>(&token), &id_sz);
     // This feels redundant, but ok, I guess.
     return std::string(token, id_sz);
 }
 
 const macaroon *Macaroon::M() const {
-    return m;
+    return m.get();
 }

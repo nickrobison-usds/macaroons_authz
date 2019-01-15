@@ -26,13 +26,13 @@ struct MacaroonCaveat {
 class Macaroon {
 
 private:
-    const struct macaroon *m;
+    std::shared_ptr<const macaroon> m;
 
 
 public:
     Macaroon();
 
-    explicit Macaroon(const macaroon *m);
+    explicit Macaroon(const macaroon* m);
 
     std::string inspect();
 
