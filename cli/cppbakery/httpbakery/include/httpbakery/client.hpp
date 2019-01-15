@@ -10,12 +10,12 @@
 class Client {
 
 public:
-    Client();
+    Client() = default;
 
     const std::string dischargeMacaroon(Macaroon m, macaroon_format format = MACAROON_V2J) const;
 
 private:
-    pplx::task<Macaroon> dischargeCaveat(const MacaroonCaveat &cav) const;
+    pplx::task<std::vector<pplx::task<Macaroon>>> dischargeCaveat(const MacaroonCaveat &cav) const;
 };
 
 #endif //CMSAUTHZCLI_CLIENT_HPP
