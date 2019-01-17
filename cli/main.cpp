@@ -15,11 +15,23 @@ using namespace web::http;                  // Common HTTP functionality
 using namespace web::http::client;          // HTTP client features
 using namespace concurrency::streams;       // Asynchronous streams
 
-struct UserInterceptor : public Interceptor {
-    http_request intercept(http_request request) const {
-        cout << "Intercepting! from the tester!" << endl;
+class UserInterceptor : public Interceptor {
+
+public:
+    explicit UserInterceptor(const std::string &userID): userID(userID) {};
+
+    http_request intercept(http_request &request, const std::string &location) const override {
+        // When discharging as a Vendor, we need to specify our userID, otherwise the application gets confused
+        if (location.rfind("http://localhost:8080/api/acos") == 0) {
+            uri_builder builder(request.absolute_uri());
+            builder.append_query("user_id", this->userID);
+            request.set_request_uri(builder.to_uri());
+        }
         return request;
     }
+
+private:
+    const std::string &userID;
 };
 
 int main(int argc, char **argv) {
@@ -223,8 +235,8 @@ int main(int argc, char **argv) {
     if (gather_discharges) {
         console->info("Discharging third party caveats");
         Client mac_client;
-        const UserInterceptor tic;
-        mac_client.addInterceptor("http://local.test", tic);
+        const auto tic = std::make_shared<const UserInterceptor>(UserInterceptor{user_id});
+        mac_client.addInterceptor("http://local.test", tic.get());
         bound_mac = mac_client.dischargeMacaroon(mac);
 //        bound_mac = mac.discharge_all_caveats();
 //bound_mac = "REMOVE ME!!!";

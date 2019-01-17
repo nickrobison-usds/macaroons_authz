@@ -16,14 +16,13 @@ class Client {
 private:
     pplx::task<std::vector<Macaroon>> dischargeCaveat(const MacaroonCaveat &cav) const;
 
-    std::map<std::string, std::unique_ptr<const Interceptor>> interceptors;
+    std::vector<const Interceptor*> interceptors;
 
 public:
     Client() = default;
 
-    void addInterceptor(const std::string &location, const Interceptor &interceptor);
+    void addInterceptor(const std::string &location, const Interceptor *interceptor);
     const std::string dischargeMacaroon(Macaroon m, macaroon_format format = MACAROON_V2J) const;
-    const http_request interceptRequest(const http_request request) const;
 };
 
 #endif //CMSAUTHZCLI_CLIENT_HPP

@@ -294,7 +294,6 @@ func vendorUserIDCaveatChecker(db *pop.Connection) bakery.ThirdPartyCaveatChecke
 
 		var caveats []checkers.Caveat
 		log.Debug("In the Vendor ID checker")
-		log.Debug(ctx)
 		log.Debug(string(cav.Condition))
 		_, arg, err := checkers.ParseCaveat(string(cav.Condition))
 		if err != nil {

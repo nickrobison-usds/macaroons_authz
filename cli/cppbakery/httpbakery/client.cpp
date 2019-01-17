@@ -93,10 +93,13 @@ pplx::task<std::vector<Macaroon>> Client::dischargeCaveat(const MacaroonCaveat &
     // Intercept!
     const auto loc = cav.location;
 
-
+    const auto intercepted_req = std::reduce(this->interceptors.begin(), this->interceptors.end(), req,
+                    [&loc](http_request acc, const Interceptor* interceptor) {
+                        return interceptor->intercept(acc, loc);
+                    });
 
     // Make the call
-    return client.request(req)
+    return client.request(intercepted_req)
             .then([&cav](http_response resp) {
                 if (resp.status_code() != status_codes::OK) {
                     const auto json_error = resp.extract_json().get();
@@ -161,10 +164,6 @@ pplx::task<std::vector<Macaroon>> Client::dischargeCaveat(const MacaroonCaveat &
     // Transform the task of
 }
 
-void Client::addInterceptor(const std::string &location, const Interceptor &interceptor) {
-    this->interceptors[location] = std::unique_ptr<const Interceptor>(&interceptor);
-}
-
-const http_request Client::interceptRequest(const http_request request) const {
-    return request;
+void Client::addInterceptor(const std::string &location, const Interceptor *interceptor) {
+    this->interceptors.push_back(interceptor);
 }

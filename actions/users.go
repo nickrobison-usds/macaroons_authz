@@ -263,14 +263,14 @@ func userIDCaveatChecker(db *pop.Connection) bakery.ThirdPartyCaveatCheckerFunc 
 
 		err = db.Select("id").Where("id = ? ", ID).First(&user)
 		if err != nil {
-			return nil, err
+			return caveats, err
 		}
 
 		if user.ID != ID {
-			return nil, bakery.ErrPermissionDenied
+			return caveats, bakery.ErrPermissionDenied
 		}
 
-		return nil, nil
+		return caveats, nil
 	}
 
 }

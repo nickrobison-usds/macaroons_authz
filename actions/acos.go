@@ -108,6 +108,13 @@ func AcoDischargeMacaroon(c buffalo.Context) error {
 	// Get the ACO ID from the path
 	acoID := c.Param("id")
 
+	log.Debug("Before ctx: ", c.Request().Context())
+	log.Debug("user param:", c.Param("user_id"))
+	log.Debug("Req: ", c.Request())
+	// Add the user ID to the context
+	ctx := context.WithValue(c.Request().Context(), "user_id", c.Param("user_id"))
+	log.Debug("after ctx: ", ctx)
+
 	// Vendor?
 	vendorID := c.Param("vendor_id")
 	log.Debug("Vendor ID:", vendorID)
@@ -119,7 +126,7 @@ func AcoDischargeMacaroon(c buffalo.Context) error {
 
 	log.Debug("Token: ", token)
 
-	mac, err := us.DischargeCaveatByID(c.Request().Context(), token, userAssociatedChecker(c.Value("tx").(*pop.Connection), helpers.UUIDOfString(acoID)))
+	mac, err := us.DischargeCaveatByID(ctx, token, userAssociatedChecker(c.Value("tx").(*pop.Connection), helpers.UUIDOfString(acoID)))
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -450,15 +457,15 @@ func userAssociatedChecker(db *pop.Connection, acoID uuid.UUID) bakery.ThirdPart
 	return func(ctx context.Context, cav *bakery.ThirdPartyCaveatInfo) ([]checkers.Caveat, error) {
 
 		var caveats []checkers.Caveat
-		_, userID, err := checkers.ParseCaveat(string(cav.Condition))
+		_, entityID, err := checkers.ParseCaveat(string(cav.Condition))
 		if err != nil {
 			return nil, err
 		}
-		log.Debugf("Checking that %s is associated with ACO %s", userID, acoID)
+		log.Debugf("Checking that %s is associated with ACO %s", entityID, acoID)
 
 		var user models.AcoUser
 
-		err = db.Where("entity_id = ? AND aco_id = ?", helpers.UUIDOfString(userID), acoID).First(&user)
+		err = db.Where("entity_id = ? AND aco_id = ?", helpers.UUIDOfString(entityID), acoID).First(&user)
 		if err != nil {
 			if errors.Cause(err) == sql.ErrNoRows {
 				return nil, fmt.Errorf("Not authorized to retrieve data for ACO %s", acoID)
@@ -469,11 +476,16 @@ func userAssociatedChecker(db *pop.Connection, acoID uuid.UUID) bakery.ThirdPart
 		// If we're a vendor, add a third party caveat requiring the vendor to verify that the user is valid
 
 		if !user.IsUser {
-			log.Debug("Entity is a vendor, adding additional caveat")
+			// Get the user from the context
+			userID := ctx.Value("user_id").(string)
+			if userID == "" {
+				return caveats, fmt.Errorf("Need userID when discharging as a vendor.")
+			}
+			log.Debug("Entity is a vendor, adding additional caveat for user: ", userID)
 			caveats = append(caveats,
 				checkers.Caveat{
-					Location:  fmt.Sprintf("http://localhost:8080/api/vendors/%s/verify", userID),
-					Condition: fmt.Sprintf("user_id= %s", "c752df94-c51b-429a-a096-fe31a233afce"),
+					Location:  fmt.Sprintf("http://localhost:8080/api/vendors/%s/verify", entityID),
+					Condition: fmt.Sprintf("user_id= %s", userID),
 				})
 		}
 
