@@ -4,8 +4,8 @@
 
 #include <iostream>
 #include <cpprest/http_client.h>
-#include "include/bakery/Macaroon.hpp"
-#include <macaroons.h>
+#include "Macaroon.hpp"
+#include <libmacaroons/macaroons.h>
 #include "../extern/cppcodec/cppcodec/base64_url_unpadded.hpp"
 #include "../extern/cppcodec/cppcodec/base64_rfc4648.hpp"
 

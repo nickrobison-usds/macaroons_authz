@@ -13,7 +13,7 @@ if (NOT TARGET cppcodec)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../extern/cppcodec ${CMAKE_CURRENT_BINARY_DIR}/cppcodec)
 endif()
 
-add_library(httpbakery include/httpbakery/client.hpp client.cpp)
+add_library(httpbakery client.hpp client.cpp)
 target_link_libraries(httpbakery
         PUBLIC
         Bakery::bakery
@@ -25,7 +25,7 @@ target_link_libraries(httpbakery
         fmt)
 target_include_directories(httpbakery
         INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 add_library(Bakery::httpbakery ALIAS httpbakery)

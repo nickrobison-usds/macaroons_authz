@@ -8,7 +8,7 @@
 
 #include <string>
 #include <utility>
-#include <macaroons.h>
+#include <libmacaroons/macaroons.h>
 
 struct MacaroonCaveat {
     std::string location;

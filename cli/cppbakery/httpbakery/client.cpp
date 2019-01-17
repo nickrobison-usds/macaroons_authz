@@ -1,7 +1,7 @@
 
 #include <cpprest/http_client.h>
 #include <fmt/format.h>
-#include "include/httpbakery/client.hpp"
+#include "client.hpp"
 #include "../extern/cppcodec/cppcodec/base64_url_unpadded.hpp"
 #include "../extern/cppcodec/cppcodec/base64_url.hpp"
 #include "../extern/cppcodec/cppcodec/base64_rfc4648.hpp"
@@ -26,11 +26,11 @@ const std::string Client::dischargeMacaroon(const Macaroon m, const macaroon_for
 //    discharges.reserve(caveats.size());
 
     std::for_each(caveats.begin(), caveats.end(), [this, &discharges](const MacaroonCaveat &cav) {
-        const auto done = this->dischargeCaveat(cav)
-                .then([](std::vector<pplx::task<Macaroon>> tasks) {
-                    return pplx::when_all(tasks.begin(), tasks.end());
-                });
-        discharges.push_back(done);
+//        const auto discharged =
+//                .then([](std::vector<pplx::task<Macaroon>> tasks) {
+//                    return pplx::when_all(tasks.begin(), tasks.end());
+//                });
+        discharges.emplace_back(this->dischargeCaveat(cav));
     });
 
 //    std::transform(caveats.begin(), caveats.end(), discharges.begin(), [this](const MacaroonCaveat &cav) {
@@ -70,7 +70,7 @@ const std::string Client::dischargeMacaroon(const Macaroon m, const macaroon_for
     return base64enc::encode(outs);
 }
 
-pplx::task<std::vector<pplx::task<Macaroon>>> Client::dischargeCaveat(const MacaroonCaveat &cav) const {
+pplx::task<std::vector<Macaroon>> Client::dischargeCaveat(const MacaroonCaveat &cav) const {
     // Encode the caveat caveat ID as base64
     const auto encoded = base64::encode(cav.identifier);
 
@@ -89,6 +89,11 @@ pplx::task<std::vector<pplx::task<Macaroon>>> Client::dischargeCaveat(const Maca
     json::value obj = json::value::object();
     obj["id64"] = id64;
     req.set_body(obj);
+
+    // Intercept!
+    const auto loc = cav.location;
+
+
 
     // Make the call
     return client.request(req)
@@ -120,7 +125,10 @@ pplx::task<std::vector<pplx::task<Macaroon>>> Client::dischargeCaveat(const Maca
                 new_mac[U("i64")] = json::value(base64enc::encode(i64_dec.data(), i64_dec.size()));
                 new_mac[U("s64")] = json::value(base64enc::encode(s64_dec.data(), s64_dec.size()));
                 // Both the version and an empty array of caveats needs to be present
-                new_mac[U("c")] = json::value::array();
+                // It's possible that a macaroon has no caveats, so we can't just add it to the new mac.
+                if (j_mac.has_field(U("c"))) {
+                    new_mac[U("c")] = j_mac[U("c")];
+                }
                 new_mac[U("v")] = json::value(2);
 //                j_mac[U("i64")] = json::value(std::re)
 //                const std::string mac_string = json["Macaroon"]["i64"].as_string();
@@ -132,23 +140,31 @@ pplx::task<std::vector<pplx::task<Macaroon>>> Client::dischargeCaveat(const Maca
             .then([this](const Macaroon &mac) {
                 const auto caveats = mac.get_third_party_caveats();
                 if (caveats.empty()) {
-                    pplx::task<Macaroon> tasked = pplx::task_from_result(mac);
-                    return std::vector<pplx::task<Macaroon>>({tasked});
+                    return std::vector({mac});
                 }
 
-                std::vector<pplx::task<Macaroon>> discharged_caveats;
-                discharged_caveats.reserve(caveats.size());
+                std::vector<pplx::task<std::vector<Macaroon>>> discharged_caveats;
+                discharged_caveats.reserve(caveats.size() + 1);
+                // Add the original mac, so its discharges come second.
+                const auto original_mac = pplx::task_from_result(std::vector<Macaroon>({mac}));
+                discharged_caveats.push_back(original_mac);
 
                 std::for_each(caveats.begin(), caveats.end(), [this, &discharged_caveats](const MacaroonCaveat &cav) {
-                    this->dischargeCaveat(cav)
-                            .then([&discharged_caveats](std::vector<pplx::task<Macaroon>> macs) {
-                                discharged_caveats.insert(std::end(discharged_caveats), macs.begin(), macs.end());
-                            });
+                    discharged_caveats.emplace_back(this->dischargeCaveat(cav));
                 });
-                return discharged_caveats;
+                return pplx::when_all(discharged_caveats.begin(), discharged_caveats.end()).get();
             });
+
 
 //    std::vector<pplx::task<const Macaroon>> discharges;
 
     // Transform the task of
+}
+
+void Client::addInterceptor(const std::string &location, const Interceptor &interceptor) {
+    this->interceptors[location] = std::unique_ptr<const Interceptor>(&interceptor);
+}
+
+const http_request Client::interceptRequest(const http_request request) const {
+    return request;
 }

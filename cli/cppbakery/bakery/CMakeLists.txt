@@ -28,7 +28,7 @@ endif ()
 add_subdirectory(extern/libmacaroons)
 
 add_library(bakery
-        Macaroon.cpp include/bakery/Macaroon.hpp)
+        Macaroon.cpp)
 target_compile_features(bakery
         PRIVATE
         cxx_lambdas
@@ -43,7 +43,7 @@ target_link_libraries(bakery
         Boost::thread)
 target_include_directories(bakery
         INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 add_dependencies(bakery cppcodec)
