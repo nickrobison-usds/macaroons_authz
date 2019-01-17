@@ -5,7 +5,8 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <httpbakery/client.hpp>
-#include "bakery/Macaroon.hpp"
+#include <httpbakery/interceptor.hpp>
+#include <bakery/Macaroon.hpp>
 
 using namespace std;
 using namespace utility;                    // Common utilities like string conversions
@@ -13,6 +14,13 @@ using namespace web;                        // Common features like URIs.
 using namespace web::http;                  // Common HTTP functionality
 using namespace web::http::client;          // HTTP client features
 using namespace concurrency::streams;       // Asynchronous streams
+
+struct UserInterceptor : public Interceptor {
+    http_request intercept(http_request request) const {
+        cout << "Intercepting! from the tester!" << endl;
+        return request;
+    }
+};
 
 int main(int argc, char **argv) {
     // Setup the logger
@@ -214,7 +222,9 @@ int main(int argc, char **argv) {
     // Try to bind macaroons
     if (gather_discharges) {
         console->info("Discharging third party caveats");
-        const Client mac_client;
+        Client mac_client;
+        const UserInterceptor tic;
+        mac_client.addInterceptor("http://local.test", tic);
         bound_mac = mac_client.dischargeMacaroon(mac);
 //        bound_mac = mac.discharge_all_caveats();
 //bound_mac = "REMOVE ME!!!";
