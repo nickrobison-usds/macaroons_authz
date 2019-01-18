@@ -50,7 +50,7 @@ endif()
 add_subdirectory(extern/spdlog)
 add_subdirectory(cppbakery)
 
-add_executable(cli main.cpp)
+add_executable(cli main.cpp SimpleLogger.hpp)
 target_link_libraries(cli PRIVATE
         cli11
         Bakery::httpbakery

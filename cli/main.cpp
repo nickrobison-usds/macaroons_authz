@@ -7,6 +7,7 @@
 #include <httpbakery/client.hpp>
 #include <httpbakery/interceptor.hpp>
 #include <bakery/Macaroon.hpp>
+#include "SimpleLogger.hpp"
 
 using namespace std;
 using namespace utility;                    // Common utilities like string conversions
@@ -234,7 +235,7 @@ int main(int argc, char **argv) {
     // Try to bind macaroons
     if (gather_discharges) {
         console->info("Discharging third party caveats");
-        Client mac_client;
+        Client<SimpleLogger> mac_client;
         const auto tic = std::make_shared<const UserInterceptor>(UserInterceptor{user_id});
         mac_client.addInterceptor("http://local.test", tic.get());
         bound_mac = mac_client.dischargeMacaroon(mac);
