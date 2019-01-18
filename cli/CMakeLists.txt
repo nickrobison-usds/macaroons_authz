@@ -37,7 +37,7 @@ if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/../.git")
     endif ()
 endif ()
 
-if (NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/spdlog/CMakeLists.txt")
+if (NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/rang/CMakeLists.txt")
     message(FATAL_ERROR "The submodules were not downloaded! GIT_SUBMODULE was turned off or failed. Please update submodules and try again.")
 endif ()
 
@@ -47,7 +47,6 @@ if (NOT TARGET fmt)
     add_subdirectory(extern/fmt)
 endif()
 
-add_subdirectory(extern/spdlog)
 add_subdirectory(cppbakery)
 add_subdirectory(extern/rang)
 
@@ -61,5 +60,4 @@ target_link_libraries(cli
         cpprestsdk::cpprest
         Boost::system
         Boost::thread
-        fmt
-        spdlog::spdlog)
+        fmt)

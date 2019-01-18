@@ -1,9 +1,6 @@
 [submodule "cli/extern/fmt"]
 	path = cli/extern/fmt
 	url = ../../fmtlib/fmt.git
-[submodule "cli/extern/spdlog"]
-	path = cli/extern/spdlog
-	url = ../../gabime/spdlog.git
 [submodule "cli/cppbakery/bakery/extern/libmacaroons"]
 	path = cli/cppbakery/bakery/extern/libmacaroons
 	url = ../nickrobison-usds/libmacaroons.git
