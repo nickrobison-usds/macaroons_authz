@@ -49,9 +49,13 @@ endif()
 
 add_subdirectory(extern/spdlog)
 add_subdirectory(cppbakery)
+add_subdirectory(extern/rang)
 
-add_executable(cli main.cpp SimpleLogger.hpp)
-target_link_libraries(cli PRIVATE
+add_executable(cli main.cpp)
+target_link_libraries(cli
+        INTERFACE
+        rang
+        PRIVATE
         cli11
         Bakery::httpbakery
         cpprestsdk::cpprest

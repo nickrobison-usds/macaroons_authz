@@ -1,9 +1,6 @@
 #include <iostream>
 #include <CLI11.hpp>
 #include <cpprest/http_client.h>
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_color_sinks.h>
 #include <httpbakery/client.hpp>
 #include <httpbakery/interceptor.hpp>
 #include <bakery/Macaroon.hpp>
@@ -37,7 +34,7 @@ private:
 
 int main(int argc, char **argv) {
     // Setup the logger
-    const auto console = spdlog::stdout_color_st("console");
+    const SimpleLogger logger;
 
     CLI::App app{"CLI client for CMS AuthZ Demo"};
 
@@ -73,24 +70,24 @@ int main(int argc, char **argv) {
     // std::optional doesn't work on MacOS <10.14, so we'll need to come up with a workaround.
     // This is fine for now, but clunky.
     if (!user_name_opt) {
-        console->critical("Must provide a username to query as.");
+        logger.error("Must provide a username to query as.");
         return 1;
     } else {
         user_name = *user_name_opt;
     }
 
     if (!aco_name_opt) {
-        console->critical("Must provide an ACO Name to query against.");
+        logger.error("Must provide an ACO Name to query against.");
         return 1;
     } else {
         aco_name = *aco_name_opt;
     }
 
-    console->info("Starting up demo client");
+    logger.info("Starting up demo client");
 
     // Try to lookup a given ACO ID
 
-    console->info("Looking up ID for ACO '{:s}'", aco_name);
+    logger.info("Looking up ID for ACO '{:s}'", aco_name);
 
     http_client nameClient(U("http://localhost:8080"));
     uri_builder nameBuilder(U("/api/acos/find"));
@@ -111,14 +108,14 @@ int main(int argc, char **argv) {
     try {
         acoID = nameTask.get();
     } catch (const exception &e) {
-        console->critical("Error getting aco ID: {:s}", e.what());
+        logger.error("Error getting aco ID: {:s}", e.what());
         return 1;
     }
 
     // And a User ID
     string user_id;
 
-    console->info("Looking up ID for user '{:s}'", user_name);
+    logger.info("Looking up ID for user '{:s}'", user_name);
 
     uri_builder userBuilder(U("/api/users/find"));
     userBuilder.append_query(U("name"), U(user_name));
@@ -135,7 +132,7 @@ int main(int argc, char **argv) {
     try {
         user_id = userTask.get();
     } catch (const exception &e) {
-        console->critical("Unable to get User ID: {:s}", e.what());
+        logger.error("Unable to get User ID: {:s}", e.what());
         return 1;
     }
 
@@ -143,7 +140,7 @@ int main(int argc, char **argv) {
     optional<string> vendor_id;
 
     if (vendor_name_opt) {
-        console->info("Looking up ID for vendor '{:s}'", *vendor_name_opt);
+        logger.info("Looking up ID for vendor '{:s}'", *vendor_name_opt);
 
         uri_builder vendorBuilder(U("/api/vendors/find"));
         vendorBuilder.append_query(U("name"), U(*vendor_name_opt));
@@ -160,7 +157,7 @@ int main(int argc, char **argv) {
         try {
             vendor_id.emplace(vendorTask.get());
         } catch (const exception &e) {
-            console->critical("Unable to get Vendor ID: {:s}", e.what());
+            logger.error("Unable to get Vendor ID: {:s}", e.what());
             return 1;
         }
     }
@@ -170,7 +167,7 @@ int main(int argc, char **argv) {
     // Java service request
 
     if (java_service) {
-        console->info("Making request to Java service");
+        logger.info("Making request to Java service");
 
         http_client standaloneClient(U(fmt::format("http://localhost:3002/{}", acoID)));
         uri_builder standaloneBuilder(U("/token"));
@@ -195,15 +192,15 @@ int main(int argc, char **argv) {
         try {
             token = client_task.get();
         } catch (const exception &e) {
-            console->critical("Error making service Request: {:s}", e.what());
+            logger.error("Error making service Request: {:s}", e.what());
             return 1;
         }
     }
     else {
-        console->info("Getting token from ACO manager");
+        logger.info("Getting token from ACO manager");
 
 
-        console->info("Looking up Macaroon for '{:s}' associated with '{:s}'", aco_name, user_name);
+        logger.info("Looking up Macaroon for '{:s}' associated with '{:s}'", aco_name, user_name);
 
         // Try to find the ACO token associated with the user
         std::string token_query = fmt::format("api/users/token/{}/ACO/{}", user_id, acoID);
@@ -221,7 +218,7 @@ int main(int argc, char **argv) {
         try {
             token = tokenTask.get();
         } catch (const exception &e) {
-            console->critical("Unable to get user token; {:s}", e.what());
+            logger.error("Unable to get user token; {:s}", e.what());
         }
     }
 
@@ -234,7 +231,7 @@ int main(int argc, char **argv) {
 
     // Try to bind macaroons
     if (gather_discharges) {
-        console->info("Discharging third party caveats");
+        logger.info("Discharging third party caveats");
         Client<SimpleLogger> mac_client;
         const auto tic = std::make_shared<const UserInterceptor>(UserInterceptor{user_id});
         mac_client.addInterceptor("http://local.test", tic.get());
@@ -242,13 +239,13 @@ int main(int argc, char **argv) {
 //        bound_mac = mac.discharge_all_caveats();
 //bound_mac = "REMOVE ME!!!";
     } else {
-        console->info("Not discharging caveats");
+        logger.warn("Not discharging caveats");
         bound_mac = mac.serialize(MACAROON_V2J);
     }
 
     // Now make the actual request for the ACO data
 
-    console->info("Making request to endpoint.");
+    logger.info("Making request to endpoint.");
 
     http_client client(U("http://localhost:3002"));
     uri_builder builder(U("/" + acoID));
@@ -264,6 +261,6 @@ int main(int argc, char **argv) {
             });
 
     const string resp = task.get();
-    console->info(resp);
+    logger.info(resp);
     return 0;
 }

@@ -41,7 +41,7 @@ public:
     };
 
     void addInterceptor(const std::string &location, const Interceptor *interceptor) {
-        Logger::info("Adding interceptor");
+        Logger::debug(fmt::format("Registering interceptor for location {}", location));
         this->interceptors.push_back(interceptor);
     };
     const std::string dischargeMacaroon(Macaroon m, macaroon_format format = MACAROON_V2J) const {
