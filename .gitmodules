@@ -11,3 +11,6 @@
 [submodule "cli/cppbakery/extern/cppcodec"]
 	path = cli/cppbakery/extern/cppcodec
 	url = ../../tplgy/cppcodec.git
+[submodule "cli/extern/rang"]
+	path = cli/extern/rang
+	url = git@github.com:agauniyal/rang.git
