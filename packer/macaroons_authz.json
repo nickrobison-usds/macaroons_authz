@@ -6,7 +6,7 @@
         "changes": [
             "WORKDIR /authz",
             "ENTRYPOINT [\"/usr/bin/authz-entrypoint.sh\"]",
-            "CMD [\"/usr/bin/cms_authz_linux\"]"
+            "CMD [\"/usr/bin/macaroons_authz_linux\"]"
         ]
     }],
 

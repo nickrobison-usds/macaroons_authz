@@ -2,7 +2,7 @@
 module "db" {
   source = "../modules/db"
 
-  name = "cmsauthz"
+  name = "macaroonsauthz"
   host_path = "/Users/usds/Development/identity-idp/db_data"
   use_local = false
   db_name = "macaroons_authz"
@@ -47,7 +47,7 @@ resource "postgresql_database" "authz_db" {
 resource "docker_container" "authz" {
   name = "authz_server"
   image = "nickrobison.com/macaroons_authz:latest"
-  hostname = "server"
+  hostname = "authz_server"
   ports {
     internal = 8080
     external = 8080
@@ -76,7 +76,7 @@ resource "docker_container" "internal-service" {
   hostname = "internal-service"
   ports {
     internal = 3002
-    external = 3002
+    external = 3003
   }
   env = [
     "DATABASE_URL=postgres://postgres@${module.db.hostname}:5432/macaroons_authz?sslmode=disable",
@@ -96,8 +96,8 @@ resource "docker_container" "external-service" {
   image = "nickrobison.com/external_service:latest"
   hostname = "external-service"
   ports {
-    internal = 3002
-    external = 3003
+    internal = 8080
+    external = 3002
   }
   env = [
     "HOST=http://${docker_container.authz.hostname}:8080"

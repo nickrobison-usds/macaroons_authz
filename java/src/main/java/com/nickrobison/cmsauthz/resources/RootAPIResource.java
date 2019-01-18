@@ -57,6 +57,7 @@ public class RootAPIResource {
         final String entityID = vendorID.orElse(userID);
 
         // Get the JWKS
+        System.out.println(String.format("Getting JWKS from: %s", this.dischargeHost));
         final JWKResponse response = this.client
                 .target(String.format("%s/api/acos/%s/.well-known/jwks.json", this.dischargeHost, acoID))
                 .request(MediaType.APPLICATION_JSON_TYPE)
@@ -88,7 +89,8 @@ public class RootAPIResource {
 
         final Macaroon m2 = new MacaroonsBuilder("http://localhost:3002/", TEST_KEY, "first-party-id", MacaroonVersion.VERSION_2)
 //                .add_first_party_caveat(String.format("aco_id= %s", acoID))
-                .add_third_party_caveat(String.format("%s/api/acos/%s/verify", this.dischargeHost, acoID), TEST_KEY, encrypted)
+                // We keep using the localhost host because the URI is from the perspective of the client.
+                .add_third_party_caveat(String.format("%s/api/acos/%s/verify", "http://localhost:8080", acoID), TEST_KEY, encrypted)
                 .getMacaroon();
 
         return Response.ok().entity(m2.serialize(MacaroonVersion.SerializationVersion.V2_JSON)).build();

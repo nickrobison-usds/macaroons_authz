@@ -39,3 +39,4 @@ resource "docker_network" "db_private" {
 resource "docker_image" "postgres" {
   name = "postgres"
 }
+
