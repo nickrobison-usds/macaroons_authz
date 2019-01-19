@@ -50,7 +50,7 @@ endif()
 add_subdirectory(cppbakery)
 add_subdirectory(extern/rang)
 
-add_executable(cli main.cpp)
+add_executable(cli main.cpp UserInterceptor.cpp)
 target_link_libraries(cli
         INTERFACE
         rang

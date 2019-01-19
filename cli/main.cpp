@@ -5,6 +5,7 @@
 #include <httpbakery/interceptor.hpp>
 #include <bakery/Macaroon.hpp>
 #include "SimpleLogger.hpp"
+#include "UserInterceptor.hpp"
 
 using namespace std;
 using namespace utility;                    // Common utilities like string conversions
@@ -12,25 +13,6 @@ using namespace web;                        // Common features like URIs.
 using namespace web::http;                  // Common HTTP functionality
 using namespace web::http::client;          // HTTP client features
 using namespace concurrency::streams;       // Asynchronous streams
-
-class UserInterceptor : public Interceptor {
-
-public:
-    explicit UserInterceptor(const std::string &userID): userID(userID) {};
-
-    http_request intercept(http_request &request, const std::string &location) const override {
-        // When discharging as a Vendor, we need to specify our userID, otherwise the application gets confused
-        if (location.rfind("http://localhost:8080/api/acos") == 0) {
-            uri_builder builder(request.absolute_uri());
-            builder.append_query("user_id", this->userID);
-            request.set_request_uri(builder.to_uri());
-        }
-        return request;
-    }
-
-private:
-    const std::string &userID;
-};
 
 int main(int argc, char **argv) {
     // Setup the logger

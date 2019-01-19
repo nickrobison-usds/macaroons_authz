@@ -9,6 +9,7 @@
 #include <string>
 #include <utility>
 #include <libmacaroons/macaroons.h>
+#include <cpprest/http_client.h>
 
 struct MacaroonCaveat {
     std::string location;
