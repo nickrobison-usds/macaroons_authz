@@ -19,10 +19,7 @@ You can also do everything manually.
 We use git submodules for a number of external dependencies (to avoid requiring system installation).
 You can initialize them all by running:
 
-`git submodule init --update --recursive`
-
-Or, the [command line client](#cli-client) will handle it automatically. 
-
+`git submodule update --init --recursive`
 
 ### System dependencies
 
