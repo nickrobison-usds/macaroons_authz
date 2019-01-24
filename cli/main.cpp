@@ -15,25 +15,28 @@ using namespace web::http::client;          // HTTP client features
 using namespace concurrency::streams;       // Asynchronous streams
 
 int main(int argc, char **argv) {
-    // Setup the logger
-    const SimpleLogger logger;
-
-    CLI::App app{"CLI client for CMS AuthZ Demo"};
+    CLI::App app{"CLI client for Macaroons AuthZ Demo"};
 
     std::optional<string> aco_name_opt;
     std::optional<string> user_name_opt;
     std::optional<string> vendor_name_opt;
     bool gather_discharges = true;
-    bool dynamic_service = false;
+    bool dynamic_service = true;
+    bool debug_mode = false;
 
     app.add_flag("--no-discharge", [&gather_discharges](size_t count) {
         if (count > 0) {
             gather_discharges = false;
         }
     }, "Disable gathering required discharges");
-    app.add_flag("--dynamic", [&dynamic_service](size_t count) {
+    app.add_flag("--static", [&dynamic_service](size_t count) {
         if (count > 0) {
-            dynamic_service = true;
+            dynamic_service = false;
+        }
+    }, "Utilize the static authorization flow");
+    app.add_flag("--debug", [&debug_mode](const size_t count) {
+        if (count > 0) {
+            debug_mode = true;
         }
     });
     app.add_option("user", user_name_opt, "User to perform queries as");
@@ -45,6 +48,9 @@ int main(int argc, char **argv) {
     } catch (const CLI::ParseError &e) {
         return app.exit(e);
     }
+
+    // Setup the logger
+    const SimpleLogger logger(debug_mode);
 
     // Validate args
     string user_name;
@@ -85,7 +91,7 @@ int main(int argc, char **argv) {
                 if (resp.status_code() == status_codes::OK) {
                     return resp.extract_string();
                 }
-                throw invalid_argument(resp.extract_string().get());
+                throw invalid_argument(resp.reason_phrase());
             });
     try {
         acoID = nameTask.get();
@@ -180,8 +186,6 @@ int main(int argc, char **argv) {
     }
     else {
         logger.info("Getting token from ACO manager");
-
-
         logger.info("Looking up Macaroon for '{:s}' associated with '{:s}'", aco_name, user_name);
 
         // Try to find the ACO token associated with the user
@@ -200,7 +204,7 @@ int main(int argc, char **argv) {
         try {
             token = tokenTask.get();
         } catch (const exception &e) {
-            logger.error("Unable to get user token; {:s}", e.what());
+            logger.error("Unable to get user token: {:s}", e.what());
         }
     }
 
@@ -217,7 +221,12 @@ int main(int argc, char **argv) {
         Client<SimpleLogger> mac_client;
         const auto tic = std::make_shared<const UserInterceptor>(UserInterceptor{user_id});
         mac_client.addInterceptor("http://local.test", tic.get());
-        bound_mac = mac_client.dischargeMacaroon(mac);
+        try {
+            bound_mac = mac_client.dischargeMacaroon(mac);
+        } catch (const exception& e) {
+            logger.error(e.what());
+            exit(-1);
+        }
 //        bound_mac = mac.discharge_all_caveats();
 //bound_mac = "REMOVE ME!!!";
     } else {

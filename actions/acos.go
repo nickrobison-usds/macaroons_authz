@@ -128,6 +128,14 @@ func AcoDischargeMacaroon(c buffalo.Context) error {
 
 	mac, err := us.DischargeCaveatByID(ctx, token, userAssociatedChecker(c.Value("tx").(*pop.Connection), helpers.UUIDOfString(acoID)))
 	if err != nil {
+		log.Debug(err)
+		// Do a string compare on the permission denied type
+		// This is gross, but I'm not sure how to get the underlying causer
+		if err.Error() == "permission denied" {
+			errMsg := fmt.Sprintf("Not authorized to retrieve data for ACO %s", acoID)
+			log.Error("Unauthorized: ", err)
+			return c.Render(http.StatusUnauthorized, r.String(errMsg))
+		}
 		return errors.WithStack(err)
 	}
 
@@ -468,7 +476,7 @@ func userAssociatedChecker(db *pop.Connection, acoID uuid.UUID) bakery.ThirdPart
 		err = db.Where("entity_id = ? AND aco_id = ?", helpers.UUIDOfString(entityID), acoID).First(&user)
 		if err != nil {
 			if errors.Cause(err) == sql.ErrNoRows {
-				return nil, fmt.Errorf("Not authorized to retrieve data for ACO %s", acoID)
+				return caveats, bakery.ErrPermissionDenied
 			}
 			return caveats, err
 		}

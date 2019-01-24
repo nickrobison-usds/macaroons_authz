@@ -17,6 +17,8 @@ using namespace rang;
 class SimpleLogger {
 public:
 
+    explicit SimpleLogger(bool debugMode = false): enable_debug(debugMode) {}
+
     void info(const std::string &value) {
         write_string(value, fg::green);
     }
@@ -26,21 +28,25 @@ public:
     }
 
     void debug(const std::string &value) const {
-        write_string(value, fg::cyan);
+        if (enable_debug)
+            write_string(value, fg::cyan);
     }
 
     template<typename... Args>
     void debug(const std::string &value, const Args &... args) const {
-        write_string(value, fg::cyan, args...);
+        if (enable_debug)
+            write_string(value, fg::cyan, args...);
     }
 
     void trace(const std::string &value) const {
-        write_string(value, fg::blue);
+        if (enable_debug)
+            write_string(value, fg::blue);
     }
 
     template<typename... Args>
     void trace(const std::string &value, const Args &... args) const {
-        write_string(value, fg::blue, args...);
+        if (enable_debug)
+            write_string(value, fg::blue, args...);
     }
 
     void warn(const std::string &value) const {
@@ -58,10 +64,12 @@ public:
 
     template<typename... Args>
     void error(const std::string &value, const Args &... args) const {
-        write_string(std::cerr, value, fg::red);
+        write_string(std::cerr, value, fg::red, args...);
     }
 
 private:
+
+    bool enable_debug;
 
     void write_string(const std::string &value, const fg color) const {
         write_string(std::cout, value, color);
