@@ -225,7 +225,7 @@ int main(int argc, char **argv) {
             bound_mac = mac_client.dischargeMacaroon(mac);
         } catch (const exception& e) {
             logger.error(e.what());
-            exit(-1);
+            return 1;
         }
 //        bound_mac = mac.discharge_all_caveats();
 //bound_mac = "REMOVE ME!!!";

@@ -76,12 +76,12 @@ private:
     }
 
     template<typename... Args>
-    void write_string(const std::string &value, const fg color, const Args &... args) const {
+    void write_string(const std::string &value, fg color, const Args &... args) const {
         write_string(std::cout, value, color, args...);
     }
 
     template<typename... Args>
-    void write_string(const std::ostream& stream, const std::string &value, const fg color, const Args&... args) const {
+    void write_string(const std::ostream& stream, const std::string &value, fg color, const Args&... args) const {
         std::cout << color << fmt::format(value, args...) << fg::reset << std::endl;
     }
 

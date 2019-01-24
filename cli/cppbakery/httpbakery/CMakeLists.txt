@@ -13,8 +13,11 @@ if (NOT TARGET cppcodec)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../extern/cppcodec ${CMAKE_CURRENT_BINARY_DIR}/cppcodec)
 endif()
 
-#add_library(httpbakery client.hpp)
 add_library(httpbakery INTERFACE)
+target_compile_features(httpbakery INTERFACE
+        cxx_relaxed_constexpr
+        cxx_auto_type
+        cxx_lambdas)
 target_link_libraries(httpbakery
         INTERFACE
         Bakery::bakery
