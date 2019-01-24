@@ -12,6 +12,7 @@
 #include "../extern/cppcodec/cppcodec/base64_url.hpp"
 #include "../extern/cppcodec/cppcodec/base64_rfc4648.hpp"
 #include "interceptor.hpp"
+#include "helpers.hpp"
 
 //
 // Created by usds on 2018-12-16.
@@ -46,7 +47,6 @@ public:
     };
     const std::string dischargeMacaroon(Macaroon m, macaroon_format format = MACAROON_V2J) const {
         // Get all the caveats
-        Logger::debug("Hello!");
         const auto caveats = m.get_third_party_caveats();
 
         std::vector<pplx::task<std::vector<Macaroon>>> discharges;
@@ -98,6 +98,10 @@ public:
     };
 
 private:
+
+    std::vector<const Interceptor*> interceptors;
+    std::unique_ptr<Logger> logger;
+
     pplx::task<std::vector<Macaroon>> dischargeCaveat(const MacaroonCaveat &cav) const {
         // Encode the caveat caveat ID as base64
         const auto encoded = base64::encode(cav.identifier);
@@ -129,14 +133,9 @@ private:
         // Make the call
         return client.request(intercepted_req)
                 .then([&cav](http_response resp) {
-                    if (resp.status_code() != status_codes::OK) {
-                        const auto json_error = resp.extract_json().get();
-                        const std::string error_msg = json_error.at("error").as_string();
-                        const std::string msg = fmt::format("Unable to discharge Macaroon from: {}. {}", cav.location,
-                                                            error_msg);
-                        throw std::runtime_error(msg);
-                    }
-                    return resp.extract_json();
+                    return helpers::handle_response<json::value>(resp, [&cav](const std::string& reason) {
+                        return fmt::format("Unable to discharge Macaroon from: {}. {}", cav.location, reason);
+                    });
                 })
 //            Build the macaroons
                 .then([](json::value json) {
@@ -191,9 +190,6 @@ private:
 
         // Transform the task of
     }
-
-    std::vector<const Interceptor*> interceptors;
-    std::unique_ptr<Logger> logger;
 };
 
 #endif //CMSAUTHZCLI_CLIENT_HPP

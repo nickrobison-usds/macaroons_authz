@@ -8,6 +8,10 @@ find_package(OpenSSL REQUIRED)
 
 add_subdirectory(extern/libmacaroons)
 
+if (NOT TARGET fmt)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../extern/fmt ${CMAKE_CURRENT_BINARY_DIR}/fmt)
+endif()
+
 add_library(bakery
         Macaroon.cpp)
 target_compile_features(bakery
@@ -21,7 +25,8 @@ target_link_libraries(bakery
         PRIVATE
         cpprestsdk::cpprest
         Boost::system
-        Boost::thread)
+        Boost::thread
+        fmt)
 target_include_directories(bakery
         INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>

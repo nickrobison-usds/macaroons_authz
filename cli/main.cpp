@@ -24,20 +24,20 @@ int main(int argc, char **argv) {
     std::optional<string> user_name_opt;
     std::optional<string> vendor_name_opt;
     bool gather_discharges = true;
-    bool java_service = false;
+    bool dynamic_service = false;
 
     app.add_flag("--no-discharge", [&gather_discharges](size_t count) {
         if (count > 0) {
             gather_discharges = false;
         }
     }, "Disable gathering required discharges");
-    app.add_flag("--java", [&java_service](size_t count) {
+    app.add_flag("--dynamic", [&dynamic_service](size_t count) {
         if (count > 0) {
-            java_service = true;
+            dynamic_service = true;
         }
     });
     app.add_option("user", user_name_opt, "User to perform queries as");
-    app.add_option("aco", aco_name_opt, "ACO to query against");
+    app.add_option("aco", aco_name_opt, "ACO to retrieve data for");
     app.add_option("--vendor", vendor_name_opt, "Vendor name to lookup");
 
     try {
@@ -146,10 +146,10 @@ int main(int argc, char **argv) {
 
     string token;
 
-    // Java service request
+    // Dynamic service request
 
-    if (java_service) {
-        logger.info("Making request to Java service");
+    if (dynamic_service) {
+        logger.info("Making request to Dynamic service");
 
         http_client standaloneClient(U(fmt::format("http://localhost:3002/{}", acoID)));
         uri_builder standaloneBuilder(U("/token"));

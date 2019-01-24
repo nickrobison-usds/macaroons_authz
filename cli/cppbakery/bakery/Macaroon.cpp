@@ -4,8 +4,9 @@
 
 #include <iostream>
 #include <cpprest/http_client.h>
-#include "Macaroon.hpp"
+#include <fmt/format.h>
 #include <libmacaroons/macaroons.h>
+#include "Macaroon.hpp"
 #include "../extern/cppcodec/cppcodec/base64_url_unpadded.hpp"
 #include "../extern/cppcodec/cppcodec/base64_rfc4648.hpp"
 
@@ -95,6 +96,10 @@ const Macaroon Macaroon::importMacaroons(const std::string &token) {
                                            &err);
             }
         }
+    }
+
+    if (!mac) {
+        throw std::invalid_argument(fmt::format("Unable to import macaroon from token: {:s}", token));
     }
 
     return Macaroon(mac);
