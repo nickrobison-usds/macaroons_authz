@@ -19,7 +19,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = u'CMS AuthZ Demo'
+project = u'Macaroons AuthZ Demo'
 copyright = u'2018, Nick Robison'
 author = u'Nick Robison'
 
@@ -131,7 +131,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'CMSAuthZDemo.tex', u'CMS AuthZ Demo Documentation',
+    (master_doc, 'MacaroonsAuthZDemo.tex', u'Macaroons AuthZ Demo Documentation',
      u'Nick Robison', 'manual'),
 ]
 
@@ -141,7 +141,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'cmsauthzdemo', u'CMS AuthZ Demo Documentation',
+    (master_doc, 'macaroonsauthzdemo', u'Macaroons AuthZ Demo Documentation',
      [author], 1)
 ]
 
@@ -152,8 +152,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'CMSAuthZDemo', u'CMS AuthZ Demo Documentation',
-     author, 'CMSAuthZDemo', 'One line description of project.',
+    (master_doc, 'MacaroonsAuthZDemo', u'Macaroons AuthZ Demo Documentation',
+     author, 'MacaroonsAuthZDemo', 'One line description of project.',
      'Miscellaneous'),
 ]
 
@@ -182,3 +182,12 @@ epub_exclude_files = ['search.html']
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+# -- Prolog substitutions -------------------------------------------------
+
+rst_prolog = """
+.. |Login| image:: images/login.png
+  :width: 800
+  :alt: Login page
+
+"""
