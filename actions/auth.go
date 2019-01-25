@@ -1,10 +1,7 @@
 package actions
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -18,6 +15,7 @@ import (
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/github"
 	"github.com/markbates/goth/providers/openidConnect"
+	"github.com/nickrobison-usds/macaroons_authz/lib/auth"
 	"github.com/nickrobison-usds/macaroons_authz/models"
 	"github.com/pkg/errors"
 )
@@ -43,6 +41,7 @@ func init() {
 
 	oidp, err := openidConnect.New(envy.Get("CLIENT_ID", ""), os.Getenv("OPENIDCONNECT_SECRET"), fmt.Sprintf("%s%s", "http://localhost:8080", "/auth/login-gov/callback"), discoveryURL)
 	if err == nil {
+		oidp.SetName("login-gov")
 		providers = append(providers, oidp)
 	} else {
 		log.Warn("Not enabling Loging.gov")
@@ -66,19 +65,21 @@ func AuthLogin(c buffalo.Context) error {
 		return errors.WithStack(err)
 	}
 
+	log.Debug("Provider:", prov)
+
 	// Special handling of Login.Gov, because it has some funkiness to it.
 	if prov == "login-gov" {
 		// Start the login
-		state := generateNonce()
+		state := auth.GenerateNonce()
 
 		sesh, err := provider.BeginAuth(state)
 		if err != nil {
-			errors.WithStack(err)
+			return errors.WithStack(err)
 		}
 
 		authURL, err := loginGovURL(sesh, state, "1")
 		if err != nil {
-			errors.WithStack(err)
+			return errors.WithStack(err)
 		}
 
 		return c.Redirect(http.StatusTemporaryRedirect, authURL)
@@ -90,10 +91,12 @@ func AuthLogin(c buffalo.Context) error {
 }
 
 func AuthCallback(c buffalo.Context) error {
-	gu, err := gothic.CompleteUserAuth(c.Response(), c.Request())
+
+	gu, err := getLoginUser(c)
 	if err != nil {
-		return c.Error(401, err)
+		return c.Error(http.StatusUnauthorized, err)
 	}
+
 	tx := c.Value("tx").(*pop.Connection)
 	q := tx.Where("provider = ? and provider_id = ?", gu.Provider, gu.UserID)
 	exists, err := q.Exists("users")
@@ -123,19 +126,33 @@ func AuthCallback(c buffalo.Context) error {
 	return c.Redirect(302, "/")
 }
 
+// AuthDestroy logs out the user and clears the session
 func AuthDestroy(c buffalo.Context) error {
 	c.Session().Clear()
 	c.Flash().Add("success", "You have been logged out")
 	return c.Redirect(302, "/")
 }
 
-func generateNonce() string {
-	nonceBytes := make([]byte, 64)
-	_, err := io.ReadFull(rand.Reader, nonceBytes)
-	if err != nil {
-		panic(err.Error())
+func getLoginUser(c buffalo.Context) (goth.User, error) {
+	var gu goth.User
+	var err error
+	// Special handling of Login.gov auth
+	prov := c.Param("provider")
+
+	if prov == "login-gov" {
+		// Set the client ID in the context
+		c.Set("client_id", envy.Get("CLIENT_ID", ""))
+		gu, err = auth.GetLoginGovUser(c)
+		if err != nil {
+			return gu, err
+		}
+	} else {
+		gu, err = gothic.CompleteUserAuth(c.Response(), c.Request())
+		if err != nil {
+			return gu, err
+		}
 	}
-	return base64.URLEncoding.EncodeToString(nonceBytes)
+	return gu, nil
 }
 
 // Generate the login URL

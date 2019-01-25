@@ -50,6 +50,14 @@
   version = "v1.1.1"
 
 [[projects]]
+  digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
+  name = "github.com/dgrijalva/jwt-go"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
+
+[[projects]]
   digest = "1:6f9339c912bbdda81302633ad7e99a28dfa5a639c864061f1929510a9a64aa74"
   name = "github.com/dustin/go-humanize"
   packages = ["."]
@@ -90,13 +98,12 @@
   version = "v1.4.0"
 
 [[projects]]
-  digest = "1:c670c5cdbbcf7dfd74bea27376410e9b12b558820b52154fc17b17adca5e3c81"
+  digest = "1:728ac603ced9bb410289c97821f823fcb9ed7a2b79dc9f617c2cd960e6c1ee8b"
   name = "github.com/gobuffalo/buffalo"
   packages = [
     ".",
     "binding",
     "render",
-    "runtime",
     "servers",
     "worker",
   ]
@@ -1000,10 +1007,10 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/dgrijalva/jwt-go",
     "github.com/gobuffalo/buffalo",
     "github.com/gobuffalo/buffalo-pop/pop/popmw",
     "github.com/gobuffalo/buffalo/render",
-    "github.com/gobuffalo/buffalo/runtime",
     "github.com/gobuffalo/envy",
     "github.com/gobuffalo/logger",
     "github.com/gobuffalo/mw-forcessl",
@@ -1024,7 +1031,6 @@
     "github.com/markbates/goth/providers/github",
     "github.com/markbates/goth/providers/openidConnect",
     "github.com/markbates/grift/grift",
-    "github.com/markbates/inflect",
     "github.com/mitchellh/mapstructure",
     "github.com/pkg/errors",
     "github.com/rakutentech/jwk-go/jwk",

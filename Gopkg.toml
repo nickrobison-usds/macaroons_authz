@@ -100,3 +100,7 @@
 [[constraint]]
   branch = "master"
   name = "github.com/rakutentech/jwk-go"
+
+[[constraint]]
+  name = "github.com/dgrijalva/jwt-go"
+  version = "3.2.0"
