@@ -19,7 +19,7 @@ class UserInterceptor : public Interceptor {
 public:
     explicit UserInterceptor(const std::string &userID): userID(userID) {};
 
-    http_request intercept(http_request &request, const std::string &location) const override;
+    http_request intercept(http_request &request, const std::string &location) override;
 
 private:
     const std::string &userID;

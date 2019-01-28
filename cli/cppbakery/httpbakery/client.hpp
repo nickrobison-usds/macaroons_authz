@@ -41,7 +41,7 @@ public:
         // Not used
     };
 
-    void addInterceptor(const std::string &location, const Interceptor *interceptor) {
+    void addInterceptor(const std::string &location, Interceptor *interceptor) {
         Logger::debug(fmt::format("Registering interceptor for location {}", location));
         this->interceptors.push_back(interceptor);
     };
@@ -99,7 +99,7 @@ public:
 
 private:
 
-    std::vector<const Interceptor*> interceptors;
+    std::vector<Interceptor*> interceptors;
     std::unique_ptr<Logger> logger;
 
     pplx::task<std::vector<Macaroon>> dischargeCaveat(const MacaroonCaveat &cav) const {
@@ -126,7 +126,7 @@ private:
         const auto loc = cav.location;
 
         const auto intercepted_req = std::reduce(this->interceptors.begin(), this->interceptors.end(), req,
-                                                 [&loc](http_request acc, const Interceptor* interceptor) {
+                                                 [&loc](http_request acc, Interceptor* interceptor) {
                                                      return interceptor->intercept(acc, loc);
                                                  });
 

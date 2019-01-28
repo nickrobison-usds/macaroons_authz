@@ -13,7 +13,7 @@ using namespace web::http;                  // Common HTTP functionality
 
 struct Interceptor {
     virtual ~Interceptor() = default;
-    virtual http_request intercept(http_request &request, const std::string &location) const = 0;
+    virtual http_request intercept(http_request &request, const std::string &location) = 0;
 };
 
 // Leaving this here to remind me how to do it.
