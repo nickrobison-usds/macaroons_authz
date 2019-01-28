@@ -23,13 +23,14 @@ find_package(Boost REQUIRED COMPONENTS system thread)
 find_package(OpenSSL REQUIRED)
 
 add_subdirectory(extern/cli11)
+add_subdirectory(extern/rang)
 
 if (NOT TARGET fmt)
     add_subdirectory(extern/fmt)
 endif ()
 
 add_subdirectory(cppbakery)
-add_subdirectory(extern/rang)
+add_subdirectory(login-gov)
 
 add_executable(cli main.cpp UserInterceptor.cpp)
 target_link_libraries(cli
@@ -41,4 +42,5 @@ target_link_libraries(cli
         cpprestsdk::cpprest
         Boost::system
         Boost::thread
-        fmt)
+        fmt
+        logingov)

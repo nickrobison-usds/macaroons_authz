@@ -4,6 +4,7 @@
 #include <httpbakery/client.hpp>
 #include <httpbakery/interceptor.hpp>
 #include <bakery/Macaroon.hpp>
+#include <login-gov/LoginInterceptor.hpp>
 #include "SimpleLogger.hpp"
 #include "UserInterceptor.hpp"
 
@@ -219,8 +220,11 @@ int main(int argc, char **argv) {
     if (gather_discharges) {
         logger.info("Discharging third party caveats");
         Client<SimpleLogger> mac_client;
-        const auto tic = std::make_shared<const UserInterceptor>(UserInterceptor{user_id});
+        const auto tic = std::make_shared<UserInterceptor>(UserInterceptor{user_id});
         mac_client.addInterceptor("http://local.test", tic.get());
+        // Add Qt
+        LoginInterceptor li("http://localhost:5000", nullptr);
+        mac_client.addInterceptor("http://local.test", &li);
         try {
             bound_mac = mac_client.dischargeMacaroon(mac);
         } catch (const exception& e) {
