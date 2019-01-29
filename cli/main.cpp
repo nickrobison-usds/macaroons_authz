@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
         const auto tic = std::make_shared<UserInterceptor>(UserInterceptor{user_id});
         mac_client.addInterceptor("http://local.test", tic.get());
         // Add Qt
-        LoginInterceptor li("http://localhost:5000", nullptr);
+        LoginInterceptor li("http://localhost:5000");
         mac_client.addInterceptor("http://local.test", &li);
         try {
             bound_mac = mac_client.dischargeMacaroon(mac);

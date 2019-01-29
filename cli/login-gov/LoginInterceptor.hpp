@@ -7,18 +7,15 @@
 
 
 #include <QtCore>
-#include <QtNetworkAuth>
 #include <httpbakery/interceptor.hpp>
 
-class LoginInterceptor : public QObject, public Interceptor {
-    Q_OBJECT
+class LoginInterceptor : public Interceptor {
 
 public:
-    LoginInterceptor(std::string root_location, QObject *parent = nullptr);
+    LoginInterceptor(std::string root_location);
     http_request intercept(http_request &request, const std::string &location) override;
 
 private:
-    QOAuth2AuthorizationCodeFlow oauth;
     const QString root_location;
 };
 

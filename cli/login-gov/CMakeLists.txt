@@ -9,7 +9,7 @@ find_package(cpprestsdk REQUIRED)
 find_package(Qt5 5.12 COMPONENTS Network NetworkAuth Gui REQUIRED)
 set(CMAKE_AUTOMOC ON)
 
-add_library(logingov LoginInterceptor.cpp)
+add_library(logingov LoginInterceptor.cpp LoginComponent.cpp CallbackHandler.cpp)
 target_link_libraries(logingov
         PUBLIC
         Qt5::NetworkAuth
