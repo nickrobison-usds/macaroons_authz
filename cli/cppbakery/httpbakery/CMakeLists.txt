@@ -4,6 +4,7 @@ find_package(Boost REQUIRED COMPONENTS system thread)
 
 # We have to manually handle OpenSSL, for some reason.
 find_package(OpenSSL REQUIRED)
+find_package(Threads)
 
 if (NOT TARGET fmt)
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../extern/fmt ${CMAKE_CURRENT_BINARY_DIR}/fmt)
@@ -25,7 +26,8 @@ target_link_libraries(httpbakery
         Boost::system
         Boost::thread
         cppcodec
-        fmt)
+        fmt
+        Threads::Threads)
 target_include_directories(httpbakery
         INTERFACE
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>

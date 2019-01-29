@@ -4,9 +4,9 @@
 #include <httpbakery/client.hpp>
 #include <httpbakery/interceptor.hpp>
 #include <bakery/Macaroon.hpp>
-#include <login-gov/LoginInterceptor.hpp>
 #include "SimpleLogger.hpp"
 #include "UserInterceptor.hpp"
+#include "LoginInterceptor.hpp"
 
 using namespace std;
 using namespace utility;                    // Common utilities like string conversions

@@ -32,7 +32,7 @@ endif ()
 add_subdirectory(cppbakery)
 add_subdirectory(login-gov)
 
-add_executable(cli main.cpp UserInterceptor.cpp)
+add_executable(cli main.cpp UserInterceptor.cpp LoginInterceptor.hpp)
 target_link_libraries(cli
         INTERFACE
         rang
@@ -43,4 +43,4 @@ target_link_libraries(cli
         Boost::system
         Boost::thread
         fmt
-        logingov)
+        liblogingov)

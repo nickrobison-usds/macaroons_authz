@@ -13,16 +13,6 @@
 
 
 LoginComponent::LoginComponent(QObject *parent) : QObject(parent), m_token(""), code_verifier("test-state-minimum-of-32-which-is-very-very-long") {
-    //    QByteArray ba;
-//    ba.resize(32);
-//    QRandomGenerator *const rand = QRandomGenerator::global();
-//    rand->fillRange(ba.data(), ba.size());
-//    // Create a nonce and state
-//    QVector<quint32> nonce;
-//    nonce.resize(32);
-//    rand->fillRange(nonce.data(), nonce.size());
-//    QVector<quint32> state;
-//    rand->fillRange(state.data(), state.size());
 
     auto hash = QCryptographicHash(QCryptographicHash::Sha256);
     hash.addData(code_verifier);

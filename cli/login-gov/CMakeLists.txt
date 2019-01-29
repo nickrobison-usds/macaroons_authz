@@ -9,15 +9,18 @@ find_package(cpprestsdk REQUIRED)
 find_package(Qt5 5.12 COMPONENTS Network NetworkAuth Gui REQUIRED)
 set(CMAKE_AUTOMOC ON)
 
-add_library(logingov LoginInterceptor.cpp LoginComponent.cpp CallbackHandler.cpp)
-target_link_libraries(logingov
+add_library(liblogingov LoginComponent.cpp SharedMemory.hpp)
+
+add_executable(logingov LoginGuiHandler.cpp)
+target_link_libraries(liblogingov
         PUBLIC
         Qt5::NetworkAuth
         Qt5::Network
         cpprestsdk::cpprest
+        Qt5::Gui
         PRIVATE
         Bakery::httpbakery
         Boost::system
-        Boost::thread
-        Qt5::Gui)
-target_include_directories(logingov PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
+        Boost::thread)
+target_link_libraries(logingov liblogingov)
+target_include_directories(liblogingov PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
