@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"github.com/gobuffalo/buffalo"
+	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/pop"
 	"github.com/gobuffalo/uuid"
 	"github.com/nickrobison-usds/macaroons_authz/lib/auth/ca"
@@ -482,8 +483,19 @@ func userAssociatedChecker(db *pop.Connection, acoID uuid.UUID) bakery.ThirdPart
 		}
 
 		// If we're a vendor, add a third party caveat requiring the vendor to verify that the user is valid
+		proxyHost := envy.Get("LOGIN_PROXY", "")
 
-		if !user.IsUser {
+		if user.IsUser && proxyHost != "" {
+			log.Debug("Setting login host: ", proxyHost)
+
+			// Fetch the user, so we can get its openIDConnec
+			// Add a caveat requiring the proxy service to verify with oauth.
+			cav, err := createUserCaveat(&user, proxyHost, db)
+			if err != nil {
+				return caveats, err
+			}
+			caveats = append(caveats, cav)
+		} else {
 			// Get the user from the context
 			userID := ctx.Value("user_id").(string)
 			if userID == "" {
@@ -499,4 +511,18 @@ func userAssociatedChecker(db *pop.Connection, acoID uuid.UUID) bakery.ThirdPart
 
 		return caveats, nil
 	}
+}
+
+func createUserCaveat(acoUser *models.AcoUser, proxy string, db *pop.Connection) (checkers.Caveat, error) {
+	var caveat checkers.Caveat
+	var user models.User
+
+	err := db.Where("id = ?", acoUser.EntityID).First(&user)
+	if err != nil {
+		return caveat, err
+	}
+
+	caveat.Location = proxy
+	caveat.Condition = fmt.Sprintf("user_id= %s", user.ProviderID)
+	return caveat, nil
 }
