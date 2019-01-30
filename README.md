@@ -245,10 +245,16 @@ At a minimum, you'll need to modify the `user` parameter to match the username u
 development:
   dialect: postgres
   database: macaroons_authz_development
-  user: {DATABASE USERNAME}
-  password: {DATABASE PASSWORD (if required)} 
+  user: {DATABSE USERNAME}
+  password: {DATABASE PASSWORD}
   host: 127.0.0.1
   pool: 5
+
+test:
+  url: {{envOr "TEST_DATABASE_URL" "postgres://{DATABASE USERNAME}:{DATABASE PASSWORD}@127.0.0.1:5432/macaroons_authz_test?sslmode=disable"}}
+
+production:
+  url: {{envOr "DATABASE_URL" "postgres://{DATABASE USERNAME}:{DATABASE PASSWORD}@127.0.0.1:5432/macaroons_authz_production?sslmode=disable"}}
 ```
 
 This is done manually, to avoid destroying any existing data.
