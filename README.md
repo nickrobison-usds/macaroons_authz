@@ -236,7 +236,21 @@ cfssl serve -config config/config_ca.json -ca keys/ca.pem -ca-key keys/ca-key.pe
 
 ### DB Seeding
 
-The initial database can be created and populated by running the following commands.
+The initial database can be created and populated by running the makefile commands.
+
+The `database.yml` contains the necessary configuration options, which can be set to the appropriate values for the developer's environment.
+At a minimum, you'll need to modify the `user` parameter to match the username used by Postgres (most likely the user's local account name).
+
+```yaml
+development:
+  dialect: postgres
+  database: macaroons_authz_development
+  user: {DATABASE USERNAME}
+  password: {DATABASE PASSWORD (if required)} 
+  host: 127.0.0.1
+  pool: 5
+```
+
 This is done manually, to avoid destroying any existing data.
 
 ```bash
