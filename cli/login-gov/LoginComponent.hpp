@@ -19,7 +19,6 @@ public:
     explicit LoginComponent(QObject *parent = nullptr);
 
     void login();
-    QString getToken() const;
 
 signals:
     void token(QString token);

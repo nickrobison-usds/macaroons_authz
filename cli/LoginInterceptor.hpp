@@ -31,7 +31,7 @@ public:
 
     http_request intercept(http_request &request, const std::string &location) override {
 
-        if (location.rfind("http://localhost:8080/api/acos") == 0) {
+        if (location.rfind("http://localhost:5000") == 0) {
 
             //    Connect to shared memory
             Shared::bip::managed_shared_memory memory(Shared::bip::open_only, memory_name);
@@ -56,7 +56,7 @@ public:
         }
 
 
-        return http_request();
+        return request;
     }
 
 private:

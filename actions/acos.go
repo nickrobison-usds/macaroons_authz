@@ -50,8 +50,6 @@ func init() {
 		log.Fatal(err)
 	}
 	as = s
-
-	as.AddThirdParty("http://localhost:5000", key)
 }
 
 func AcosCreateACO(c buffalo.Context) error {

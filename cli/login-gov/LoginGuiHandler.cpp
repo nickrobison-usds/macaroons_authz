@@ -45,23 +45,34 @@ int main(int argc, char **argv) {
     using A = Shared::Alloc<char>;
     A alloc(shm.get_segment_manager());
 
-    auto* data = shm.find_or_construct<SharedMemory<A>>("data")(1024, shm.get_segment_manager());
-    qDebug() << "Waiting for Mutex";
-    // Wait for the mutex to be ready
-    data->mutex.wait();
-    qDebug() << "Beginning login";
-    comp.login();
+    auto *data = shm.find_or_construct<SharedMemory<A>>("data")(1024, shm.get_segment_manager());
 
     QObject::connect(&comp, &LoginComponent::token, [data](const QString &token_resp) {
         qDebug() << "has token " << token_resp;
 
         auto token = token_resp.toStdString();
-        for (int i=0; i < token.length(); i++) {
+        for (int i = 0; i < token.length(); i++) {
             data->mData.at(i) = token[i];
         }
         data->mData.resize(token.length());
+        data->running.post();
         data->done.post();
     });
 
-    QGuiApplication::exec();
+    // Spin up a thread to watch for a login event and signal the component.
+    qDebug() << "Beginning login";
+    const auto t1 = QThread::create([data, &comp]() {
+        while (true) {
+            qDebug() << "Waiting for Mutex";
+            // Wait for the mutex to be ready
+            data->mutex.wait();
+            qDebug() << "Logging in";
+            comp.login();
+            qDebug() << "Waiting to finish";
+            data->running.wait();
+        }
+    });
+    t1->start();
+
+    return QGuiApplication::exec();
 }

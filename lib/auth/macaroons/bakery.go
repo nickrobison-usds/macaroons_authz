@@ -103,15 +103,6 @@ func (b Bakery) GetPublicKey() []byte {
 	return key
 }
 
-// Add a
-func (b Bakery) AddThirdParty(location string, keys *bakery.KeyPair) {
-	log.Debugf("Adding location %s. Private: %s, Public: %s", location, keys.Private, keys.Public)
-	tstore.AddInfo(location, bakery.ThirdPartyInfo{
-		PublicKey: keys.Public,
-		Version:   bakery.LatestVersion,
-	})
-}
-
 func (b Bakery) NewFirstPartyMacaroon(conditions []string) (*bakery.Macaroon, error) {
 
 	caveats := buildCaveats("", conditions)

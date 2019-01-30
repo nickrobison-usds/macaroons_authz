@@ -19,7 +19,7 @@ LoginComponent::LoginComponent(QObject *parent) : QObject(parent), m_token(""), 
     const auto code_challenge = hash.result().toBase64(QByteArray::Base64UrlEncoding).toStdString();
 
     auto replyHandler = new QOAuthHttpServerReplyHandler(1337, this);
-    oauth.setScope("openid email");
+    oauth.setScope("openid email profile:name");
     oauth.setAuthorizationUrl(QUrl("http://localhost:3000/openid_connect/authorize"));
     oauth.setAccessTokenUrl(QUrl("http://localhost:3000/api/openid_connect/token"));
     oauth.setProperty("acr_values", QString("http://idmanagement.gov/ns/assurance/loa/1"));
@@ -79,8 +79,4 @@ void LoginComponent::login() {
             emit token(this->oauth.token());
         }
     });
-}
-
-QString LoginComponent::getToken() const {
-    return m_token;
 }
