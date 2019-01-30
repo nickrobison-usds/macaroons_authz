@@ -12,13 +12,6 @@ temp = $(subst /, ,$@)
 os = $(word 1, $(temp))
 arch = $(word 2, $(temp))
 
-clean:
-		-rm -rf cli/build
-		-rm -rf bin
-		-rm -r javascript/src/*.js
-		-rm -rf javascript/dist
-		-rm -rf java/target
-
 #
 # Setup repository for the first time
 #
@@ -133,3 +126,9 @@ docs:
 
 .PHONY: docs
 
+clean:
+		-rm -rf cli/build
+		-rm -rf bin
+		-rm -r javascript/src/*.js
+		-rm -rf javascript/dist
+		-rm -rf java/target

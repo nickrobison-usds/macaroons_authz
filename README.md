@@ -13,8 +13,15 @@ This will install all the system, javascript, and go dependencies, and initializ
 
 You can also do everything manually.
 
-
 ### Cloning
+
+Since this application makes use of Go for the authentication and proxy servers, you need to clone the repo inside your `GOPATH`. This will hopefully be resolved once [this|https://github.com/nickrobison-usds/macaroons_authz/issues/1] issue has been merged.
+
+```bash
+mkdir -p $GOPATH/src/github.com/nickrobison-usds
+cd $GOPATH/src/github.com/nickrobison-usds
+git clone git@github.com:nickrobison-usds/macaroons_authz.git
+```
 
 We use git submodules for a number of external dependencies (to avoid requiring system installation).
 You can initialize them all by running:
