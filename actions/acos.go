@@ -45,11 +45,13 @@ func init() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	s, err := macaroons.NewBakery(acoURI, createACOCheckers(), models.DB, key)
+	s, err := macaroons.NewBakery(acoURI, createACOCheckers(), key)
 	if err != nil {
 		log.Fatal(err)
 	}
 	as = s
+
+	as.AddThirdParty("http://localhost:5000", key)
 }
 
 func AcosCreateACO(c buffalo.Context) error {
@@ -523,6 +525,6 @@ func createUserCaveat(acoUser *models.AcoUser, proxy string, db *pop.Connection)
 	}
 
 	caveat.Location = proxy
-	caveat.Condition = fmt.Sprintf("user_id= %s", user.ProviderID)
+	caveat.Condition = fmt.Sprintf("email= %s", "test1@test.com")
 	return caveat, nil
 }

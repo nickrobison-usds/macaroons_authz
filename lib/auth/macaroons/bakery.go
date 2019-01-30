@@ -8,7 +8,6 @@ import (
 
 	"github.com/gobuffalo/envy"
 	"github.com/gobuffalo/logger"
-	"github.com/gobuffalo/pop"
 	"gopkg.in/macaroon-bakery.v2/bakery"
 	"gopkg.in/macaroon-bakery.v2/bakery/checkers"
 	"gopkg.in/macaroon-bakery.v2/bakery/postgresrootkeystore"
@@ -53,7 +52,7 @@ func init() {
 	})
 }
 
-func NewBakery(location string, checker *checkers.Checker, db *pop.Connection, keys *bakery.KeyPair) (*Bakery, error) {
+func NewBakery(location string, checker *checkers.Checker, keys *bakery.KeyPair) (*Bakery, error) {
 
 	// Do something dumb for public keys
 	if keys == nil {
@@ -101,6 +100,15 @@ func (b Bakery) GetPublicKey() []byte {
 		panic(err)
 	}
 	return key
+}
+
+// Add a
+func (b Bakery) AddThirdParty(location string, keys *bakery.KeyPair) {
+	log.Debugf("Adding location %s. Private: %s, Public: %s", location, keys.Private, keys.Public)
+	tstore.AddInfo(location, bakery.ThirdPartyInfo{
+		PublicKey: keys.Public,
+		Version:   bakery.LatestVersion,
+	})
 }
 
 func (b Bakery) NewFirstPartyMacaroon(conditions []string) (*bakery.Macaroon, error) {

@@ -98,7 +98,7 @@ func AuthCallback(c buffalo.Context) error {
 	}
 
 	tx := c.Value("tx").(*pop.Connection)
-	q := tx.Where("provider = ? and provider_id = ?", gu.Provider, gu.UserID)
+	q := tx.Where("email = ?", gu.Email)
 	exists, err := q.Exists("users")
 	if err != nil {
 		return errors.WithStack(err)

@@ -43,7 +43,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	b, err := macaroons.NewBakery(vendorURI, createVendorChecker(), models.DB, key)
+	b, err := macaroons.NewBakery(vendorURI, createVendorChecker(), key)
 	if err != nil {
 		log.Fatal(err)
 	}
