@@ -11,3 +11,14 @@
 [submodule "cli/extern/rang"]
 	path = cli/extern/rang
 	url = ../../agauniyal/rang.git
+[submodule "identity-idp"]
+	path = identity-idp
+	url = ../../18F/identity-idp.git
+[submodule "jmacaroons"]
+	path = jmacaroons
+	url = ../jmacaroons.git
+	branch = v2-json
+[submodule "js-macaroon"]
+	path = js-macaroon
+	url = ../js-macaroon.git
+	branch = v2-json
