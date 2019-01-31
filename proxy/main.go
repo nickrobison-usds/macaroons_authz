@@ -16,6 +16,7 @@ import (
 
 var state map[string]string
 var ps *macaroons.Bakery
+var loginHost string
 
 type userResponse struct {
 	Email string `json:"email"`
@@ -30,11 +31,13 @@ type dischargeResponse struct {
 func main() {
 
 	host := envy.Get("HOST", "http://localhost:5000")
+	keyFile := envy.Get("KEY_FILE", "../user_keys.json")
+	loginHost = envy.Get("LOGIN_HOST", "http://localhost:3000")
 
 	// Setup our bakery
 
 	// Read in the demo file
-	f, err := ioutil.ReadFile("../user_keys.json")
+	f, err := ioutil.ReadFile(keyFile)
 	if err != nil {
 		panic(err)
 	}
@@ -84,7 +87,7 @@ func dischargeHandler(w http.ResponseWriter, req *http.Request) {
 	mac := req.URL.Query().Get("id64")
 
 	// Request the user info from the API
-	req, err := http.NewRequest("GET", "http://localhost:3000/api/openid_connect/userinfo", nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/api/openid_connect/userinfo", loginHost), nil)
 	if err != nil {
 		handleError(w, err)
 		return

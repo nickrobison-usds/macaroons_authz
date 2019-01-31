@@ -7,7 +7,7 @@ module "db" {
   use_local = false
   db_name = "macaroons_authz"
 }
-/*
+/**
 module "idp" {
   source = "../modules/idp"
 
@@ -18,7 +18,6 @@ module "idp" {
   host_path = "/Users/usds/Development/identity-idp"
 }
 */
-
 module "cfssl" {
   source = "../modules/cfssl"
 
@@ -58,7 +57,10 @@ resource "docker_container" "authz" {
     "PROVIDER_URL=http://localhost:3000",
     "PORT=8080",
     "SEED=true",
-    "GO_ENV=production"
+    "GO_ENV=production",
+    "CLIENT_SECRET=my secret",
+    "CLIENT_ID=urn:gov:gsa:openidconnect.profiles:sp:sso:mad:mac_dev",
+    "LOGIN_PROXY=http://localhost:5000"
   ]
   networks_advanced {
     name = "${docker_network.public.name}"
@@ -100,12 +102,30 @@ resource "docker_container" "external-service" {
     external = 3002
   }
   env = [
+    "DATABASE_URL=postgres://postgres@${module.db.hostname}:5432/macaroons_authz?sslmode=disable",
     "HOST=http://${docker_container.authz.hostname}:8080"
   ]
   networks_advanced {
     name = "${docker_network.public.name}"
   }
 }
+
+/* ---- Add the Proxy service ---- */
+
+resource "docker_container" "proxy-service" {
+  name = "proxy-service"
+  image = "nickrobison.com/proxy:latest"
+  hostname = "proxy-service"
+  ports {
+    internal = 5000
+    external = 5000
+  }
+  env = [
+    "KEY_FILE=/proxy/user_keys.json",
+    "LOGIN_HOST=http://localhost:3000"
+  ]
+}
+
 
 /* ----- Public networking ----- */
 

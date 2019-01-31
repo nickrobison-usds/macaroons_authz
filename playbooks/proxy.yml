@@ -1,0 +1,80 @@
+---
+- name: Setup Ansible
+  hosts: all
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: ../roles/ansible
+
+- name: Install Proxy Service
+  hosts: all
+  environment:
+    GOPATH: /usr/local/gopath
+    GOROOT: /usr/local/goroot
+    PROXY_ROOT: /proxy
+  vars:
+    version: "master"
+    go_binary: go1.11.2.linux-amd64.tar.gz
+    proxy_root: /proxy
+  tasks:
+    - name: Install packages
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - git
+
+    - name: Create directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0755
+      with_items:
+        - "{{ ansible_env.GOPATH }}"
+        - "{{ ansible_env.GOROOT }}"
+        - "{{ ansible_env.PROXY_ROOT }}"
+
+    - name: Download GO
+      get_url:
+        url: "https://dl.google.com/go/{{ go_binary }}"
+        dest: "{{ ansible_env.GOROOT }}/{{ go_binary }}"
+        checksum: sha256:1dfe664fa3d8ad714bbd15a36627992effd150ddabd7523931f077b3926d736d
+
+    - name: Install GO
+      unarchive:
+        remote_src: yes
+        src: "{{ ansible_env.GOROOT }}/{{ go_binary }}"
+        dest: "{{ ansible_env.GOROOT }}"
+
+    - name: Symlink GO
+      file:
+        src: "{{ ansible_env.GOROOT }}/go/bin/go"
+        dest: /usr/bin/go
+        state: link
+
+- name: Copy files
+  hosts: all
+  tasks:
+    - name: Copy Binary
+      copy:
+        src: ../bin/proxy_server_linux
+        dest: /usr/bin
+        mode: o+x
+    - name: Copy entryscript
+      copy:
+        src: ./proxy-entrypoint.sh
+        dest: /usr/bin
+        mode: o+x
+    - name: Copy key
+      copy:
+        src: ../user_keys.json
+        dest: /proxy
+
+- name: Cleanup
+  hosts: all
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: ../roles/cleanup
+
+

@@ -44,7 +44,7 @@ func init() {
 		oidp.SetName("login-gov")
 		providers = append(providers, oidp)
 	} else {
-		log.Warn("Not enabling Loging.gov")
+		log.Warn("Not enabling Loging.gov: ", err)
 	}
 
 	// Github provider

@@ -70,6 +70,8 @@ build/server: darwin/amd64
 
 $(PLATFORMS):
 		GOOS=$(os) GOARCH=$(arch) buffalo build -o bin/macaroons_authz_$(os)
+		GOOS=$(os) GOARCH=$(arch) go build -o bin/proxy_server_$(os) proxy/main.go
+
 
 # Javascript endpoint
 
@@ -111,13 +113,16 @@ deploy/internal-service: javascript/dist/target_service.js
 deploy/external-service: java/target/javaservice-%.jar
 		packer build packer/external_service.json
 
+deploy/proxy: linux/amd64
+		packer build packer/proxy.json
+
 run:
 		-cd terraform/sbx; terraform apply
 
 stop:
 		-cd terraform/sbx; terraform destroy
 
-.PHONY: deploy deploy/server deploy/cfssl deploy/internal-service deploy/external-service run stop
+.PHONY: deploy deploy/server deploy/cfssl deploy/internal-service deploy/external-service deploy/proxy run stop
 
 # Documentation
 

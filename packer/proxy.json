@@ -1,0 +1,24 @@
+{
+    "builders": [{
+        "type": "docker",
+        "image": "debian:stretch-slim",
+        "commit": true,
+        "changes": [
+            "VOLUME /proxy",
+            "WORKDIR /proxy",
+            "ENTRYPOINT [\"/usr/bin/proxy-entrypoint.sh\"]"
+        ]
+    }],
+
+    "provisioners": [{
+        "type": "ansible",
+        "user": "root",
+        "playbook_file": "playbooks/proxy.yml"
+    }],
+
+    "post-processors": [{
+        "type": "docker-tag",
+        "repository": "nickrobison.com/proxy",
+        "tag": "latest"
+    }]
+}

@@ -1,0 +1,34 @@
+diff --git a/config/agencies.yml b/config/agencies.yml
+index 060a48d6..704b465c 100644
+--- a/config/agencies.yml
++++ b/config/agencies.yml
+@@ -57,6 +57,8 @@ development:
+     name: 'SEC'
+   14:
+     name: 'DOL'
++  15:
++    name: 'MAD'
+ 
+ production:
+   1:
+diff --git a/config/service_providers.yml b/config/service_providers.yml
+index f2b015da..293f2e19 100644
+--- a/config/service_providers.yml
++++ b/config/service_providers.yml
+@@ -66,6 +66,16 @@ test:
+     assertion_consumer_logout_service_url: ''
+ 
+ development:
++  'urn:gov:gsa:openidconnect.profiles:sp:sso:mad:mac_dev':
++    agency_id: 15
++    friendly_name: 'Macaroons AuthZ Demo - Localhost'
++    agency: 'MAD'
++    return_to_sp_url: 'http://localhost:8080/'
++    cert: 'macdemo'
++    redirect_uris:
++      - 'http://localhost:8080/'
++      - 'http://localhost:8080/auth/login-gov/callback'
++
+   'https://rp1.serviceprovider.com/auth/saml/metadata':
+     agency_id: 2
+     metadata_url: 'http://localhost:3000/test/saml/metadata'
