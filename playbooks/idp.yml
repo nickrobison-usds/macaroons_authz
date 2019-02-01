@@ -1,0 +1,141 @@
+---
+- name: Setup Ansible
+  hosts: all
+  gather_facts: false
+  tasks:
+    - include_role:
+        name: ../roles/ansible
+
+- name: Install Dependencies
+  hosts: all
+  vars:
+    workdir: /upaya
+    node_version: v8.9.4
+    node_package: "node-{{ node_version }}-linux-x64.tar.gz"
+  tasks:
+    - name: Add app group
+      group:
+        gid: 999
+        name: appuser
+    - name: Add app user
+      user:
+        name: appuser
+        group: appuser
+        uid: 999
+        system: true
+    - name: Install packages
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - apt-transport-https
+        - gnupg
+        - rsync
+    - name: Create directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0755
+      with_items:
+        - "{{ workdir }}"
+        - "{{ workdir }}/node"
+    - name: Set directory permissions
+      file:
+        path: "{{ workdir }}"
+        owner: appuser
+        group: appuser
+
+    - name: Download Node
+      get_url:
+        url: "https://nodejs.org/dist/{{ node_version }}/{{ node_package }}"
+        dest: "{{ workdir }}/{{ node_package }}"
+        checksum: sha256:21fb4690e349f82d708ae766def01d7fec1b085ce1f5ab30d9bda8ee126ca8fc
+    - name: Unpack Node
+      unarchive:
+        remote_src: yes
+        src: "{{ workdir }}/{{ node_package }}"
+        dest: "{{ workdir }}/node"
+        extra_opts: ['--strip-components=1']
+    - name: Install Node
+      file:
+        src: "{{ workdir }}/node/bin/{{ item }}"
+        dest: "/usr/bin/{{ item }}"
+        state: link
+      with_items:
+        - node
+        - npm
+
+    - name: Import Yarn Key
+      apt_key:
+        url: https://dl.yarnpkg.com/debian/pubkey.gpg
+        state: present
+    - name: Add Yarn repo
+      apt_repository:
+        repo: "deb https://dl.yarnpkg.com/debian/ stable main"
+        state: present
+    - name: Install Yarn
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - yarn
+
+- name: Copy Resources
+  hosts: all
+  vars:
+    workdir: /upaya
+  tasks:
+    - name: Copy IDP files
+      synchronize:
+        src: ../identity-idp/
+        dest: "{{ workdir }}/"
+    - name: Apply patch
+      patch:
+        src: ../login-gov/providers.diff
+        basedir: "{{ workdir }}"
+        strip: 1
+    - name: Copy entrypoint
+      copy:
+        src: ./idp-entrypoint.sh
+        dest: /usr/bin
+        mode: o+x
+    - name: Copy example config files
+      copy:
+        src: "../identity-idp/{{ item }}.example"
+        dest: "{{ workdir }}/{{ item }}"
+      with_items:
+        - config/application.yml
+        - logstash.conf
+        - keys/saml.key.enc
+        - keys/saml2018.key.enc
+        - certs/saml.crt
+        - certs/saml2018.crt
+
+- name: Install project dependencies
+  hosts: all
+  vars:
+    workdir: /upaya
+  tasks:
+    - name: Install bundler
+      gem:
+        name: bundler
+        state: present
+    - name: Install Ruby gems
+      bundler:
+        state: present
+        chdir: "{{ workdir }}"
+        exclude_groups:
+          - deploy
+          - production
+    - name: Install Javascript dependencies
+      yarn:
+        path: /upaya
+
+
+
+- name: Cleanup
+  hosts: all
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: ../roles/cleanup

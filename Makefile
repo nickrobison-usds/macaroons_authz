@@ -116,13 +116,16 @@ deploy/external-service: java/target/javaservice-%.jar
 deploy/proxy: linux/amd64
 		packer build packer/proxy.json
 
+deploy/login:
+		packer build packer/idp.json
+
 run:
 		-cd terraform/sbx; terraform apply
 
 stop:
 		-cd terraform/sbx; terraform destroy
 
-.PHONY: deploy deploy/server deploy/cfssl deploy/internal-service deploy/external-service deploy/proxy run stop
+.PHONY: deploy deploy/server deploy/cfssl deploy/internal-service deploy/external-service deploy/proxy deploy/login run stop
 
 # Documentation
 

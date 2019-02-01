@@ -7,7 +7,7 @@ module "db" {
   use_local = false
   db_name = "macaroons_authz"
 }
-/**
+
 module "idp" {
   source = "../modules/idp"
 
@@ -17,7 +17,7 @@ module "idp" {
   public_network = "${docker_network.public.name}"
   host_path = "/Users/usds/Development/identity-idp"
 }
-*/
+
 module "cfssl" {
   source = "../modules/cfssl"
 

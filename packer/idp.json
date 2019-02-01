@@ -1,0 +1,26 @@
+{
+    "builders": [{
+        "type": "docker",
+        "image": "ruby:2.5",
+        "commit": true,
+        "changes": [
+            "VOLUME /upaya",
+            "WORKDIR /upaya",
+            "EXPOSE 3000",
+            "ENTRYPOINT [\"/usr/bin/idp-entrypoint.sh\"]",
+            "CMD [\"rackup\", \"config.ru\", \"--host\", \"0.0.0.0\", \"--port\", \"3000\"]"
+        ]
+    }],
+
+    "provisioners": [{
+        "type": "ansible",
+        "user": "root",
+        "playbook_file": "playbooks/idp.yml"
+    }],
+
+    "post-processors": [{
+        "type": "docker-tag",
+        "repository": "nickrobison.com/idp-web",
+        "tag": "latest"
+    }]
+}

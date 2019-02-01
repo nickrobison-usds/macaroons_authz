@@ -278,6 +278,12 @@ func VendorsVerify(c buffalo.Context) error {
 	// Decode the caveat, and keep going
 	mac, err := vs.DischargeCaveatByID(ctx, token, vendorUserIDCaveatChecker(c.Value("tx").(*pop.Connection)))
 	if err != nil {
+		log.Debug(err)
+		if err.Error() == "permission denied" {
+			errMsg := fmt.Sprintln("User is not associated with the vendor")
+			log.Error("Unauthorized: ", err)
+			return c.Render(http.StatusUnauthorized, r.String(errMsg))
+		}
 		return errors.WithStack(err)
 	}
 

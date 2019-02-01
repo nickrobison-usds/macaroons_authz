@@ -11,3 +11,8 @@ variable "name" {
 variable "host_path" {
   description = "Location of identity provider web resources"
 }
+
+variable "seed" {
+  description = "Seed the database with test values"
+  default = true
+}

@@ -220,9 +220,9 @@ int main(int argc, char **argv) {
     if (gather_discharges) {
         logger.info("Discharging third party caveats");
         Client<SimpleLogger> mac_client;
-//        const auto tic = std::make_shared<UserInterceptor>(UserInterceptor{user_id});
-//        mac_client.addInterceptor("http://local.test", tic.get());
-        // Add Qt Login Interceptor
+        const auto tic = std::make_shared<UserInterceptor>(UserInterceptor{user_id});
+        mac_client.addInterceptor("http://local.test", tic.get());
+//         Add Qt Login Interceptor
         LoginInterceptor li("http://localhost:5000");
         mac_client.addInterceptor("http://local.test", &li);
         try {
