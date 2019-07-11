@@ -10,7 +10,7 @@
         "@types/cookie-parser": "^1.4.1",
         "@types/pg": "^7.4.11",
         "cookie-parser": "^1.4.3",
-        "express": "^4.16.4",
+        "express": "^4.17.1",
         "macaroon": "https://github.com/nickrobison-usds/js-macaroon.git#v2-json",
         "nacl-fast": "^0.1.0",
         "node-fetch": "^2.3.0",
