@@ -26,10 +26,10 @@
     "@bazel/bazel-linux_x64" "0.21.0"
     "@bazel/bazel-win32_x64" "0.21.0"
 
-"@bazel/ibazel@^0.9.0":
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/@bazel/ibazel/-/ibazel-0.9.0.tgz#fd60023acd36313d304cc2f8c2e181b88b5445cd"
-  integrity sha512-E31cefDcdJsx/oii6p/gqKZXSVw0kEg1O73DD2McFcSvnf/p1GYWcQtVgdRQmlviBEytJkJgdX8rtThitRvcow==
+"@bazel/ibazel@^0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@bazel/ibazel/-/ibazel-0.11.0.tgz#6879c8032f5bee81ca632456304c16525160f47f"
+  integrity sha512-UOSMb29SjjXrs7VTn6eOAO2anmAgUC3hrsKwW3XyFV4pQdd71d0wjRqz36Vao4ICWXZcv4C6mRuVH2VCfZmG1w==
 
 "@bazel/typescript@^0.22.0":
   version "0.22.0"
