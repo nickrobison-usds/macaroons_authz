@@ -19,7 +19,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <dropwizard.version>1.3.12</dropwizard.version>
+        <dropwizard.version>2.0.17</dropwizard.version>
         <mainClass>com.nickrobison.cmsauthz.JavaClientApplication</mainClass>
     </properties>
 
